@@ -1,5 +1,5 @@
 # Execution Plan — CGM Ventures Deal Calculator
-**Last updated:** Phase 2 planning
+**Last updated:** 2026-04-26 — all phases complete, app live on Vercel
 
 ---
 
@@ -8,10 +8,10 @@
 | Phase | Name | Status |
 |---|---|---|
 | Phase 1 | Calculator logic + formula engine | ✅ Complete |
-| Phase 1.5 | UI/UX overhaul (A → D) | ⚠️ Status unknown — verify before proceeding |
-| Phase 2 | Google Sheets API + deal persistence | 🔜 Next |
-| Phase 3 | Dashboard + deal management | ⏳ Planned |
-| Phase 4 | Vercel deployment | ⏳ Planned |
+| Phase 1.5 | UI/UX overhaul (A → D) | ✅ Complete |
+| Phase 2 | Google Sheets API + deal persistence | ✅ Complete |
+| Phase 3 | Dashboard + deal management | ✅ Complete |
+| Phase 4 | Vercel deployment | ✅ Complete |
 
 ---
 

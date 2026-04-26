@@ -66,7 +66,7 @@ Date: 2026-04-26
 - ✅ Save button: "Save Deal" → "Saving…" → "Saved ✓" → "Update Deal" on re-save
 - ✅ Service account key server-side only (`lib/sheets.ts` imported only in API routes + server component)
 - ✅ HTTP status codes: 200, 201, 400, 404, 500 all correct
-- ⚠️ End-to-end (rows appearing in Google Sheets, loading from URL) requires live browser test — code is correct but not yet run against live Sheets
+- ✅ End-to-end confirmed live: rows appear in Google Sheets, deals load correctly from URL
 
 **Verified:** Excel verification script passed all 12 checks after every file change.
 
@@ -78,7 +78,10 @@ Date: 2026-04-26
 
 **Changed:**
 - `components/DealCard.tsx` — new client component: address, GO/NO-GO badge, score, ARV, money-in-deal, NOI/mo, saved date; click → `/deal/[id]`; delete button with `confirm()` dialog + `router.refresh()`
-- `app/page.tsx` — replaced empty state with server component dashboard: calls `listDeals()` directly, renders `DealCard` grid (3-col desktop / 2-col tablet / 1-col mobile), empty state with CTA when no deals
+- `app/page.tsx` — server component dashboard: calls `listDeals()` via `unstable_cache` (60s TTL, tag `deals`), renders `DealFilters` with deal grid, empty state with CTA when no deals
+- `components/DealFilters.tsx` — new client component: text search (real-time filter by address) + address dropdown (jump directly to `/deal/[id]`)
+- `app/api/deals/route.ts` + `app/api/deals/[id]/route.ts` — added `revalidateTag('deals')` after every mutation (POST, PUT, DELETE) so cache is invalidated immediately on any change
+- `components/ui/FormField.tsx` — fixed `useState` called after conditional return (React hooks rules violation caught by Vercel build)
 
 **Acceptance criteria status:**
 - ✅ Dashboard loads and displays all saved deals from `DEALS_APP` tab
@@ -88,21 +91,38 @@ Date: 2026-04-26
 - ✅ Delete removes the deal from Sheets and refreshes the dashboard
 - ✅ Empty state shown when no deals are saved
 - ✅ `+ Analyze New Deal` opens a blank calculator
+- ✅ Text search filters deal cards in real time by address
+- ✅ Address dropdown navigates directly to a deal without scanning the grid
+- ✅ Dashboard cache: first load hits Sheets API once; subsequent loads served instantly from cache; cache purged automatically on every save/update/delete
 
 **Verified:** Excel verification script passed all 12 checks. `npx tsc --noEmit` zero errors.
 
 ---
 
+## Phase 4 — Vercel Deployment ✅ Complete
+
+Date: 2026-04-26
+
+**Steps completed:**
+- Code pushed to GitHub repo `yuvalmanor/CGM-deal-calculator` (renamed from `prod`)
+- Project imported into Vercel; Root Directory set to `brrrr-calculator`
+- Environment variables added in Vercel dashboard: `GOOGLE_SERVICE_ACCOUNT_KEY`, `GOOGLE_SHEET_ID`
+- App deployed and live at Vercel URL
+
+**Verified:** App loads at live URL. Dashboard shows saved deals. Save/load flow works end-to-end.
+
+---
+
 ## How to Update This File
 
-After completing each phase, add an entry here:
+After completing each phase or significant change, add an entry here:
 
 ```
-### Phase X — [Name] ✅ Complete
+## Phase X — [Name] ✅ Complete
 Date: YYYY-MM-DD
 
 **Changed:**
-- `file` — [what changed]
+- `file` — [what changed and why]
 
-**Verified:** Excel verification script passed all 12 checks.
+**Verified:** Excel verification script passed all 12 checks. `npx tsc --noEmit` zero errors.
 ```

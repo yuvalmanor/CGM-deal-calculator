@@ -137,6 +137,37 @@ regressions immediately.
 
 ---
 
+## Deployment
+
+### Vercel + GitHub (monorepo subfolder)
+**Decision:** Host on Vercel, connected to `yuvalmanor/CGM-deal-calculator` GitHub repo.
+Vercel Root Directory set to `brrrr-calculator` so only the Next.js app is deployed.
+**Rationale:** Vercel is purpose-built for Next.js — zero config for server components, API routes,
+and environment variables. Auto-deploys on every push to `main`.
+**Alternative considered:** Dedicated GitHub repo per project. Rejected because the existing `prod`
+repo (renamed to `CGM-deal-calculator`) already contained only this project — no benefit to splitting.
+**Decided:** Phase 4, April 2026.
+
+### Dashboard caching: `unstable_cache` + `revalidateTag`
+**Decision:** Wrap `listDeals()` in Next.js `unstable_cache` with tag `deals` and a 60-second TTL.
+All mutation routes (POST, PUT, DELETE) call `revalidateTag('deals')` immediately after writing to Sheets.
+**Rationale:** The Sheets API round-trip is 300–600ms regardless of data size. Fetching addresses-only
+would have the same latency with less useful dashboard data. Caching eliminates the round-trip on
+repeat loads while tag-based invalidation keeps the dashboard consistent after any mutation.
+**Alternative considered:** Addresses-only initial load, full data on selection. Rejected: same latency,
+worse UX (dashboard cards would show no score/ARV/NOI).
+**Alternative considered:** Pagination. Rejected: overkill for expected scale; adds API complexity.
+**Decided:** Phase 3, April 2026.
+
+### Dashboard filtering: client-side, no server round-trip
+**Decision:** `DealFilters.tsx` filters the full deal list in memory on every keystroke.
+The address dropdown navigates directly to `/deal/[id]` on selection.
+**Rationale:** The full metadata list (A–G only, no JSON blobs) is small even at hundreds of deals.
+Client-side filtering is instant; server-side filtering would add a round-trip per keystroke.
+**Decided:** Phase 3, April 2026.
+
+---
+
 ## Future Decisions (Deferred)
 
 | Topic | Status | Notes |
