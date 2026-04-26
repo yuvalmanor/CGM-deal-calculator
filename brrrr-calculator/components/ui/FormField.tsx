@@ -45,6 +45,7 @@ function formatDisplay(type: 'currency' | 'percent' | 'integer', value: number):
 export default function FormField(props: Props) {
   const { label, hint, className = '' } = props
   const [focused, setFocused] = useState(false)
+  const [rawText, setRawText] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
 
   const baseInput =
@@ -87,7 +88,6 @@ export default function FormField(props: Props) {
 
   // numeric types
   const { type, value, onChange } = props as NumberFieldProps
-  const [rawText, setRawText] = useState('')
 
   const displayValue = focused ? rawText : (value === 0 ? '' : formatDisplay(type, value))
   const prefix = type === 'currency' ? '$' : null
