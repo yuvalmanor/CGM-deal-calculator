@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(New-Item -ItemType Directory -Path \"C:\\\\YuvalManorPrivate\\\\prod\\\\brrrr-calculator\\\\scripts\" -Force)",
+      "Bash(node scripts/run_calc.mjs)",
+      "Bash(python scripts/verify_excel.py)",
+      "Bash(npx tsc *)",
+      "Bash(git add *)"
+    ]
+  }
+}

@@ -1,0 +1,349 @@
+# Calculation Reference
+
+All formulas implemented in `lib/calculations.ts`. Numbers are stored as raw decimals (rates as `0.07`, not `7`). Dollar amounts are plain JavaScript numbers.
+
+---
+
+## Inputs
+
+### DealInputs — Property Fields
+
+| Field | Type | Default | Notes |
+|---|---|---|---|
+| `purchasePrice` | number | 0 | Purchase price you're evaluating |
+| `rehabEstimate` | number | 0 | Contractor scope-of-work estimate |
+| `changeOrders` | number | 0 | Buffer for overruns; paid out-of-pocket, not financed |
+| `marketRent` | number | 0 | Gross monthly rental income at stabilization |
+| `arv` | number | 0 | After-Repair Value — appraised or comp-based |
+| `sqft` | number | 0 | Livable square footage |
+| `exitStrategy` | `'rental'\|'flip'` | `'rental'` | Determines ROI display (switches to "SOLD" for flip) |
+
+### DealInputs — Overrides
+
+| Field | Sentinel | Behavior |
+|---|---|---|
+| `rehabMonthsManual` | `0` | Auto: `(rehab + changeOrders) / 30,000` |
+| `rehabMonthsManual` | `> 0` | Use this value directly |
+| `closingCostsBuyOverride` | `-1` | Auto: `PP × 2%` |
+| `closingCostsBuyOverride` | `0` | Exactly $0 |
+| `closingCostsBuyOverride` | `> 0` | Exact dollar amount |
+| `hmlLoanPP` | `0` | Use `hmlLeveragePP × PP` from LenderSettings |
+| `hmlLoanRehab` | `0` | Use `hmlLeverageRehab × rehab` — OR `$0` if `hmlLoanPP > 0` |
+| `refiLTVOverride` | `0` | Auto back-solve for $300/mo cash flow, cap 65% |
+| `refiLTVOverride` | `> 0` | Use this LTV (e.g. `0.65`) |
+| `refiTitleCostsOverride` | `0` | Auto: `ARV × 2% + $500` |
+| `refiTitleCostsOverride` | `> 0` | Exact dollar amount |
+| `otherAdjustmentsAtClose` | any | Deducted from money-in-deal in both scenarios (credits, prepaid items) |
+
+### DealInputs — Monthly Expenses
+
+| Field | Default | Notes |
+|---|---|---|
+| `propertyTaxMonthly` | 125 | Annual tax ÷ 12 |
+| `insuranceMonthly` | 100 | Annual premium ÷ 12 |
+| `hoaMonthly` | 0 | HOA dues |
+| `stateIncomeTaxMonthly` | 0 | State landlord income tax if applicable |
+| `mortgageIOMonthly` | 0 | Interest-only payment for comparison; not calculated |
+| `pmMode` | `'percent'` | `'percent'` or `'fixed'` |
+| `pmRate` | `0.10` | Used when `pmMode = 'percent'` |
+| `pmFixed` | `0` | Used when `pmMode = 'fixed'` |
+| `customExpenses` | `[]` | Array of `CustomExpense` objects |
+
+### CustomExpense
+
+```typescript
+{ id: string, name: string, amountMonthly: number, funded: boolean }
+```
+
+`funded = false` → included in `totalPITI` and reduces NOI.
+`funded = true` → displayed but excluded from all calculations (stub).
+
+### LenderSettings — HML
+
+| Field | Default | Notes |
+|---|---|---|
+| `hmlLeveragePP` | `0.75` | % of PP financed (used when `hmlLoanPP = 0`) |
+| `hmlLeverageRehab` | `1.0` | % of rehab financed (used when in leverage mode) |
+| `hmlMonthlyRate` | `0.01` | Monthly interest rate (1%/mo = 12%/yr) |
+| `hmlPointsPct` | `0.01` | Origination points as % of loan |
+| `hmlAppraisalCost` | `500` | BPO/appraisal fee |
+| `hmlUnderwritingFees` | `800` | Admin/underwriting fee |
+| `hmlOtherFees` | `2000` | Misc post-closing fees |
+| `hmlExtraFees` | `0` | Any additional deal-specific fees |
+
+### LenderSettings — Refi
+
+| Field | Default | Notes |
+|---|---|---|
+| `refiAnnualRate` | `0.07` | 30-yr fixed rate |
+| `refiPointsPct` | `0.03` | Origination points |
+| `refiAppraisalCost` | `500` | Refi appraisal |
+| `refiUnderwritingFees` | `1200` | Refi underwriting |
+| `refiOtherFees` | `3500` | Misc + impound setup |
+
+### LenderSettings — MAO Targets
+
+| Field | Default | Meaning |
+|---|---|---|
+| `maxMoneyInDeal` | `65000` | Max capital you'll leave in one deal after refi |
+| `minEquityPct` | `0.20` | Min equity % required post-refi |
+
+---
+
+## Section 1 — Property Metrics
+
+```
+rehabMonths   = rehabMonthsManual > 0
+                  ? rehabMonthsManual
+                  : (rehab + changeOrders) / 30,000
+
+closingCostsBuy = closingCostsBuyOverride >= 0
+                    ? closingCostsBuyOverride
+                    : PP × 0.02
+
+holdingCosts  = rehabMonths × (tax + ins + hoa + stateTax) + $300 × rehabMonths
+
+allInCost     = PP + closingCostsBuy + rehab + changeOrders + holdingCosts
+
+ppsqftPurchase = PP / sqft
+ppsqftSale     = ARV / sqft
+```
+
+**Holding costs** use the actual monthly expenses entered for the property (not estimated). The `$300/mo` is a misc buffer.
+
+---
+
+## Section 2 — Cash Flip
+
+```
+closingCostsSell = ARV × 0.02
+agentCosts       = (ARV × 0.06) + $500
+cashFlipProfit   = ARV − (allInCost + closingCostsSell + agentCosts)
+cashFlipROI      = cashFlipProfit / allInCost
+```
+
+---
+
+## Section 3 — HML Loan
+
+```
+useHmlDollars    = (hmlLoanPP > 0) OR (hmlLoanRehab > 0)
+
+ppFinancedAmt    = useHmlDollars ? hmlLoanPP    : hmlLeveragePP × PP
+rehabFinancedAmt = useHmlDollars ? hmlLoanRehab : hmlLeverageRehab × rehab
+
+hmlLoanRaw = ppFinancedAmt + rehabFinancedAmt
+hmlLoan    = min(hmlLoanRaw, ARV × 0.75)          ← hard cap at 75% of ARV
+
+hmlCashToClose   = allInCost − hmlLoan
+hmlMonthlyInterest = hmlMonthlyRate × hmlLoan
+hmlTotalInterest   = seasoningMonths × hmlMonthlyInterest
+hmlPointsDollar    = hmlPointsPct × hmlLoan
+hmlTotalFees       = hmlAppraisalCost + hmlUnderwritingFees
+                     + hmlOtherFees + hmlPointsDollar + hmlExtraFees
+hmlTotalDebt       = hmlLoan + hmlTotalInterest + hmlTotalFees
+
+hmlFlipProfit = ARV − (hmlTotalDebt + hmlCashToClose + closingCostsSell + agentCosts)
+hmlFlipROI    = hmlFlipProfit / hmlCashToClose
+```
+
+---
+
+## Section 4 — Property Management
+
+```
+pmFee = (pmMode = 'fixed') ? pmFixed : rent × pmRate
+```
+
+---
+
+## Section 5 — Custom Expenses
+
+```
+customExpenseTotal = Σ { e.amountMonthly | e.funded = false }
+```
+
+Funded expenses are stored but not included in any calculation (stub for future use).
+
+---
+
+## Section 6 — Refi LTV
+
+The LTV is back-solved from the target cash flow using the **Present Value of an Annuity** formula:
+
+```
+targetPayment = rent − tax − ins − hoa − stateTax − capexReserve − pmFee − $300
+
+PV(r, n, pmt) = pmt × (1 − (1+r)^−n) / r
+  where r = refiAnnualRate / 12,  n = 360
+
+ltv300cashflow = PV(refiAnnualRate, 360, targetPayment) / ARV
+
+refiLTV = (refiLTVOverride > 0)
+            ? refiLTVOverride
+            : min(max(ltv300cashflow, 0), 0.65)
+```
+
+This answers: "What is the highest LTV at which this deal still produces $300/mo net cash flow?" The result is then hard-capped at 65%.
+
+---
+
+## Section 7 — Cash-Out Refi
+
+```
+refiLoanAmount   = ARV × refiLTV
+refiPointsDollar = refiPointsPct × refiLoanAmount
+refiFees         = refiAppraisalCost + refiUnderwritingFees
+                   + refiPointsDollar + refiOtherFees
+refiFeePct       = refiFees / refiLoanAmount
+
+refiTitleCosts   = (refiTitleCostsOverride > 0)
+                     ? refiTitleCostsOverride
+                     : ARV × 0.02 + $500
+
+cashFromLender   = refiLoanAmount − refiFees − refiTitleCosts
+netCashAtClosing = cashFromLender − hmlTotalDebt
+```
+
+`netCashAtClosing ≥ 0` → full BRRRR (lender pays off HML and gives you cash back).
+`netCashAtClosing < 0` → partial BRRRR (you owe money at closing to pay off HML).
+
+---
+
+## Section 8 — PITI / Monthly Cash Flow
+
+```
+capexReserve  = rent × 0.15
+mortgagePI    = PMT(refiAnnualRate/12, 360, refiLoanAmount)
+
+  PMT(r, n, P) = P × r / (1 − (1+r)^−n)
+
+totalPITI     = tax + ins + hoa + stateTax + capexReserve + pmFee
+                + mortgagePI + customExpenseTotal
+
+totalIOExpenses = tax + ins + hoa + stateTax + capexReserve + pmFee
+                  + mortgageIOMonthly + customExpenseTotal
+
+dscr = rent / (mortgagePI + ins + tax)
+```
+
+**DSCR ≥ 1.25** is typically required by lenders to approve a cash-out refi.
+
+---
+
+## Section 9 — Money in Deal
+
+```
+moneyInDeal (HML)  = hmlCashToClose − netCashAtClosing − otherAdjustmentsAtClose
+moneyInDeal (Cash) = allInCost − cashFromLender − otherAdjustmentsAtClose
+```
+
+Both scenarios subtract `otherAdjustmentsAtClose`. This matches the Excel sheet where rows 39 and 55 both subtract the same deal-specific cash items (prepaid insurance, earnest money credits, seller concessions, etc.).
+
+---
+
+## Section 10 — Bottom Line: Cash Scenario
+
+```
+cashEquityDollar = ARV − allInCost
+cashEquityPct    = cashEquityDollar / allInCost
+
+cashNOI_PI = rent − totalPITI
+cashNOI_IO = rent − totalIOExpenses
+
+cashROI_PI = (cashNOI_PI × 12) / cashMoneyLeftInDeal   [if rental]
+cashROI_IO = (cashNOI_IO × 12) / cashMoneyLeftInDeal   [if rental]
+```
+
+### Scoring
+
+```
+equityScore = cashEquityPct ≥ 35% → 10
+              cashEquityPct ≥ 30% → 9
+              cashEquityPct ≥ 20% → 8
+              else                → 0
+
+roiScore    = cashROI_PI ≥ 10% → 10
+              cashROI_PI ≥  9% → 9
+              ...
+              cashROI_PI ≥  5% → 5
+              else              → 0
+
+totalScore  = equityScore + roiScore + locationScore   (out of 30)
+```
+
+---
+
+## Section 11 — Bottom Line: HML Scenario
+
+```
+propertyEquityPostRefi = ARV − refiLoanAmount − (closingCostsSell + agentCosts)
+
+hmlEquityPctPostRefi = (propertyEquityPostRefi − moneyInDeal) / moneyInDeal
+
+hmlEquityDollar = ARV − allInCost
+hmlEquityPct    = hmlEquityDollar / allInCost
+
+hmlNOI_PI = rent − totalPITI          (same as Cash scenario)
+hmlNOI_IO = rent − totalIOExpenses
+
+hmlROI_PI = (hmlNOI_PI × 12) / moneyInDeal   [if rental]
+hmlROI_IO = (hmlNOI_IO × 12) / moneyInDeal   [if rental]
+```
+
+Scoring uses the same `scoreEquity` / `scoreROI` functions, but applies to `hmlEquityPctPostRefi` and `hmlROI_PI`.
+
+---
+
+## Section 12 — Maximum Allowable Offer (MAO)
+
+Both formulas solve for PP algebraically, holding ARV and all settings constant.
+
+```
+hmlCostFactor = hmlMonthlyRate × seasoningMonths + hmlPointsPct
+hmlFixedFees  = hmlAppraisalCost + hmlUnderwritingFees + hmlOtherFees + hmlExtraFees
+
+MAO-1 (keep money-in-deal ≤ maxMoneyInDeal):
+  = (maxMoneyInDeal
+     − changeOrders − holdingCosts − hmlFixedFees
+     − rehab × (1 + hmlLeverageRehab × hmlCostFactor)
+     + cashFromLender)
+    / (1 + 0.02 + hmlLeveragePP × hmlCostFactor)
+
+MAO-2 (keep equity ≥ minEquityPct post-refi):
+  refiFixedFees = refiAppraisalCost + refiUnderwritingFees + refiOtherFees
+
+  = (propertyEquityPostRefi / (1 + minEquityPct)
+     − rehab − changeOrders − holdingCosts
+     − hmlLeverageRehab × rehab × hmlCostFactor
+     − hmlFixedFees
+     − refiFixedFees
+     − 0.02 × ARV − $500
+     + refiLoanAmount × (1 − refiPointsPct))
+    / (1.02 + hmlLeveragePP × hmlCostFactor)
+
+maoDiscount = max((PP − MAO-1)/PP,  (PP − MAO-2)/PP)
+```
+
+`maoDiscount > 0` means the current asking price exceeds both MAOs — you need to negotiate down. `maoDiscount ≤ 0` means the asking price is already within target on both measures.
+
+---
+
+## Validation
+
+All formulas were verified against column YB of `Deal Calc CGM V2.xlsx` (1805 Cedar Wood Trl, Anna TX) using Python:
+
+```python
+# Key verified results
+holding_costs  → 945.33   ✓
+all_in_cost    → 247,995.33  ✓
+hml_loan       → 160,000  ✓
+hml_total_debt → 167,793.67  ✓
+refi_loan      → 195,000  ✓
+cash_from_lender → 183,771  ✓
+net_cash_close  → 15,977.33  ✓
+money_in_deal   → 60,208  ✓
+mortgage_pi     → 1,297.34  ✓
+dscr            → 1.2739  ✓
+prop_equity     → 80,500  ✓
+```
