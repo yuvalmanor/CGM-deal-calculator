@@ -163,6 +163,7 @@ export interface DealResults {
 
   // Bottom Line – HML
   propertyEquityPostRefi: number
+  propertyEquityLiquidation: number
   hmlMoneyInDeal: number
   hmlEquityPostRefi: number
   hmlEquityPctPostRefi: number
@@ -172,13 +173,33 @@ export interface DealResults {
   hmlROI_PI: number
   hmlNOI_IO: number
   hmlROI_IO: number
+  hmlAnnualCashflow_PI: number
+  hmlAnnualCashflow_IO: number
   hmlEquityScore: number
   hmlROIScore: number
   hmlTotalScore: number
 
+  // Annual cashflow – Cash
+  cashAnnualCashflow_PI: number
+  cashAnnualCashflow_IO: number
+
   // Lender custom fee totals
   hmlCustomFeesTotal: number
   refiCustomFeesTotal: number
+
+  // Phase 5 — new metrics
+  pitiSum: number
+  totalOperatingExpenses: number
+  capRate: number
+  grm: number
+  cashROE: number
+  hmlROE: number
+  forcedEquityROI: number
+  equityMarginOnARV: number
+  equityPctBook: number
+  irr2pct: number
+  irr3pct: number
+  irr4pct: number
 
   // MAO
   mao1: number

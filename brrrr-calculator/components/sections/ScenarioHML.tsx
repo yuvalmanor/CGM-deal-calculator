@@ -65,6 +65,8 @@ export default function ScenarioHML({ results: r, inputs: i }: Props) {
               : (e.name || 'Unnamed')
             return <ResultRow key={e.id} label={label} value={fmtCurrency(monthlyAmt)} indent />
           })}
+          <ResultRow label="PITI (PI + Tax + Ins + HOA)" value={fmtCurrency(r.pitiSum)} indent metricId="piti_sum" />
+          <ResultRow label="Total Operating Expenses (PITI + CapEx + PM + Custom)" value={fmtCurrency(r.totalOperatingExpenses)} indent metricId="total_operating_expenses" />
           <ResultRow
             label="Net Cashflow /mo"
             value={fmtCurrency(r.cashNOI_PI)}

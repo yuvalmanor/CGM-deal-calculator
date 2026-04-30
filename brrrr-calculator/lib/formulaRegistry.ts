@@ -48,11 +48,11 @@ export const formulaRegistry: Record<string, FormulaEntry> = {
 
   dscr: {
     title: 'DSCR (Debt Service Coverage Ratio)',
-    formula: 'Gross Rent ÷ (Mortgage PI + Insurance + Property Tax)',
+    formula: 'Gross Rent ÷ (Mortgage PI + Insurance + Property Tax + HOA)',
     calcFn: (r, i) => {
       const rent = r.cashNOI_PI + r.totalPITI
-      const debtService = r.mortgagePI + i.insuranceMonthly + i.propertyTaxMonthly
-      return `${fmtCurrency(rent)} ÷ (${fmtCurrency(r.mortgagePI)} + ${fmtCurrency(i.insuranceMonthly)} + ${fmtCurrency(i.propertyTaxMonthly)}) = ${fmtNumber(r.dscr)}`
+      const debtService = r.mortgagePI + i.insuranceMonthly + i.propertyTaxMonthly + i.hoaMonthly
+      return `${fmtCurrency(rent)} ÷ (${fmtCurrency(r.mortgagePI)} + ${fmtCurrency(i.insuranceMonthly)} + ${fmtCurrency(i.propertyTaxMonthly)} + ${fmtCurrency(i.hoaMonthly)}) = ${fmtNumber(r.dscr)}`
     },
     note: 'Most DSCR lenders require ≥ 1.25 to approve a cash-out refinance. Values below 1.0 mean the property does not cover its debt service.',
   },
@@ -567,5 +567,95 @@ export const formulaRegistry: Record<string, FormulaEntry> = {
     formula: 'Input — monthly state income tax estimate',
     calcFn: (r, i) => `${fmtCurrency(i.stateIncomeTaxMonthly)}/mo`,
     note: 'Estimated state income tax on rental income. TX has no state income tax — set to $0 for Texas properties.',
+  },
+
+  // ── Phase 5 — new metrics ────────────────────────────────────────────────
+
+  piti_sum: {
+    title: 'PITI (PI + Tax + Ins + HOA)',
+    formula: 'Mortgage PI + Property Tax + Insurance + HOA + State Tax',
+    calcFn: (r, i) =>
+      `${fmtCurrency(r.mortgagePI)} + ${fmtCurrency(i.propertyTaxMonthly)} + ${fmtCurrency(i.insuranceMonthly)} + ${fmtCurrency(i.hoaMonthly)} + ${fmtCurrency(i.stateIncomeTaxMonthly)} = ${fmtCurrency(r.pitiSum)}/mo`,
+    note: 'Debt service plus fixed ownership costs. Does not include CapEx, PM, or custom expenses.',
+  },
+
+  total_operating_expenses: {
+    title: 'Total Operating Expenses (PITI + CapEx + PM + Custom)',
+    formula: 'PITI + CapEx Reserve + PM Fee + Custom Expenses',
+    calcFn: (r) =>
+      `${fmtCurrency(r.pitiSum)} + ${fmtCurrency(r.capexReserve)} + ${fmtCurrency(r.pmFee)} + ${fmtCurrency(r.customExpenseTotal)} = ${fmtCurrency(r.totalOperatingExpenses)}/mo`,
+    note: 'Everything you pay monthly. Net Cashflow = Gross Rent − Total Operating Expenses.',
+  },
+
+  cap_rate: {
+    title: 'Cap Rate',
+    formula: 'Annual NOI ÷ ARV',
+    calcFn: (r, i) => {
+      const annualNOI = (i.marketRent - i.propertyTaxMonthly - i.insuranceMonthly - i.hoaMonthly - i.stateIncomeTaxMonthly - r.capexReserve - r.pmFee - r.customExpenseTotal) * 12
+      return `(${fmtCurrency(annualNOI / 12)}/mo × 12) ÷ ${fmtCurrency(i.arv)} = ${fmtPct(r.capRate)}`
+    },
+    note: 'Unlevered return on the property. Excludes debt service so it is financing-independent. Useful for comparing properties.',
+  },
+
+  grm: {
+    title: 'GRM (Gross Rent Multiplier)',
+    formula: 'ARV ÷ (Gross Rent × 12)',
+    calcFn: (r, i) =>
+      `${fmtCurrency(i.arv)} ÷ (${fmtCurrency(i.marketRent)} × 12) = ${r.grm.toFixed(1)}×`,
+    note: 'Lower GRM = relatively cheaper property vs. its rent. Useful for quick screening; does not account for expenses.',
+  },
+
+  annual_cashflow: {
+    title: 'Annual Cash Flow',
+    formula: 'Monthly Net Cashflow × 12',
+    calcFn: (r) =>
+      `HML (PI): ${fmtCurrency(r.hmlNOI_PI)}/mo × 12 = ${fmtCurrency(r.hmlAnnualCashflow_PI)}/yr\n` +
+      `HML (IO): ${fmtCurrency(r.hmlNOI_IO)}/mo × 12 = ${fmtCurrency(r.hmlAnnualCashflow_IO)}/yr\n` +
+      `Cash (PI): ${fmtCurrency(r.cashNOI_PI)}/mo × 12 = ${fmtCurrency(r.cashAnnualCashflow_PI)}/yr`,
+    note: 'Annual cashflow across scenarios. Used in IRR projections and ROE calculations.',
+  },
+
+  roe: {
+    title: 'Return on Equity (ROE)',
+    formula: 'Annual Cashflow ÷ Equity',
+    calcFn: (r) =>
+      `Cash ROE: ${fmtCurrency(r.cashAnnualCashflow_PI)}/yr ÷ ${fmtCurrency(r.cashNOI_PI > 0 ? r.cashAnnualCashflow_PI / r.cashROE : 0)} ARV = ${fmtPct(r.cashROE)}\n` +
+      `HML ROE: ${fmtCurrency(r.hmlAnnualCashflow_PI)}/yr ÷ ${fmtCurrency(r.propertyEquityPostRefi)} book equity = ${fmtPct(r.hmlROE)}`,
+    note: 'Cash ROE uses ARV as denominator (no leverage). HML ROE uses book equity post-refi (ARV − refi loan). Both measure how hard the equity is working.',
+  },
+
+  forced_equity_roi: {
+    title: 'Forced Equity ROI',
+    formula: '(ARV − All-in Cost) ÷ All-in Cost',
+    calcFn: (r, i) =>
+      `(${fmtCurrency(i.arv)} − ${fmtCurrency(r.allInCost)}) ÷ ${fmtCurrency(r.allInCost)} = ${fmtPct(r.forcedEquityROI)}`,
+    note: 'Capital efficiency on day 1 — equity created per dollar invested. Used for equity scoring (≥35%=10, ≥30%=9, ≥20%=8). This is book equity relative to cost basis; see also Equity Margin on ARV for the 70%-rule view.',
+  },
+
+  equity_margin_arv: {
+    title: 'Equity Margin on ARV',
+    formula: '(ARV − All-in Cost) ÷ ARV',
+    calcFn: (r, i) =>
+      `(${fmtCurrency(i.arv)} − ${fmtCurrency(r.allInCost)}) ÷ ${fmtCurrency(i.arv)} = ${fmtPct(r.equityMarginOnARV)}`,
+    note: 'Safety cushion expressed as a share of ARV. The 70% rule targets ≥ 30%. Shows how far ARV can fall before you lose money.',
+  },
+
+  equity_pct_book: {
+    title: 'True Equity % (book, post-refi)',
+    formula: '(ARV − Refi Loan) ÷ ARV',
+    calcFn: (r, i) =>
+      `(${fmtCurrency(i.arv)} − ${fmtCurrency(r.refiLoanAmount)}) ÷ ${fmtCurrency(i.arv)} = ${fmtPct(r.equityPctBook)}`,
+    note: 'Your ownership fraction of the property after refinancing (= 1 − LTV). This is book equity — it does not deduct sale costs. A future toggle will let you switch between book equity and liquidation equity (book − sale costs).',
+  },
+
+  irr_scenarios: {
+    title: '5-Year IRR (2% / 3% / 4% appreciation)',
+    formula: 'IRR on: [−MoneyInDeal, annual CFs × 60 months, + exit proceeds at month 60]',
+    calcFn: (r) =>
+      `2% appreciation: ${fmtPct(r.irr2pct)}\n` +
+      `3% appreciation: ${fmtPct(r.irr3pct)}\n` +
+      `4% appreciation: ${fmtPct(r.irr4pct)}\n` +
+      `Exit = projected ARV × 92% − remaining loan balance after 60 payments`,
+    note: 'Annualised total return (cashflow + amortization + appreciation + exit) over a 5-year hold. Uses Newton-Raphson IRR on monthly cashflows. Returns 0 if money-in-deal ≤ $0 (full BRRRR — infinite ROI case).',
   },
 }

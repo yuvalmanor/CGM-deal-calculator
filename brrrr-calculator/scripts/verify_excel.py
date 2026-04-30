@@ -33,6 +33,22 @@ TOLERANCES = {
 }
 DEFAULT_TOLERANCE = 1.0
 
+# Overrides for rows where the app formulas were corrected in Phase 5
+# but the Excel reference sheet still uses the old definitions.
+# These are the authoritative correct values — do not revert.
+#
+# Fix A: DSCR now includes HOA in denominator
+# Fix B: HML fees paid at closing (not future debt) → lower hml_total_debt,
+#         higher net_cash_closing / money_in_deal_hml
+# Fix E: prop_equity = book equity (ARV − refi loan, no sale costs)
+MANUAL_EXPECTED = {
+    "hml_total_debt":    163980.16,
+    "net_cash_closing":  19790.84,
+    "money_in_deal_hml": 62861.16,
+    "prop_equity":       105000.0,
+    "dscr":              1.2531,
+}
+
 
 def read_excel_values():
     wb = openpyxl.load_workbook(EXCEL_PATH, data_only=True)
@@ -75,10 +91,11 @@ def run_app_calc():
 def compare(excel_vals, app_vals):
     passed = 0
     failed = 0
-    print(f"\n{'RESULT':<25} {'EXCEL (col C)':>15} {'APP OUTPUT':>15} {'STATUS':>10}")
+    print(f"\n{'RESULT':<25} {'EXPECTED':>15} {'APP OUTPUT':>15} {'STATUS':>10}")
     print("-" * 70)
     for key in EXCEL_ROWS:
-        expected = excel_vals[key]
+        # Use corrected expected values where Excel retains old formulas
+        expected = MANUAL_EXPECTED.get(key, excel_vals[key])
         actual = app_vals.get(key)
         if actual is None:
             print(f"{key:<25} {expected:>15.2f} {'MISSING':>15} {'FAIL':>10}")

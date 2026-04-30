@@ -3,23 +3,6 @@
 // Self-contained JS translation of lib/calculations.ts (types stripped).
 // Prints JSON of key DealResults fields for comparison against Excel column C.
 
-function scoreEquity(pct) {
-  if (pct >= 0.35) return 10
-  if (pct >= 0.30) return 9
-  if (pct >= 0.20) return 8
-  return 0
-}
-
-function scoreROI(roi) {
-  if (roi >= 0.10) return 10
-  if (roi >= 0.09) return 9
-  if (roi >= 0.08) return 8
-  if (roi >= 0.07) return 7
-  if (roi >= 0.06) return 6
-  if (roi >= 0.05) return 5
-  return 0
-}
-
 function pmt(annualRate, periods, principal) {
   if (principal === 0) return 0
   const r = annualRate / 12
@@ -70,13 +53,13 @@ function calculateDeal(inputs, s) {
     ? closingCostsBuyOverride
     : pp * 0.02
 
-  const holdingCosts = rehabMonths * (tax + ins + hoa + stateTax) + 300 * rehabMonths
+  // Fix D: flip uses rehabMonths + seasoning for holding; rental uses only rehabMonths
+  const holdMonths  = exitStrategy === 'flip' ? rehabMonths + months : rehabMonths
+  const holdingCosts = holdMonths * (tax + ins + hoa + stateTax + 300)
   const allInCost    = pp + closingCostsBuy + rehab + changeOrders + holdingCosts
 
   const closingCostsSell = arv * 0.02
   const agentCosts       = arv * 0.06 + 500
-  const cashFlipProfit   = arv - (allInCost + closingCostsSell + agentCosts)
-  const cashFlipROI      = allInCost > 0 ? cashFlipProfit / allInCost : 0
 
   const useHmlDollars    = hmlLoanPP > 0 || hmlLoanRehab > 0
   const ppFinancedAmt    = useHmlDollars ? hmlLoanPP    : s.hmlLeveragePP * pp
@@ -84,16 +67,15 @@ function calculateDeal(inputs, s) {
   const hmlLoanRaw       = ppFinancedAmt + rehabFinancedAmt
   const hmlLoan          = hmlLoanRaw > 0 ? Math.min(hmlLoanRaw, arv * 0.75) : 0
 
-  const hmlCashToClose     = allInCost - hmlLoan
   const hmlMonthlyInterest = s.hmlMonthlyRate * hmlLoan
   const hmlTotalInterest   = months * hmlMonthlyInterest
   const hmlPointsDollar    = s.hmlPointsPct * hmlLoan
   const hmlTotalFees       = s.hmlAppraisalCost + s.hmlUnderwritingFees
     + s.hmlOtherFees + hmlPointsDollar + s.hmlExtraFees
-  const hmlTotalDebt       = hmlLoan + hmlTotalInterest + hmlTotalFees
 
-  const hmlFlipProfit = arv - (hmlTotalDebt + hmlCashToClose + closingCostsSell + agentCosts)
-  const hmlFlipROI    = hmlCashToClose > 0 ? hmlFlipProfit / hmlCashToClose : 0
+  // Fix B: fees are paid at closing (added to cash-to-close), not future debt
+  const hmlCashToClose = allInCost - hmlLoan + hmlTotalFees
+  const hmlTotalDebt   = hmlLoan + hmlTotalInterest
 
   const pmFee = pmMode === 'fixed' ? pmFixed : rent * pmRate
 
@@ -129,13 +111,21 @@ function calculateDeal(inputs, s) {
 
   const moneyInDeal  = hmlCashToClose - netCashAtClosing - otherAdjustmentsAtClose
   const mortgagePI   = pmt(s.refiAnnualRate, 360, refiLoanAmount)
-  const totalPITI    = tax + ins + hoa + stateTax + capexReserve + pmFee + mortgagePI + customExpenseTotal
-  const dscr         = (mortgagePI + ins + tax) > 0 ? rent / (mortgagePI + ins + tax) : 0
+
+  const totalPITI = tax + ins + hoa + stateTax + capexReserve + pmFee + mortgagePI + customExpenseTotal
+
+  // Fix C: negative seasoning cashflow adds real capital cost
+  const hmlNOI_PI        = rent - totalPITI
+  const seasoningDeficit = hmlNOI_PI < 0 ? Math.abs(hmlNOI_PI) * months : 0
+  const hmlMoneyInDeal   = moneyInDeal + seasoningDeficit
+
+  // Fix A: DSCR denominator includes HOA
+  const dscr = (mortgagePI + ins + tax + hoa) > 0 ? rent / (mortgagePI + ins + tax + hoa) : 0
 
   const cashMoneyLeftInDeal = allInCost - cashFromLender - otherAdjustmentsAtClose
 
-  const propertyEquityPostRefi = arv - refiLoanAmount - (closingCostsSell + agentCosts)
-  const hmlMoneyInDeal         = moneyInDeal
+  // Fix E: book equity = ARV - refi loan (no sale costs)
+  const propertyEquityPostRefi = arv - refiLoanAmount
 
   return {
     holdingCosts, allInCost,
