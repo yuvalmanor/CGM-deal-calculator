@@ -9,6 +9,7 @@ import Scorecard              from './sections/Scorecard'
 import CustomExpensesPanel    from './sections/CustomExpensesPanel'
 import CustomExpensesSummary  from './sections/CustomExpensesSummary'
 import LenderCustomFeesPanel  from './sections/LenderCustomFeesPanel'
+import AdvancedMetrics         from './sections/AdvancedMetrics'
 import Card                   from './ui/Card'
 import FormulaModal           from './ui/FormulaModal'
 import { calculateDeal }      from '@/lib/calculations'
@@ -242,6 +243,11 @@ export default function DealCalculator({ initialInputs, initialSettings, initial
               <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-gray-400">At a Glance</p>
               <SummaryBar results={results} />
             </div>
+
+            {/* Advanced metrics */}
+            <Card title="Advanced Metrics" accent="bg-purple-400" collapsible defaultOpen={false}>
+              <AdvancedMetrics results={results} />
+            </Card>
 
             {/* Scenario tabs */}
             <Card title="Scenario Analysis" subtitle="Rental (BRRRR) · Fix & Flip – Cash · Fix & Flip – HML" accent="bg-blue-400">

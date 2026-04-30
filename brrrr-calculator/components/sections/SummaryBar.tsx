@@ -1,9 +1,8 @@
 'use client'
+import { useState } from 'react'
 import { useModal } from '@/lib/modalContext'
 import { fmtCurrency, fmtPct, fmtNumber } from '@/lib/format'
 import type { DealResults } from '@/lib/types'
-
-interface Props { results: DealResults }
 
 interface KPIProps {
   label: string
@@ -32,10 +31,21 @@ function KPICard({ label, value, sub, colorClass, metricId }: KPIProps) {
   )
 }
 
+interface Props { results: DealResults }
+
 export default function SummaryBar({ results: r }: Props) {
+  const openModal = useModal()
+  const [equityView, setEquityView] = useState<'book' | 'liquidation'>('book')
+
+  const equityValue = equityView === 'book' ? r.propertyEquityPostRefi : r.propertyEquityLiquidation
+  const equitySub = equityView === 'book'
+    ? (r.hmlMoneyInDeal > 0 ? fmtPct(r.hmlEquityPctPostRefi) + ' vs capital' : undefined)
+    : 'after 8% sale costs'
+
   const cashflowColor = r.hmlNOI_PI >= 300 ? 'text-green-600' : r.hmlNOI_PI >= 100 ? 'text-amber-500' : 'text-red-500'
   const roiColor      = r.hmlROI_PI >= 0.08 ? 'text-green-600' : r.hmlROI_PI >= 0.05 ? 'text-amber-500' : 'text-red-500'
   const dscrColor     = r.dscr >= 1.25 ? 'text-green-600' : r.dscr >= 1.0 ? 'text-amber-500' : 'text-red-500'
+
   return (
     <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
       <KPICard
@@ -50,13 +60,40 @@ export default function SummaryBar({ results: r }: Props) {
         colorClass={roiColor}
         metricId="roi"
       />
-      <KPICard
-        label="Equity post-Refi"
-        value={fmtCurrency(r.hmlEquityPostRefi)}
-        sub={r.hmlMoneyInDeal > 0 ? fmtPct(r.hmlEquityPctPostRefi) + ' return on capital' : undefined}
-        colorClass="text-gray-900"
-        metricId="equity_kpi"
-      />
+
+      {/* Equity card with book / liquidation toggle */}
+      <div className="relative flex flex-col rounded-lg bg-gray-50 px-4 py-3">
+        <button
+          type="button"
+          onClick={() => openModal('equity_kpi')}
+          className="absolute right-2 top-2 flex h-4 w-4 items-center justify-center rounded-full bg-gray-200 text-[10px] font-bold text-gray-400 hover:bg-blue-50 hover:text-blue-500 transition-colors"
+          aria-label="Show formula"
+        >?</button>
+        <span className="text-lg font-bold text-gray-900">{fmtCurrency(equityValue)}</span>
+        {equitySub && <span className="mt-0.5 text-xs text-gray-500">{equitySub}</span>}
+        <span className="mt-0.5 text-xs text-gray-400">Equity post-Refi</span>
+        <div className="mt-2 flex gap-1">
+          <button
+            type="button"
+            onClick={() => setEquityView('book')}
+            className={`rounded-full px-2 py-0.5 text-[10px] font-medium transition-colors ${
+              equityView === 'book'
+                ? 'bg-blue-100 text-blue-700'
+                : 'bg-gray-200 text-gray-500 hover:bg-gray-300'
+            }`}
+          >Book</button>
+          <button
+            type="button"
+            onClick={() => setEquityView('liquidation')}
+            className={`rounded-full px-2 py-0.5 text-[10px] font-medium transition-colors ${
+              equityView === 'liquidation'
+                ? 'bg-blue-100 text-blue-700'
+                : 'bg-gray-200 text-gray-500 hover:bg-gray-300'
+            }`}
+          >Liquidation</button>
+        </div>
+      </div>
+
       <KPICard
         label="DSCR"
         value={fmtNumber(r.dscr)}
