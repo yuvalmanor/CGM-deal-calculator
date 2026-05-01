@@ -1,21 +1,27 @@
 'use client'
 import { useModal } from '@/lib/modalContext'
 import { fmtCurrency, fmtPct, fmtNumber } from '@/lib/format'
-import type { DealResults } from '@/lib/types'
+import type { DealResults, DealInputs } from '@/lib/types'
+import Scorecard from './Scorecard'
+
+const clickableLabelCls = 'truncate text-xs text-gray-500 text-left underline decoration-dashed decoration-gray-300 underline-offset-2 hover:text-blue-500 hover:decoration-blue-300 transition-colors cursor-pointer'
 
 function MetricItem({ label, value, metricId }: { label: string; value: string; metricId?: string }) {
   const openModal = useModal()
   return (
     <div className="flex items-center justify-between gap-2 rounded-lg bg-gray-50 px-3 py-2">
-      <div className="flex min-w-0 items-center gap-1">
-        <span className="truncate text-xs text-gray-500">{label}</span>
-        {metricId && (
+      <div className="flex min-w-0 items-center">
+        {metricId ? (
           <button
             type="button"
             onClick={() => openModal(metricId)}
-            className="flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full bg-gray-200 text-[10px] font-bold text-gray-400 hover:bg-blue-50 hover:text-blue-500 transition-colors"
-            aria-label="Show formula"
-          >?</button>
+            className={clickableLabelCls}
+            aria-label={`Show formula for ${label}`}
+          >
+            {label}
+          </button>
+        ) : (
+          <span className="truncate text-xs text-gray-500">{label}</span>
         )}
       </div>
       <span className="flex-shrink-0 text-xs font-semibold text-gray-900">{value}</span>
@@ -23,13 +29,22 @@ function MetricItem({ label, value, metricId }: { label: string; value: string; 
   )
 }
 
-interface Props { results: DealResults }
+interface Props { results: DealResults; inputs: DealInputs }
 
-export default function AdvancedMetrics({ results: r }: Props) {
+export default function AdvancedMetrics({ results: r, inputs }: Props) {
   const openModal = useModal()
+  const isFlip = inputs.exitStrategy === 'flip'
 
   return (
     <div className="space-y-4">
+
+      {/* Scorecard — first item inside Advanced Metrics */}
+      {!isFlip && (
+        <div>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">Scorecard</p>
+          <Scorecard results={r} inputs={inputs} />
+        </div>
+      )}
 
       {/* Valuation */}
       <div>
@@ -72,15 +87,14 @@ export default function AdvancedMetrics({ results: r }: Props) {
 
       {/* 5-Year IRR */}
       <div>
-        <div className="mb-2 flex items-center gap-1">
-          <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">5-Year IRR</p>
-          <button
-            type="button"
-            onClick={() => openModal('irr_scenarios')}
-            className="flex h-4 w-4 items-center justify-center rounded-full bg-gray-200 text-[10px] font-bold text-gray-400 hover:bg-blue-50 hover:text-blue-500 transition-colors"
-            aria-label="Show formula"
-          >?</button>
-        </div>
+        <button
+          type="button"
+          onClick={() => openModal('irr_scenarios')}
+          className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400 underline decoration-dashed decoration-gray-300 underline-offset-2 hover:text-blue-500 hover:decoration-blue-300 transition-colors cursor-pointer"
+          aria-label="Show formula for 5-Year IRR"
+        >
+          5-Year IRR
+        </button>
         <div className="grid grid-cols-3 gap-2">
           {([
             { label: '2% appr.', value: r.irr2pct },

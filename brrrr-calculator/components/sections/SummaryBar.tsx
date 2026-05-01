@@ -4,6 +4,8 @@ import { useModal } from '@/lib/modalContext'
 import { fmtCurrency, fmtPct, fmtNumber } from '@/lib/format'
 import type { DealResults } from '@/lib/types'
 
+const clickableLabelCls = 'mt-0.5 text-left text-xs text-gray-400 underline decoration-dashed decoration-gray-300 underline-offset-2 hover:text-blue-500 hover:decoration-blue-300 transition-colors cursor-pointer'
+
 interface KPIProps {
   label: string
   value: string
@@ -15,18 +17,17 @@ interface KPIProps {
 function KPICard({ label, value, sub, colorClass, metricId }: KPIProps) {
   const openModal = useModal()
   return (
-    <div className="relative flex flex-col rounded-lg bg-gray-50 px-4 py-3">
+    <div className="flex flex-col rounded-lg bg-gray-50 px-4 py-3">
+      <span className={`text-lg font-bold ${colorClass}`}>{value}</span>
+      {sub && <span className="mt-0.5 text-xs text-gray-500">{sub}</span>}
       <button
         type="button"
         onClick={() => openModal(metricId)}
-        className="absolute right-2 top-2 flex h-4 w-4 items-center justify-center rounded-full bg-gray-200 text-[10px] font-bold text-gray-400 hover:bg-blue-50 hover:text-blue-500 transition-colors"
-        aria-label="Show formula"
+        className={clickableLabelCls}
+        aria-label={`Show formula for ${label}`}
       >
-        ?
+        {label}
       </button>
-      <span className={`text-lg font-bold ${colorClass}`}>{value}</span>
-      {sub && <span className="mt-0.5 text-xs text-gray-500">{sub}</span>}
-      <span className="mt-0.5 text-xs text-gray-400">{label}</span>
     </div>
   )
 }
@@ -62,16 +63,17 @@ export default function SummaryBar({ results: r }: Props) {
       />
 
       {/* Equity card with book / liquidation toggle */}
-      <div className="relative flex flex-col rounded-lg bg-gray-50 px-4 py-3">
+      <div className="flex flex-col rounded-lg bg-gray-50 px-4 py-3">
+        <span className="text-lg font-bold text-gray-900">{fmtCurrency(equityValue)}</span>
+        {equitySub && <span className="mt-0.5 text-xs text-gray-500">{equitySub}</span>}
         <button
           type="button"
           onClick={() => openModal('equity_kpi')}
-          className="absolute right-2 top-2 flex h-4 w-4 items-center justify-center rounded-full bg-gray-200 text-[10px] font-bold text-gray-400 hover:bg-blue-50 hover:text-blue-500 transition-colors"
-          aria-label="Show formula"
-        >?</button>
-        <span className="text-lg font-bold text-gray-900">{fmtCurrency(equityValue)}</span>
-        {equitySub && <span className="mt-0.5 text-xs text-gray-500">{equitySub}</span>}
-        <span className="mt-0.5 text-xs text-gray-400">Equity post-Refi</span>
+          className={clickableLabelCls}
+          aria-label="Show formula for Equity post-Refi"
+        >
+          Equity post-Refi
+        </button>
         <div className="mt-2 flex gap-1">
           <button
             type="button"

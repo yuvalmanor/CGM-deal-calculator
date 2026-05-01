@@ -2,12 +2,12 @@
 import type { CustomExpense } from '@/lib/types'
 
 interface Props {
-  expenses: CustomExpense[]
-  onChange: (expenses: CustomExpense[]) => void
+  items: CustomExpense[]
+  onChange: (items: CustomExpense[]) => void
 }
 
-function newExpense(): CustomExpense {
-  return { id: Math.random().toString(36).slice(2), name: '', amount: 0, frequency: 'one-time', funded: false }
+function newItem(): CustomExpense {
+  return { id: Math.random().toString(36).slice(2), name: '', amount: 0, frequency: 'monthly', funded: false }
 }
 
 function TrashIcon() {
@@ -18,45 +18,40 @@ function TrashIcon() {
   )
 }
 
-export default function CustomExpensesPanel({ expenses, onChange }: Props) {
+export default function MonthlyCustomCostsPanel({ items, onChange }: Props) {
   const update = (id: string, patch: Partial<CustomExpense>) =>
-    onChange(expenses.map(e => e.id === id ? { ...e, ...patch } : e))
+    onChange(items.map(i => i.id === id ? { ...i, ...patch } : i))
 
-  const remove = (id: string) => onChange(expenses.filter(e => e.id !== id))
+  const remove = (id: string) => onChange(items.filter(i => i.id !== id))
 
   return (
     <div className="space-y-2">
-      {expenses.length === 0 && (
-        <p className="py-3 text-center text-sm text-gray-400">
-          No one-time costs yet — add inspections, surveys, legal fees, etc.
-        </p>
-      )}
-
-      {expenses.map(expense => (
-        <div key={expense.id} className="flex items-center gap-2">
+      {items.map(item => (
+        <div key={item.id} className="flex items-center gap-2">
           <input
             type="text"
-            value={expense.name}
-            onChange={e => update(expense.id, { name: e.target.value })}
-            placeholder="Cost description"
-            className="min-w-0 flex-1 rounded-md border border-gray-200 bg-white px-2 py-1.5 text-sm focus:border-amber-400 focus:outline-none"
+            value={item.name}
+            onChange={e => update(item.id, { name: e.target.value })}
+            placeholder="Expense name"
+            className="min-w-0 flex-1 rounded-md border border-gray-200 bg-white px-2 py-1.5 text-sm focus:border-green-500 focus:outline-none"
           />
           <div className="relative flex-shrink-0">
             <span className="pointer-events-none absolute inset-y-0 left-2 flex items-center text-sm text-gray-400">$</span>
             <input
               type="number"
               min="0"
-              value={expense.amount || ''}
-              onChange={e => update(expense.id, { amount: parseFloat(e.target.value) || 0 })}
+              value={item.amount || ''}
+              onChange={e => update(item.id, { amount: parseFloat(e.target.value) || 0 })}
               placeholder="0"
-              className="w-28 rounded-md border border-gray-200 bg-white py-1.5 pl-6 pr-2 text-sm focus:border-amber-400 focus:outline-none"
+              className="w-28 rounded-md border border-gray-200 bg-white py-1.5 pl-6 pr-2 text-sm focus:border-green-500 focus:outline-none"
             />
+            <span className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-xs text-gray-400">/mo</span>
           </div>
           <button
             type="button"
-            onClick={() => remove(expense.id)}
+            onClick={() => remove(item.id)}
             className="flex-shrink-0 text-gray-300 transition-colors hover:text-red-400"
-            aria-label="Remove cost"
+            aria-label="Remove expense"
           >
             <TrashIcon />
           </button>
@@ -65,13 +60,13 @@ export default function CustomExpensesPanel({ expenses, onChange }: Props) {
 
       <button
         type="button"
-        onClick={() => onChange([...expenses, newExpense()])}
+        onClick={() => onChange([...items, newItem()])}
         className="flex items-center gap-1.5 text-xs font-medium text-gray-400 transition-colors hover:text-gray-600"
       >
         <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
         </svg>
-        + Add one-time cost
+        + Add monthly expense
       </button>
     </div>
   )

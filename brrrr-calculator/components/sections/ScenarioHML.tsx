@@ -11,22 +11,46 @@ export default function ScenarioHML({ results: r, inputs: i }: Props) {
 
   const oneTimeExpenses  = i.customExpenses.filter(e => !e.funded && e.frequency === 'one-time')
   const recurringExpenses = i.customExpenses.filter(e => !e.funded && e.frequency !== 'one-time')
+  const rehabCosts = i.rehabCustomCosts ?? []
+  const oneTimeTotal = oneTimeExpenses.reduce((s, e) => s + e.amount, 0)
 
   return (
     <div className="space-y-4">
 
       {/* ── Deal Anatomy ─────────────────────────────────────────── */}
-      <div>
-        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">Deal Anatomy</p>
+      <div className="rounded-xl bg-amber-50 p-3">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-700">Deal Anatomy</p>
         <div className="space-y-1">
           <ResultRow label="Purchase Price" value={fmtCurrency(i.purchasePrice)} metricId="pp" />
           <ResultRow label="Total Rehab" value={fmtCurrency(i.rehabEstimate + i.changeOrders)} metricId="rehab_total" />
+
+          {/* Rehab additional costs */}
+          {rehabCosts.map(c => (
+            <ResultRow
+              key={c.id}
+              label={`${c.name || 'Rehab extra'} (${c.funded ? 'funded' : 'cash'})`}
+              value={fmtCurrency(c.amount)}
+              indent
+            />
+          ))}
+
           <ResultRow label="Closing Costs" value={fmtCurrency(r.closingCostsBuy)} metricId="closing_buy" />
           <ResultRow label="Holding Costs" value={fmtCurrency(r.holdingCosts)} sub={`${r.rehabMonths.toFixed(1)} mo`} metricId="holding" />
           <ResultRow label="All-in (Cash)" value={fmtCurrency(r.allInCost)} bold separator metricId="all_in" />
-          {oneTimeExpenses.map(e => (
-            <ResultRow key={e.id} label={`${e.name || 'Unnamed'} (one-time)`} value={fmtCurrency(e.amount)} indent />
-          ))}
+
+          {/* One-Time Costs subtotal block */}
+          {oneTimeExpenses.length > 0 && (
+            <>
+              <div className="my-1 border-t border-amber-200" />
+              <p className="py-0.5 text-[11px] font-semibold uppercase tracking-wide text-amber-600">One-Time Costs</p>
+              {oneTimeExpenses.map(e => (
+                <ResultRow key={e.id} label={e.name || 'Unnamed'} value={fmtCurrency(e.amount)} indent />
+              ))}
+              <ResultRow label="One-Time Costs Total" value={fmtCurrency(oneTimeTotal)} bold />
+              <div className="my-1 border-t border-amber-200" />
+            </>
+          )}
+
           <ResultRow label="ARV" value={fmtCurrency(i.arv)} metricId="arv" />
           <ResultRow label="Refi Loan" value={fmtCurrency(r.refiLoanAmount)} metricId="refi_loan" />
           <ResultRow label="Refi Closing Costs" value={fmtCurrency(r.refiFees + r.refiTitleCosts)} metricId="refi_total" />
@@ -43,8 +67,8 @@ export default function ScenarioHML({ results: r, inputs: i }: Props) {
       </div>
 
       {/* ── Monthly P&L ──────────────────────────────────────────── */}
-      <div>
-        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">Monthly P&L</p>
+      <div className="rounded-xl bg-green-50 p-3">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-green-700">Monthly P&L</p>
         <div className="space-y-1">
           <ResultRow label="Gross Rent" value={fmtCurrency(i.marketRent)} bold metricId="gross_rent" />
           <ResultRow label="Mortgage P+I" value={fmtCurrency(r.mortgagePI)} indent metricId="mortgage_pi" />
@@ -78,8 +102,8 @@ export default function ScenarioHML({ results: r, inputs: i }: Props) {
       </div>
 
       {/* ── HML Expenses ─────────────────────────────────────────── */}
-      <div className="rounded-lg bg-blue-50 p-3">
-        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-blue-500">HML Expenses</p>
+      <div className="rounded-xl bg-sky-50 p-3">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-700">HML Expenses</p>
         <div className="space-y-1">
           <ResultRow label="HML Loan Principal" value={fmtCurrency(r.hmlLoan)} bold metricId="hml_principal" />
           <ResultRow label="Total Interest" value={fmtCurrency(r.hmlTotalInterest)} indent metricId="hml_interest" />
@@ -93,8 +117,8 @@ export default function ScenarioHML({ results: r, inputs: i }: Props) {
       </div>
 
       {/* ── Refi Expenses ────────────────────────────────────────── */}
-      <div className="rounded-lg bg-blue-50 p-3">
-        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-blue-500">Refi Expenses</p>
+      <div className="rounded-xl bg-teal-50 p-3">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-teal-700">Refi Expenses</p>
         <div className="space-y-1">
           <ResultRow label="Refi Loan Amount" value={fmtCurrency(r.refiLoanAmount)} bold metricId="refi_loan" />
           <ResultRow label="Points" value={fmtCurrency(r.refiPointsDollar)} indent metricId="refi_points" />

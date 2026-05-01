@@ -44,9 +44,9 @@ export const DEFAULT_DEAL_INPUTS: DealInputs = {
   pmRate: 0.10,
   pmFixed: 0,
   customExpenses: [
-    { id: 'ce1', name: 'City inspection', amount: 300, frequency: 'annual', funded: false },
     { id: 'ce2', name: 'Lawn maintenance', amount: 80, frequency: 'monthly', funded: false },
   ],
+  rehabCustomCosts: [],
   hmlCustomFees: [],
   refiCustomFees: [],
   hmlLoanPP: 0,

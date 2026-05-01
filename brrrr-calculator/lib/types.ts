@@ -4,6 +4,13 @@ export interface LenderFee {
   amount: number
 }
 
+export interface RehabCost {
+  id: string
+  name: string
+  amount: number
+  funded: boolean
+}
+
 export interface CustomExpense {
   id: string
   name: string
@@ -51,6 +58,9 @@ export interface DealInputs {
 
   // Custom expense line items
   customExpenses: CustomExpense[]
+
+  // Rehab additional costs (display only; funded toggle is informational)
+  rehabCustomCosts: RehabCost[]
 
   // Lender custom fees (one-time fixed amounts added to loan cost)
   hmlCustomFees: LenderFee[]

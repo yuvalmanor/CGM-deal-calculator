@@ -3,6 +3,7 @@ interface Props {
   title: string
   subtitle?: string
   accent?: string
+  bg?: string
   children: React.ReactNode
   className?: string
   collapsible?: boolean
@@ -11,11 +12,11 @@ interface Props {
 
 import { useState } from 'react'
 
-export default function Card({ title, subtitle, accent, children, className = '', collapsible = false, defaultOpen = true }: Props) {
+export default function Card({ title, subtitle, accent, bg, children, className = '', collapsible = false, defaultOpen = true }: Props) {
   const [open, setOpen] = useState(defaultOpen)
 
   return (
-    <div className={`rounded-xl border border-gray-200 bg-white shadow-sm ${className}`}>
+    <div className={`rounded-xl border border-gray-200 ${bg ?? 'bg-white'} shadow-sm ${className}`}>
       <div
         className={`flex items-center justify-between px-5 py-4 ${collapsible ? 'cursor-pointer select-none' : ''}`}
         onClick={collapsible ? () => setOpen(o => !o) : undefined}

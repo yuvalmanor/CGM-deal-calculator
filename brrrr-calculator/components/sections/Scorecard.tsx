@@ -19,17 +19,14 @@ function ScoreItem({ label, score, bracket, metricId }: ScoreItemProps) {
 
   return (
     <div className="flex flex-col items-center rounded-lg bg-gray-50 px-3 py-3 text-center">
-      <div className="flex items-center gap-1">
-        <span className="text-xs font-medium text-gray-600">{label}</span>
-        <button
-          type="button"
-          onClick={() => openModal(metricId)}
-          className="flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full bg-gray-200 text-[10px] font-bold text-gray-400 hover:bg-blue-50 hover:text-blue-500 transition-colors"
-          aria-label="Show formula"
-        >
-          ?
-        </button>
-      </div>
+      <button
+        type="button"
+        onClick={() => openModal(metricId)}
+        className="text-xs font-medium text-gray-600 underline decoration-dashed decoration-gray-300 underline-offset-2 hover:text-blue-500 hover:decoration-blue-300 transition-colors cursor-pointer"
+        aria-label={`Show formula for ${label}`}
+      >
+        {label}
+      </button>
       <span className={`mt-1 text-xl font-bold ${color}`}>
         {score}<span className="text-sm font-normal text-gray-400">/10</span>
       </span>
