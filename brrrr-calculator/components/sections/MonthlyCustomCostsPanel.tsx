@@ -26,37 +26,58 @@ export default function MonthlyCustomCostsPanel({ items, onChange }: Props) {
 
   return (
     <div className="space-y-2">
-      {items.map(item => (
-        <div key={item.id} className="flex items-center gap-2">
-          <input
-            type="text"
-            value={item.name}
-            onChange={e => update(item.id, { name: e.target.value })}
-            placeholder="Expense name"
-            className="min-w-0 flex-1 rounded-md border border-gray-200 bg-white px-2 py-1.5 text-sm focus:border-green-500 focus:outline-none"
-          />
-          <div className="relative flex-shrink-0">
-            <span className="pointer-events-none absolute inset-y-0 left-2 flex items-center text-sm text-gray-400">$</span>
-            <input
-              type="number"
-              min="0"
-              value={item.amount || ''}
-              onChange={e => update(item.id, { amount: parseFloat(e.target.value) || 0 })}
-              placeholder="0"
-              className="w-28 rounded-md border border-gray-200 bg-white py-1.5 pl-6 pr-2 text-sm focus:border-green-500 focus:outline-none"
-            />
-            <span className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-xs text-gray-400">/mo</span>
+      {items.map(item => {
+        const freq = (item.frequency === 'annual' ? 'annual' : 'monthly') as 'monthly' | 'annual'
+        return (
+          <div key={item.id} className="space-y-1.5">
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={item.name}
+                onChange={e => update(item.id, { name: e.target.value })}
+                placeholder="Expense name"
+                className="min-w-0 flex-1 rounded-md border border-gray-200 bg-white px-2 py-1.5 text-sm focus:border-green-500 focus:outline-none"
+              />
+              <div className="relative flex-shrink-0">
+                <span className="pointer-events-none absolute inset-y-0 left-2 flex items-center text-sm text-gray-400">$</span>
+                <input
+                  type="number"
+                  min="0"
+                  value={item.amount || ''}
+                  onChange={e => update(item.id, { amount: parseFloat(e.target.value) || 0 })}
+                  placeholder="0"
+                  className="w-24 rounded-md border border-gray-200 bg-white py-1.5 pl-6 pr-2 text-sm focus:border-green-500 focus:outline-none"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => remove(item.id)}
+                className="flex-shrink-0 text-gray-300 transition-colors hover:text-red-400"
+                aria-label="Remove expense"
+              >
+                <TrashIcon />
+              </button>
+            </div>
+            {/* Monthly / Annual toggle */}
+            <div className="flex overflow-hidden rounded-md border border-gray-200 text-[10px] font-medium w-fit">
+              <button
+                type="button"
+                onClick={() => update(item.id, { frequency: 'monthly' })}
+                className={`px-2.5 py-1 transition-colors ${freq === 'monthly' ? 'bg-gray-700 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}
+              >
+                $/mo
+              </button>
+              <button
+                type="button"
+                onClick={() => update(item.id, { frequency: 'annual' })}
+                className={`border-l border-gray-200 px-2.5 py-1 transition-colors ${freq === 'annual' ? 'bg-gray-700 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}
+              >
+                $/yr
+              </button>
+            </div>
           </div>
-          <button
-            type="button"
-            onClick={() => remove(item.id)}
-            className="flex-shrink-0 text-gray-300 transition-colors hover:text-red-400"
-            aria-label="Remove expense"
-          >
-            <TrashIcon />
-          </button>
-        </div>
-      ))}
+        )
+      })}
 
       <button
         type="button"

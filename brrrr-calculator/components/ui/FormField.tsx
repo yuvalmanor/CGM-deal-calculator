@@ -55,7 +55,7 @@ export default function FormField(props: Props) {
   if (props.type === 'select') {
     return (
       <div className={className}>
-        <label className="mb-1 block text-xs font-medium text-gray-600">{label}</label>
+        {label && <label className="mb-1 block text-xs font-medium text-gray-600">{label}</label>}
         <select
           value={props.value}
           onChange={e => props.onChange(e.target.value)}
@@ -73,7 +73,7 @@ export default function FormField(props: Props) {
   if (props.type === 'text') {
     return (
       <div className={className}>
-        <label className="mb-1 block text-xs font-medium text-gray-600">{label}</label>
+        {label && <label className="mb-1 block text-xs font-medium text-gray-600">{label}</label>}
         <input
           type="text"
           value={props.value}
@@ -112,7 +112,7 @@ export default function FormField(props: Props) {
 
   return (
     <div className={className}>
-      <label className="mb-1 block text-xs font-medium text-gray-600">{label}</label>
+      {label && <label className="mb-1 block text-xs font-medium text-gray-600">{label}</label>}
       <div className="relative">
         {prefix && (
           <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-gray-400">

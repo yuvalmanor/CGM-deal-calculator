@@ -1,21 +1,22 @@
 'use client'
 import { useState, useMemo, useCallback } from 'react'
-import PropertyInputs         from './sections/PropertyInputs'
-import LenderSettingsPanel    from './sections/LenderSettingsPanel'
-import SummaryBar             from './sections/SummaryBar'
-import ScenarioPanel          from './sections/ScenarioPanel'
-import MAOCard                from './sections/MAOCard'
-import CustomExpensesPanel    from './sections/CustomExpensesPanel'
-import LenderCustomFeesPanel  from './sections/LenderCustomFeesPanel'
-import RehabCostsPanel        from './sections/RehabCostsPanel'
+import PropertyInputs          from './sections/PropertyInputs'
+import LenderSettingsPanel     from './sections/LenderSettingsPanel'
+import SummaryBar              from './sections/SummaryBar'
+import ScenarioPanel           from './sections/ScenarioPanel'
+import MAOCard                 from './sections/MAOCard'
+import CustomExpensesPanel     from './sections/CustomExpensesPanel'
+import LenderCustomFeesPanel   from './sections/LenderCustomFeesPanel'
+import RehabInputsPanel        from './sections/RehabInputsPanel'
 import MonthlyCustomCostsPanel from './sections/MonthlyCustomCostsPanel'
-import AdvancedMetrics        from './sections/AdvancedMetrics'
-import Card                   from './ui/Card'
-import FormulaModal           from './ui/FormulaModal'
-import { calculateDeal }      from '@/lib/calculations'
+import AdvancedMetrics         from './sections/AdvancedMetrics'
+import Card                    from './ui/Card'
+import FormField               from './ui/FormField'
+import FormulaModal            from './ui/FormulaModal'
+import { calculateDeal }       from '@/lib/calculations'
 import { DEFAULT_DEAL_INPUTS, DEFAULT_LENDER_SETTINGS } from '@/lib/defaults'
-import { ModalContext }       from '@/lib/modalContext'
-import type { CustomExpense, LenderFee, RehabCost, DealInputs, LenderSettings } from '@/lib/types'
+import { ModalContext }        from '@/lib/modalContext'
+import type { CustomExpense, LenderFee, DealInputs, LenderSettings } from '@/lib/types'
 
 interface Props {
   initialInputs?: Partial<DealInputs>
@@ -50,9 +51,9 @@ export default function DealCalculator({ initialInputs, initialSettings, initial
   const openModal  = useCallback((id: string) => setModalMetricId(id), [])
   const closeModal = useCallback(() => setModalMetricId(null), [])
 
-  // Split customExpenses by frequency — panels manage their own slice
-  const oneTimeCosts   = inputs.customExpenses.filter(e => e.frequency === 'one-time')
-  const monthlyCosts   = inputs.customExpenses.filter(e => e.frequency === 'monthly')
+  // Split customExpenses by frequency so each panel manages only its slice
+  const oneTimeCosts = inputs.customExpenses.filter(e => e.frequency === 'one-time')
+  const monthlyCosts = inputs.customExpenses.filter(e => e.frequency === 'monthly' || e.frequency === 'annual')
 
   const handleOneTimeCostsChange = (updated: CustomExpense[]) => {
     const others = inputs.customExpenses.filter(e => e.frequency !== 'one-time')
@@ -60,7 +61,7 @@ export default function DealCalculator({ initialInputs, initialSettings, initial
   }
 
   const handleMonthlyCostsChange = (updated: CustomExpense[]) => {
-    const others = inputs.customExpenses.filter(e => e.frequency !== 'monthly')
+    const others = inputs.customExpenses.filter(e => e.frequency !== 'monthly' && e.frequency !== 'annual')
     updateInputs({ customExpenses: [...others, ...updated] })
   }
 
@@ -111,7 +112,7 @@ export default function DealCalculator({ initialInputs, initialSettings, initial
         <div className="lg:w-80 lg:flex-shrink-0 lg:sticky lg:top-[53px] lg:h-[calc(100vh-53px)] lg:overflow-y-auto">
           <div className="space-y-4 pb-8">
 
-            {/* Property Info — no color (not paired with a specific output section) */}
+            {/* 0. Property Info */}
             <div>
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">Property Info</p>
               <PropertyInputs inputs={inputs} onChange={updateInputs}
@@ -120,65 +121,26 @@ export default function DealCalculator({ initialInputs, initialSettings, initial
 
             <hr className="border-gray-100" />
 
-            {/* Deal Numbers — amber, paired with Deal Anatomy */}
+            {/* 1. Deal Numbers — amber, paired with Deal Anatomy */}
             <div className="rounded-xl border border-amber-100 bg-amber-50 p-3">
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-700">Deal Numbers</p>
               <PropertyInputs inputs={inputs} onChange={updateInputs}
                 autoRehabMonths={autoRehabMonths} section="purchase" />
+            </div>
 
-              {/* Rehab Additional Costs (5c) */}
-              <div className="mt-4">
-                <p className="mb-2 text-xs font-medium text-amber-700">Rehab Additional Costs</p>
-                <RehabCostsPanel
-                  costs={inputs.rehabCustomCosts ?? []}
-                  onChange={(rehabCustomCosts: RehabCost[]) => updateInputs({ rehabCustomCosts })}
-                />
-              </div>
+            {/* 2. Rehab — amber family */}
+            <div className="rounded-xl border border-amber-100 bg-amber-50/60 p-3">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-amber-700">Rehab</p>
+              <RehabInputsPanel inputs={inputs} onChange={updateInputs} />
             </div>
 
             <hr className="border-gray-100" />
 
-            <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">Market</p>
-              <PropertyInputs inputs={inputs} onChange={updateInputs}
-                autoRehabMonths={autoRehabMonths} section="market" />
-            </div>
-
-            <hr className="border-gray-100" />
-
-            {/* HML — sky blue, paired with HML Expenses */}
-            <Card title="Hard Money Lender" accent="bg-sky-400" bg="bg-sky-50" collapsible defaultOpen={true}>
-              <LenderSettingsPanel settings={settings} onChange={updateSettings} section="hml" />
-              <hr className="my-3 border-sky-100" />
-              <LenderCustomFeesPanel
-                fees={inputs.hmlCustomFees}
-                onChange={(hmlCustomFees: LenderFee[]) => updateInputs({ hmlCustomFees })}
-                addLabel="Add HML fee"
-                focusColor="focus:border-sky-400"
-              />
-            </Card>
-
-            {/* Refi — teal, paired with Refi Expenses */}
-            <Card title="Refi (Long-Term)" accent="bg-teal-400" bg="bg-teal-50" collapsible defaultOpen={true}>
-              <LenderSettingsPanel settings={settings} onChange={updateSettings} section="refi" />
-              <hr className="my-3 border-teal-100" />
-              <LenderCustomFeesPanel
-                fees={inputs.refiCustomFees}
-                onChange={(refiCustomFees: LenderFee[]) => updateInputs({ refiCustomFees })}
-                addLabel="Add Refi fee"
-                focusColor="focus:border-teal-400"
-              />
-            </Card>
-
-            <hr className="border-gray-100" />
-
-            {/* Monthly Expenses — green, paired with Monthly P&L */}
+            {/* 3. Monthly Expenses — green, paired with Monthly P&L */}
             <div className="rounded-xl border border-green-100 bg-green-50 p-3">
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-green-700">Monthly Expenses</p>
               <PropertyInputs inputs={inputs} onChange={updateInputs}
                 autoRehabMonths={autoRehabMonths} section="piti" />
-
-              {/* Additional monthly costs (5d) */}
               <div className="mt-4">
                 <p className="mb-2 text-xs font-medium text-green-700">Additional Monthly Costs</p>
                 <MonthlyCustomCostsPanel
@@ -190,7 +152,62 @@ export default function DealCalculator({ initialInputs, initialSettings, initial
 
             <hr className="border-gray-100" />
 
-            {/* One-Time Costs (renamed from Custom Expenses, 5e) */}
+            {/* 4. Hard Money Lender — sky blue, paired with HML Expenses */}
+            <Card title="Hard Money Lender" accent="bg-sky-400" bg="bg-sky-50" collapsible defaultOpen={true}>
+              <LenderSettingsPanel settings={settings} onChange={updateSettings} section="hml" />
+              <hr className="my-3 border-sky-100" />
+              <LenderCustomFeesPanel
+                fees={inputs.hmlCustomFees}
+                onChange={(hmlCustomFees: LenderFee[]) => updateInputs({ hmlCustomFees })}
+                addLabel="Add HML fee"
+                focusColor="focus:border-sky-400"
+              />
+            </Card>
+
+            {/* 5. Refi — teal, paired with Refi Expenses */}
+            <Card title="Refi (Long-Term)" accent="bg-teal-400" bg="bg-teal-50" collapsible defaultOpen={true}>
+              <LenderSettingsPanel settings={settings} onChange={updateSettings} section="refi" />
+              <hr className="my-3 border-teal-100" />
+              {/* Fields moved from Deal Numbers / Settings */}
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <FormField
+                  type="integer"
+                  label="Seasoning Months"
+                  value={inputs.seasoningMonths}
+                  onChange={v => updateInputs({ seasoningMonths: v })}
+                  hint="Months before refi / sale"
+                  placeholder="4"
+                />
+                <FormField
+                  type="percent"
+                  label="Refi LTV %"
+                  value={inputs.refiLTVOverride}
+                  onChange={v => updateInputs({ refiLTVOverride: v })}
+                  hint="0 = auto (capped at 65%)"
+                  placeholder="0"
+                />
+                <FormField
+                  type="currency"
+                  label="Refi Title / Escrow ($)"
+                  value={inputs.refiTitleCostsOverride}
+                  onChange={v => updateInputs({ refiTitleCostsOverride: v })}
+                  hint={inputs.refiTitleCostsOverride > 0 ? 'Overriding auto — clear to reset' : 'Auto: ARV×2% + $500'}
+                  placeholder="0"
+                  className="sm:col-span-2"
+                />
+              </div>
+              <hr className="my-3 border-teal-100" />
+              <LenderCustomFeesPanel
+                fees={inputs.refiCustomFees}
+                onChange={(refiCustomFees: LenderFee[]) => updateInputs({ refiCustomFees })}
+                addLabel="Add Refi fee"
+                focusColor="focus:border-teal-400"
+              />
+            </Card>
+
+            <hr className="border-gray-100" />
+
+            {/* 6. One-Time Costs */}
             <div>
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">One-Time Costs</p>
               <CustomExpensesPanel
@@ -201,15 +218,15 @@ export default function DealCalculator({ initialInputs, initialSettings, initial
 
             <hr className="border-gray-100" />
 
-            <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">Settings</p>
+            {/* 7. Settings — slate background for "configuration" feel */}
+            <Card title="Settings" accent="bg-slate-400" bg="bg-slate-100" collapsible defaultOpen={true}>
               <PropertyInputs inputs={inputs} onChange={updateInputs}
                 autoRehabMonths={autoRehabMonths} section="settings" />
               <div className="mt-4">
                 <p className="mb-2 text-xs font-medium text-gray-500">MAO Targets</p>
                 <LenderSettingsPanel settings={settings} onChange={updateSettings} section="mao" />
               </div>
-            </div>
+            </Card>
 
           </div>
         </div>

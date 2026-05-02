@@ -42,7 +42,6 @@ export default function LenderSettingsPanel({ settings, onChange, section = 'all
             <FormField type="currency" label="Appraisal / BPO" value={settings.hmlAppraisalCost} onChange={set('hmlAppraisalCost')} />
             <FormField type="currency" label="Underwriting Fees" value={settings.hmlUnderwritingFees} onChange={set('hmlUnderwritingFees')} />
             <FormField type="currency" label="Other Misc Fees" value={settings.hmlOtherFees} onChange={set('hmlOtherFees')} hint="post-closing misc" />
-            <FormField type="currency" label="Extra / Additional Fees" value={settings.hmlExtraFees} onChange={set('hmlExtraFees')} hint="any deal-specific additions" />
           </div>
         </div>
       )}

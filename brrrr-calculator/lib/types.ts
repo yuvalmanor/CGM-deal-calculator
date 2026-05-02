@@ -9,6 +9,7 @@ export interface RehabCost {
   name: string
   amount: number
   funded: boolean
+  isDefault?: boolean
 }
 
 export interface CustomExpense {
@@ -61,6 +62,21 @@ export interface DealInputs {
 
   // Rehab additional costs (display only; funded toggle is informational)
   rehabCustomCosts: RehabCost[]
+
+  // Change orders mode (percent of rehab or fixed $)
+  changeOrdersMode: 'percent' | 'fixed'
+  changeOrdersPct: number  // decimal, e.g. 0.10 = 10%
+
+  // Monthly expense input modes (user enters monthly or annual)
+  propertyTaxMode: 'monthly' | 'annual'
+  insuranceMode: 'monthly' | 'annual'
+  hoaMode: 'monthly' | 'annual'
+  stateTaxMode: 'monthly' | 'annual'
+
+  // CapEx + Vacancy input mode (percent of rent or fixed $)
+  capexMode: 'percent' | 'fixed'
+  capexRate: number    // decimal, e.g. 0.15 = 15% (display only; calculations use hardcoded 15%)
+  capexFixed: number   // fixed $/mo when capexMode = 'fixed' (display only)
 
   // Lender custom fees (one-time fixed amounts added to loan cost)
   hmlCustomFees: LenderFee[]
