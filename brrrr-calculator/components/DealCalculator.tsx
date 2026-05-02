@@ -208,8 +208,8 @@ export default function DealCalculator({ initialInputs, initialSettings, initial
             <hr className="border-gray-100" />
 
             {/* 6. One-Time Costs */}
-            <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">One-Time Costs</p>
+            <div className="rounded-xl border border-gray-200 bg-[hsl(220,12%,93%)] p-3">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">One-Time Costs</p>
               <CustomExpensesPanel
                 expenses={oneTimeCosts}
                 onChange={handleOneTimeCostsChange}

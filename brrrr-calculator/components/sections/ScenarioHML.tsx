@@ -22,7 +22,22 @@ export default function ScenarioHML({ results: r, inputs: i }: Props) {
         <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-700">Deal Anatomy</p>
         <div className="space-y-1">
           <ResultRow label="Purchase Price" value={fmtCurrency(i.purchasePrice)} metricId="pp" />
-          <ResultRow label="Total Rehab" value={fmtCurrency(i.rehabEstimate + i.changeOrders)} metricId="rehab_total" />
+          {/* Rehab Estimate + Change Orders split with funding badges */}
+          <div className="flex items-center justify-between py-1 pl-3">
+            <div className="flex items-center gap-1.5 min-w-0 mr-2">
+              <span className="text-xs text-gray-500 truncate">Rehab Estimate</span>
+              <span className="flex-shrink-0 rounded-full bg-green-100 px-1.5 py-0.5 text-[10px] font-medium text-green-700">Funded</span>
+            </div>
+            <span className="text-sm font-medium text-gray-800">{fmtCurrency(i.rehabEstimate)}</span>
+          </div>
+          <div className="flex items-center justify-between py-1 pl-3">
+            <div className="flex items-center gap-1.5 min-w-0 mr-2">
+              <span className="text-xs text-gray-500 truncate">Change Orders</span>
+              <span className="flex-shrink-0 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-700">Not Funded</span>
+            </div>
+            <span className="text-sm font-medium text-gray-800">{fmtCurrency(i.changeOrders)}</span>
+          </div>
+          <ResultRow label="Total Rehab" value={fmtCurrency(i.rehabEstimate + i.changeOrders)} bold metricId="rehab_total" />
 
           {/* Rehab additional costs */}
           {rehabCosts.map(c => (
@@ -98,6 +113,17 @@ export default function ScenarioHML({ results: r, inputs: i }: Props) {
             highlight={r.cashNOI_PI >= 300 ? 'green' : r.cashNOI_PI >= 0 ? 'yellow' : 'red'}
             metricId="net_cashflow"
           />
+          <ResultRow
+            label="Net Cashflow (w/o CapEx)"
+            value={fmtCurrency(r.cashNOI_PI + r.capexReserve)}
+            indent
+          />
+          <ResultRow label="CoC ROI (w/ CapEx)"  value={fmtPct(r.hmlROI_PI)}  indent metricId="roi" />
+          <ResultRow
+            label="CoC ROI (w/o CapEx)"
+            value={r.hmlMoneyInDeal > 0 ? fmtPct((r.hmlNOI_PI + r.capexReserve) * 12 / r.hmlMoneyInDeal) : '—'}
+            indent
+          />
         </div>
       </div>
 
@@ -107,6 +133,7 @@ export default function ScenarioHML({ results: r, inputs: i }: Props) {
         <div className="space-y-1">
           <ResultRow label="HML Loan Principal" value={fmtCurrency(r.hmlLoan)} bold metricId="hml_principal" />
           <ResultRow label="Total Interest" value={fmtCurrency(r.hmlTotalInterest)} indent metricId="hml_interest" />
+          <ResultRow label="Interest / mo" value={fmtCurrency(r.hmlMonthlyInterest)} indent />
           <ResultRow label="Points" value={fmtCurrency(r.hmlPointsDollar)} indent metricId="hml_points" />
           <ResultRow label="Lender Fees" value={fmtCurrency(r.hmlTotalFees - r.hmlPointsDollar - r.hmlCustomFeesTotal)} indent metricId="hml_fees" />
           {i.hmlCustomFees.map(f => (
@@ -128,6 +155,7 @@ export default function ScenarioHML({ results: r, inputs: i }: Props) {
           ))}
           <ResultRow label="Title / Closing" value={fmtCurrency(r.refiTitleCosts)} indent metricId="refi_title" />
           <ResultRow label="Total Refi Cost" value={fmtCurrency(r.refiFees + r.refiTitleCosts)} bold separator metricId="refi_total" />
+          <ResultRow label="Mortgage / mo (P+I)" value={fmtCurrency(r.mortgagePI)} indent metricId="mortgage_pi" />
         </div>
       </div>
 

@@ -62,6 +62,10 @@ export default function AdvancedMetrics({ results: r, inputs }: Props) {
           <MetricItem label="Forced Equity ROI" value={fmtPct(r.forcedEquityROI)} metricId="forced_equity_roi" />
           <MetricItem label="Equity Margin on ARV" value={fmtPct(r.equityMarginOnARV)} metricId="equity_margin_arv" />
           <MetricItem label="True Equity % (book)" value={fmtPct(r.equityPctBook)} metricId="equity_pct_book" />
+          <MetricItem
+            label="Equity Multiplier"
+            value={r.hmlMoneyInDeal > 0 ? fmtNumber(r.propertyEquityPostRefi / r.hmlMoneyInDeal, 2) + '×' : '—'}
+          />
         </div>
       </div>
 

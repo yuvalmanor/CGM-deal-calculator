@@ -122,15 +122,6 @@ export default function PropertyInputs({ inputs, onChange, autoRehabMonths, sect
               hint={inputs.closingCostsBuyOverride < 0 ? 'Auto: 2% of PP' : 'Overriding auto (2%)'}
               placeholder={inputs.purchasePrice > 0 ? String(Math.round(inputs.purchasePrice * 0.02)) : '4,600'}
             />
-            <FormField
-              type="currency"
-              label="Out-of-pocket buffer"
-              value={inputs.changeOrders}
-              onChange={set('changeOrders')}
-              hint="Misc cash reserve for the deal"
-              placeholder="5,000"
-              className="sm:col-span-2"
-            />
           </div>
         </div>
       )}

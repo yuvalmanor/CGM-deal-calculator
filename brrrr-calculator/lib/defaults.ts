@@ -53,13 +53,12 @@ export const DEFAULT_DEAL_INPUTS: DealInputs = {
   capexRate: 0.15,
   capexFixed: 0,
   customExpenses: [
-    { id: 'ot_inspection', name: 'Inspection', amount: 550, frequency: 'one-time', funded: false },
+    { id: 'ot_inspection',   name: 'Inspection',   amount: 550, frequency: 'one-time', funded: false },
+    { id: 'ot_cleanup',      name: 'Clean Up',      amount: 300, frequency: 'one-time', funded: false },
+    { id: 'ot_photographer', name: 'Photographer',  amount: 180, frequency: 'one-time', funded: false },
     { id: 'ce_lawn', name: 'Lawn maintenance', amount: 80, frequency: 'monthly', funded: false },
   ],
-  rehabCustomCosts: [
-    { id: 'rc_cleanup', name: 'Clean Up', amount: 300, funded: false, isDefault: true },
-    { id: 'rc_photographer', name: 'Photographer', amount: 180, funded: false, isDefault: true },
-  ],
+  rehabCustomCosts: [],
   hmlCustomFees: [],
   refiCustomFees: [],
   hmlLoanPP: 0,

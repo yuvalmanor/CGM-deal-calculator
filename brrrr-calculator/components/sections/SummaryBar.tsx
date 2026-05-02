@@ -11,7 +11,7 @@ interface KPIProps {
   value: string
   sub?: string
   colorClass: string
-  metricId: string
+  metricId?: string
 }
 
 function KPICard({ label, value, sub, colorClass, metricId }: KPIProps) {
@@ -20,14 +20,18 @@ function KPICard({ label, value, sub, colorClass, metricId }: KPIProps) {
     <div className="flex flex-col rounded-lg bg-gray-50 px-4 py-3">
       <span className={`text-lg font-bold ${colorClass}`}>{value}</span>
       {sub && <span className="mt-0.5 text-xs text-gray-500">{sub}</span>}
-      <button
-        type="button"
-        onClick={() => openModal(metricId)}
-        className={clickableLabelCls}
-        aria-label={`Show formula for ${label}`}
-      >
-        {label}
-      </button>
+      {metricId ? (
+        <button
+          type="button"
+          onClick={() => openModal(metricId)}
+          className={clickableLabelCls}
+          aria-label={`Show formula for ${label}`}
+        >
+          {label}
+        </button>
+      ) : (
+        <span className="mt-0.5 text-left text-xs text-gray-400">{label}</span>
+      )}
     </div>
   )
 }
@@ -47,7 +51,12 @@ export default function SummaryBar({ results: r }: Props) {
   const roiColor      = r.hmlROI_PI >= 0.08 ? 'text-green-600' : r.hmlROI_PI >= 0.05 ? 'text-amber-500' : 'text-red-500'
   const dscrColor     = r.dscr >= 1.25 ? 'text-green-600' : r.dscr >= 1.0 ? 'text-amber-500' : 'text-red-500'
 
+  const cocNoCapex = r.hmlMoneyInDeal > 0 ? (r.hmlNOI_PI + r.capexReserve) * 12 / r.hmlMoneyInDeal : 0
+  const cocNoCapexColor = cocNoCapex >= 0.10 ? 'text-green-600' : cocNoCapex >= 0.06 ? 'text-amber-500' : 'text-red-500'
+  const midColor = r.hmlMoneyInDeal <= 0 ? 'text-green-600' : r.hmlMoneyInDeal <= 65000 ? 'text-gray-900' : 'text-amber-600'
+
   return (
+    <div className="space-y-2">
     <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
       <KPICard
         label="Monthly Cashflow"
@@ -102,6 +111,28 @@ export default function SummaryBar({ results: r }: Props) {
         colorClass={dscrColor}
         metricId="dscr"
       />
+    </div>
+
+    {/* Secondary row: derived metrics */}
+    <div className="grid grid-cols-3 gap-2">
+      <KPICard
+        label="CoC (w/o CapEx)"
+        value={fmtPct(cocNoCapex)}
+        colorClass={cocNoCapexColor}
+      />
+      <KPICard
+        label="Money in Deal"
+        value={fmtCurrency(r.hmlMoneyInDeal)}
+        colorClass={midColor}
+        metricId="money_in_deal"
+      />
+      <KPICard
+        label="Equity %"
+        value={fmtPct(r.hmlEquityPctPostRefi)}
+        colorClass="text-gray-900"
+        metricId="equity_kpi"
+      />
+    </div>
     </div>
   )
 }
