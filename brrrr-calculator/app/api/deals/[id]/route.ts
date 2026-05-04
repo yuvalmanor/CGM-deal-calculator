@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { revalidateTag } from 'next/cache'
-import { loadDeal, updateDeal, deleteDeal } from '@/lib/sheets'
+import { loadDeal, updateDeal, updateDealV2, deleteDeal } from '@/lib/sheets'
 
 export async function GET(
   _request: Request,
@@ -24,6 +24,15 @@ export async function PUT(
 ) {
   try {
     const body = await request.json()
+
+    // v2 payload: flat { address, score, arv, moneyInDeal, monthlyNOI, inputsJson, settingsJson }
+    if (body.inputsJson !== undefined) {
+      await updateDealV2(params.id, body)
+      revalidateTag('deals')
+      return NextResponse.json({ ok: true })
+    }
+
+    // v1 payload: { inputs, settings, results }
     const { inputs, settings, results } = body
     if (!inputs || !settings || !results) {
       return NextResponse.json({ error: 'Missing inputs, settings, or results' }, { status: 400 })

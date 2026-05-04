@@ -8,29 +8,16 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body>
-        <header className="sticky top-0 z-30 border-b border-gray-200 bg-white/90 backdrop-blur-sm">
-          <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
-            <div className="flex items-center gap-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-green-600 text-xs font-bold text-white">
-                CG
-              </div>
-              <span className="font-semibold text-gray-900">CGM Ventures</span>
-              <span className="hidden text-gray-400 sm:inline">· Deal Calculator</span>
-            </div>
-            <nav className="flex items-center gap-4 text-sm">
-              <a href="/" className="text-gray-500 hover:text-gray-900 transition">Deals</a>
-              <a href="/deal/new" className="rounded-lg bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700 transition">
-                + New Deal
-              </a>
-            </nav>
-          </div>
-        </header>
-        <main className="mx-auto max-w-5xl px-4 py-6">
-          {children}
-        </main>
-      </body>
+    <html lang="en" className="h-full">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&display=swap"
+          rel="stylesheet"
+        />
+      </head>
+      <body className="h-full">{children}</body>
     </html>
   )
 }

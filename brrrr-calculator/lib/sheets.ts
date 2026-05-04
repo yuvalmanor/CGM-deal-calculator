@@ -165,6 +165,52 @@ export async function updateDeal(
   })
 }
 
+interface V2Payload {
+  address: string
+  score: number
+  arv: number
+  moneyInDeal: number
+  monthlyNOI: number
+  inputsJson: string
+  settingsJson: string
+}
+
+function buildRowV2(id: string, p: V2Payload): (string | number)[] {
+  return [
+    id, p.address, new Date().toISOString(),
+    p.score, p.arv, p.moneyInDeal, p.monthlyNOI,
+    p.inputsJson, p.settingsJson,
+  ]
+}
+
+export async function saveDealV2(payload: V2Payload): Promise<string> {
+  const client = await getClient()
+  await ensureDealsTab(client)
+  const { sheets, sheetId } = client
+  const id = crypto.randomUUID()
+  await sheets.spreadsheets.values.append({
+    spreadsheetId: sheetId,
+    range: `${TAB}!A:I`,
+    valueInputOption: 'RAW',
+    insertDataOption: 'INSERT_ROWS',
+    requestBody: { values: [buildRowV2(id, payload)] },
+  })
+  return id
+}
+
+export async function updateDealV2(id: string, payload: V2Payload): Promise<void> {
+  const client = await getClient()
+  const { sheets, sheetId } = client
+  const rowNum = await findRowById(client, id)
+  if (!rowNum) throw new Error('NOT_FOUND')
+  await sheets.spreadsheets.values.update({
+    spreadsheetId: sheetId,
+    range: `${TAB}!A${rowNum}:I${rowNum}`,
+    valueInputOption: 'RAW',
+    requestBody: { values: [buildRowV2(id, payload)] },
+  })
+}
+
 export async function deleteDeal(id: string): Promise<void> {
   const client = await getClient()
   const { sheets, sheetId } = client
