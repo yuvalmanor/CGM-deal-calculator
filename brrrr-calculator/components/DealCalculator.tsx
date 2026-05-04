@@ -12,7 +12,6 @@ import MonthlyCustomCostsPanel from './sections/MonthlyCustomCostsPanel'
 import AdvancedMetrics         from './sections/AdvancedMetrics'
 import Card                    from './ui/Card'
 import FormField               from './ui/FormField'
-import FormulaModal            from './ui/FormulaModal'
 import { calculateDeal }       from '@/lib/calculations'
 import { DEFAULT_DEAL_INPUTS, DEFAULT_LENDER_SETTINGS } from '@/lib/defaults'
 import { ModalContext }        from '@/lib/modalContext'
@@ -233,13 +232,7 @@ export default function DealCalculator({ initialInputs, initialSettings, initial
 
         {/* ── Right panel: results ──────────────────────────────── */}
         <div className="relative min-w-0 flex-1">
-          <FormulaModal
-            isOpen={modalMetricId !== null}
-            onClose={closeModal}
-            metricId={modalMetricId}
-            results={results}
-            inputs={inputs}
-          />
+          {/* FormulaModal: not active in design-test branch */}
 
           {/* Deal header — sticky below global nav */}
           <div className="sticky top-[53px] z-10 -mx-4 mb-4 border-b border-gray-200 bg-white px-4 py-3 lg:mx-0 lg:rounded-xl lg:border lg:shadow-sm">
