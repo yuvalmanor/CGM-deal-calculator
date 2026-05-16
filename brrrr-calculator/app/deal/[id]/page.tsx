@@ -17,8 +17,14 @@ export default async function DealPage({ params }: Props) {
     throw err
   }
 
-  // Merge saved data with DEFAULT_DEAL so any newly-added fields get defaults
-  const deal: Deal = { ...DEFAULT_DEAL, ...(rawInputs as Partial<Deal>) }
+  // Merge saved data with DEFAULT_DEAL so any newly-added fields get defaults.
+  // Migrate legacy field name: `otherAdjustmentsAtClose` → `projectCostAdjustments`
+  // (semantic also changed: was a money-in-deal deduction, now a Total Project Cost credit)
+  const rawObj = (rawInputs as Record<string, unknown>) ?? {}
+  if ('otherAdjustmentsAtClose' in rawObj && !('projectCostAdjustments' in rawObj)) {
+    rawObj.projectCostAdjustments = rawObj.otherAdjustmentsAtClose
+  }
+  const deal: Deal = { ...DEFAULT_DEAL, ...(rawObj as Partial<Deal>) }
 
   return <DealCalculatorV2 initialDeal={deal} initialDealId={params.id} />
 }

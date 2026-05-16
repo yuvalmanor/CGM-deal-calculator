@@ -48,9 +48,9 @@ export const formulaRegistry: Record<string, FormulaEntry> = {
 
   moneyInDeal: {
     title: 'Money in deal',
-    formula: 'Total Cash In − Cash Returned at Refi − Other Adjustments',
+    formula: 'Total Cash In − Cash Returned at Refi',
     calcFn: (d, b) =>
-      `${fmtCurrency(b.totalCashIn)} − ${fmtCurrency(b.cashReturnedAtRefi)} − ${fmtCurrency(d.otherAdjustmentsAtClose)} = ${fmtCurrency(b.moneyInDeal)}`,
+      `${fmtCurrency(b.totalCashIn)} − ${fmtCurrency(b.cashReturnedAtRefi)} = ${fmtCurrency(b.moneyInDeal)}`,
     note: 'Capital permanently tied up after refinancing. $0 or negative = full BRRRR (cash back). Target: ≤ $65k.',
   },
 
@@ -95,13 +95,13 @@ export const formulaRegistry: Record<string, FormulaEntry> = {
 
   total_project_cost: {
     title: 'Total project cost',
-    formula: 'Purchase Price + Total Rehab + Additional Rehab Costs + Closing Costs (buy) + One-Time Costs + Holding Costs',
+    formula: 'Purchase Price + Total Rehab + Additional Rehab Costs + Closing Costs (buy) + One-Time Costs + Holding Costs − Project Cost Adjustments',
     calcFn: (d, b) => {
       const addl = (d.rehabAdditionalCosts || []).reduce((s, c) => s + (c.amount || 0), 0)
       const oneTime = (d.oneTimeCosts || []).reduce((s, c) => s + (c.amount || 0), 0)
-      return `${fmtCurrency(d.purchasePrice)} + ${fmtCurrency(b.rehab)} + ${fmtCurrency(addl)} + ${fmtCurrency(d.closingCostsBuy)} + ${fmtCurrency(oneTime)} + ${fmtCurrency(b.holdingCosts)} = ${fmtCurrency(b.totalProjectCost)}`
+      return `${fmtCurrency(d.purchasePrice)} + ${fmtCurrency(b.rehab)} + ${fmtCurrency(addl)} + ${fmtCurrency(d.closingCostsBuy)} + ${fmtCurrency(oneTime)} + ${fmtCurrency(b.holdingCosts)} − ${fmtCurrency(d.projectCostAdjustments)} = ${fmtCurrency(b.totalProjectCost)}`
     },
-    note: 'All-in cost of acquiring and rehabbing the property, before any financing. Includes total rehab (estimate + change orders), any additional rehab costs (funded and unfunded), purchase-side closing, one-time costs, and holding costs (taxes/ins/HOA/state tax + $300/mo misc, over the rehab period).',
+    note: 'All-in cost of acquiring and rehabbing the property, before any financing. Includes total rehab (estimate + change orders), additional rehab costs, purchase-side closing, one-time costs, and holding costs. Project Cost Adjustments (seller concessions, EM credits, etc.) are subtracted as credits.',
   },
 
   // ── HML ──────────────────────────────────────────────────────────────────────

@@ -91,7 +91,7 @@ export interface Deal {
   sellingCostsPct: number
   holdMonthsForFlip: number
   maxMoneyInDeal: number          // MAO-1 threshold (default $65k)
-  otherAdjustmentsAtClose: number // credits / debits at refi close not captured above
+  projectCostAdjustments: number // credits at close (seller concessions, EM credits, etc.) — subtracted from Total Project Cost
 
   // Thresholds
   minCashflow: number
@@ -168,7 +168,7 @@ export const DEFAULT_DEAL: Deal = {
   sellingCostsPct: 8,
   holdMonthsForFlip: 6,
   maxMoneyInDeal: 65000,
-  otherAdjustmentsAtClose: 0,
+  projectCostAdjustments: 0,
 
   minCashflow: 200,
   minCoC: 8,
@@ -365,7 +365,7 @@ export interface BRRRRResult {
   refiTotalClosing: number
   refiPI: number
   cashReturnedAtRefi: number
-  moneyInDeal: number        // = totalCashIn - cashReturnedAtRefi - otherAdjustmentsAtClose
+  moneyInDeal: number        // = totalCashIn - cashReturnedAtRefi
   cashLeftIn: number         // alias for moneyInDeal (backward compat)
   // Operating
   totalOpex: number
@@ -414,7 +414,7 @@ export function calcBRRRR(d: Deal): BRRRRResult {
   const holdingCosts = d.rehabMonths * (op.taxes + op.ins + op.sit + op.hoa + 300)
 
   const hml = calcHML(d, additionalFunded)
-  const totalProjectCost = d.purchasePrice + rehab + additionalFunded + additionalNotFunded + d.closingCostsBuy + oneTime + holdingCosts
+  const totalProjectCost = d.purchasePrice + rehab + additionalFunded + additionalNotFunded + d.closingCostsBuy + oneTime + holdingCosts - d.projectCostAdjustments
 
   // Corrected acqGap: PP*(1-ltcPP) + baseRehab*(1-ltcRehab) + unfunded additional costs
   const acqGap = Math.max(0,
@@ -434,7 +434,7 @@ export function calcBRRRR(d: Deal): BRRRRResult {
   // HML total debt = principal + carry interest (paid off at refi close)
   const hmlTotalDebt = hml.principal + hmlCarryInterest
   const cashReturnedAtRefi = refi.refiLoan - hmlTotalDebt - refi.totalRefiClosing
-  const moneyInDeal = totalCashIn - cashReturnedAtRefi - d.otherAdjustmentsAtClose
+  const moneyInDeal = totalCashIn - cashReturnedAtRefi
   const totalOpex = op.total
   const totalOpexNoCapex = op.totalNoCapex
   const totalOpexWithPI = totalOpex + refi.pi
@@ -612,14 +612,13 @@ export function calcMAO(d: Deal): MAOResult {
     + hmlFinancedRehab * (1 + pts + r_mo * carryMonths)
     - refi.refiLoan
     + refi.totalRefiClosing
-    - d.otherAdjustmentsAtClose
   const maoMoneyInDeal = ppCoef > 0 ? (d.maxMoneyInDeal - C) / ppCoef : 0
 
   // MAO-2: max PP s.t. forced equity (ARV - totalProjectCost) / totalProjectCost ≥ minEquityPct
-  // totalProjectCost = PP + rehab + additionalAll + closingBuy + oneTime + holdingCosts
-  // solve: ARV / (1 + minEquityPct/100) - rehab - additionalAll - closingBuy - oneTime - holdingCosts
+  // totalProjectCost = PP + rehab + additionalAll + closingBuy + oneTime + holdingCosts - projectCostAdjustments
+  // solve: ARV / (1 + minEquityPct/100) - rehab - additionalAll - closingBuy - oneTime - holdingCosts + projectCostAdjustments
   const minEqFactor = 1 + d.minEquityPct / 100
-  const maoEquity = d.arv / minEqFactor - rehab - additionalFunded - additionalNotFunded - d.closingCostsBuy - oneTime - holdingCosts
+  const maoEquity = d.arv / minEqFactor - rehab - additionalFunded - additionalNotFunded - d.closingCostsBuy - oneTime - holdingCosts + d.projectCostAdjustments
 
   const mao = Math.min(mao70, maoMoneyInDeal, maoEquity)
   const constraints = [

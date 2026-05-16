@@ -75,6 +75,8 @@ export function InputForm({ deal, update }: Props) {
         <NumberField label="ARV" value={deal.arv} onChange={set('arv')} prefix="$" helper="After-Repair Value" />
         <NumberField label="Market Rent / mo" value={deal.monthlyRent} onChange={set('monthlyRent')} prefix="$" />
         <NumberField label="Closing Costs — Purchase" value={deal.closingCostsBuy} onChange={set('closingCostsBuy')} prefix="$" helper="Overriding auto (2%)" />
+        <NumberField label="Project Cost Adjustments (−)" value={deal.projectCostAdjustments} onChange={set('projectCostAdjustments')} prefix="$"
+          helper="Seller concessions, EM credits, etc. Subtracted from Total Project Cost." />
       </Section>
 
       {/* 03 · Rehab */}
@@ -207,8 +209,6 @@ export function InputForm({ deal, update }: Props) {
         <NumberField label="Min Equity %" value={deal.minEquityPct} onChange={set('minEquityPct')} suffix="%" />
         <NumberField label="Max money in deal" value={deal.maxMoneyInDeal} onChange={set('maxMoneyInDeal')} prefix="$"
           helper="MAO-1 threshold (default $65k)" />
-        <NumberField label="Other adj. at close" value={deal.otherAdjustmentsAtClose} onChange={set('otherAdjustmentsAtClose')} prefix="$"
-          helper="Credits/debits at refi close not captured above" />
       </Section>
 
     </div>
