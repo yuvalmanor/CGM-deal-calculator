@@ -39,6 +39,7 @@ function BRRRRView({ deal, brrrr, onLabelClick }: { deal: Deal; brrrr: BRRRRResu
   const click = onLabelClick
   const [equityShowDollar, setEquityShowDollar] = useState(false)
   const [opexExpanded, setOpexExpanded] = useState(true)
+  const [ioExpanded, setIoExpanded] = useState(false)
   return (
     <div className="scenario-view">
       <div className="scenario-summary">
@@ -120,6 +121,32 @@ function BRRRRView({ deal, brrrr, onLabelClick }: { deal: Deal; brrrr: BRRRRResu
             <OutputRow label="Monthly cashflow / w/o Capex"
               value={fmtCurrency(brrrr.cashflow) + ' / ' + fmtCurrency(brrrr.cashflowNoCapex)}
               status={statusFor('cashflow', brrrr.cashflow, deal)} metricId="cashflow" onLabelClick={click} accent />
+            {(() => {
+              const ioMonthly = brrrr.refiLoan * (deal.refiRate / 100) / 12
+              const totalOpexWithIO        = brrrr.totalOpexWithPI        - brrrr.refiPI + ioMonthly
+              const totalOpexNoCapexWithIO = brrrr.totalOpexNoCapexWithPI - brrrr.refiPI + ioMonthly
+              const cashflowIO        = brrrr.cashflow        + brrrr.refiPI - ioMonthly
+              const cashflowNoCapexIO = brrrr.cashflowNoCapex + brrrr.refiPI - ioMonthly
+              return (<>
+                <div
+                  className="out-row out-label-clickable"
+                  onClick={() => setIoExpanded((v) => !v)}
+                  style={{ cursor: 'pointer', userSelect: 'none' }}
+                  title={ioExpanded ? 'Hide interest-only breakdown' : 'Show interest-only breakdown'}
+                >
+                  <div className="out-label">{ioExpanded ? '▾' : '▸'} Interest-only scenario</div>
+                  <div className="out-value mono"></div>
+                </div>
+                {ioExpanded && (<>
+                  <OutputRow label="Interest only mortgage monthly" value={'−' + fmtCurrency(ioMonthly)} />
+                  <OutputRow label="Total Operating expenses (Include ITI) / w/o Capex"
+                    value={'−' + fmtCurrency(totalOpexWithIO) + ' / −' + fmtCurrency(totalOpexNoCapexWithIO)} />
+                  <OutputRow label="Monthly cashflow Interest-only / w/o Capex"
+                    value={fmtCurrency(cashflowIO) + ' / ' + fmtCurrency(cashflowNoCapexIO)}
+                    status={statusFor('cashflow', cashflowIO, deal)} accent />
+                </>)}
+              </>)
+            })()}
           </OutputGroup>
         )
       })()}
