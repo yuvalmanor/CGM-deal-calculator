@@ -38,6 +38,7 @@ function OutputGroup({ title, children }: { title: string; children: React.React
 function BRRRRView({ deal, brrrr, onLabelClick }: { deal: Deal; brrrr: BRRRRResult; onLabelClick?: (id: string) => void }) {
   const click = onLabelClick
   const [equityShowDollar, setEquityShowDollar] = useState(false)
+  const [opexExpanded, setOpexExpanded] = useState(true)
   return (
     <div className="scenario-view">
       <div className="scenario-summary">
@@ -91,14 +92,25 @@ function BRRRRView({ deal, brrrr, onLabelClick }: { deal: Deal; brrrr: BRRRRResu
         return (
           <OutputGroup title="Monthly operating">
             <OutputRow label="Gross rent"                                     value={fmtCurrency(brrrr.monthlyRent)} metricId="gross_rent" onLabelClick={click} />
-            <OutputRow label="Taxes"                value={'−' + fmtCurrency(op.taxes)} />
-            <OutputRow label="Insurance"            value={'−' + fmtCurrency(op.ins)} />
-            <OutputRow label="HOA"                  value={'−' + fmtCurrency(op.hoa)} />
-            <OutputRow label="State income tax"     value={'−' + fmtCurrency(op.sit)} />
-            <OutputRow label="Property management"  value={'−' + fmtCurrency(op.mgmt)} />
-            <OutputRow label="Capex / vacancy"      value={'−' + fmtCurrency(op.capV)} />
-            <OutputRow label="Additional monthly"   value={'−' + fmtCurrency(op.extras)} />
-            <OutputRow label="Mortgage P&I"         value={'−' + fmtCurrency(brrrr.refiPI)} metricId="mortgage_pi" onLabelClick={click} />
+            <div
+              className="out-row out-label-clickable"
+              onClick={() => setOpexExpanded((v) => !v)}
+              style={{ cursor: 'pointer', userSelect: 'none' }}
+              title={opexExpanded ? 'Hide breakdown' : 'Show breakdown'}
+            >
+              <div className="out-label">{opexExpanded ? '▾' : '▸'} Expense breakdown</div>
+              <div className="out-value mono"></div>
+            </div>
+            {opexExpanded && (<>
+              <OutputRow label="Property Tax"         value={'−' + fmtCurrency(op.taxes)} />
+              <OutputRow label="Insurance"            value={'−' + fmtCurrency(op.ins)} />
+              <OutputRow label="HOA"                  value={'−' + fmtCurrency(op.hoa)} />
+              <OutputRow label="State income tax"     value={'−' + fmtCurrency(op.sit)} />
+              <OutputRow label="Property management"  value={'−' + fmtCurrency(op.mgmt)} />
+              <OutputRow label="Capex / vacancy"      value={'−' + fmtCurrency(op.capV)} />
+              <OutputRow label="Additional Monthly Costs" value={'−' + fmtCurrency(op.extras)} />
+              <OutputRow label="Mortgage P&I"         value={'−' + fmtCurrency(brrrr.refiPI)} metricId="mortgage_pi" onLabelClick={click} />
+            </>)}
             <OutputRow label="Total Operating expenses (Include PITI) / w/o Capex"
               value={'−' + fmtCurrency(brrrr.totalOpexWithPI) + ' / −' + fmtCurrency(brrrr.totalOpexNoCapexWithPI)}
               metricId="total_opex" onLabelClick={click} />
