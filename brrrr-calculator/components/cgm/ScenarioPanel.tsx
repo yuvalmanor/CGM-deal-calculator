@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import type { Deal, BRRRRResult, FlipCashResult, FlipHMLResult, MAOResult, DealScore, Status } from '@/lib/deal-model'
-import { fmtCurrency, fmtPct, fmtNum, statusFor } from '@/lib/deal-model'
+import { fmtCurrency, fmtPct, fmtNum, statusFor, monthlyOpExpenses } from '@/lib/deal-model'
 
 // ---- Primitives ----
 
@@ -86,18 +86,31 @@ function BRRRRView({ deal, brrrr, onLabelClick }: { deal: Deal; brrrr: BRRRRResu
         <OutputRow label="Total project cost"      value={fmtCurrency(brrrr.totalProjectCost)} metricId="total_project_cost" onLabelClick={click} accent />
       </OutputGroup>
 
-      <OutputGroup title="Monthly operating">
-        <OutputRow label="Gross rent"                                     value={fmtCurrency(brrrr.monthlyRent)} metricId="gross_rent" onLabelClick={click} />
-        <OutputRow label="Total Operating expenses (Include PITI) / w/o Capex"
-          value={'−' + fmtCurrency(brrrr.totalOpexWithPI) + ' / −' + fmtCurrency(brrrr.totalOpexNoCapexWithPI)}
-          metricId="total_opex" onLabelClick={click} />
-        <OutputRow label="NOI / w/o Capex"
-          value={fmtCurrency(brrrr.cashflow) + ' / ' + fmtCurrency(brrrr.cashflowNoCapex)}
-          metricId="noi" onLabelClick={click} />
-        <OutputRow label="Monthly cashflow / w/o Capex"
-          value={fmtCurrency(brrrr.cashflow) + ' / ' + fmtCurrency(brrrr.cashflowNoCapex)}
-          status={statusFor('cashflow', brrrr.cashflow, deal)} metricId="cashflow" onLabelClick={click} accent />
-      </OutputGroup>
+      {(() => {
+        const op = monthlyOpExpenses(deal)
+        return (
+          <OutputGroup title="Monthly operating">
+            <OutputRow label="Gross rent"                                     value={fmtCurrency(brrrr.monthlyRent)} metricId="gross_rent" onLabelClick={click} />
+            <OutputRow label="Taxes"                value={'−' + fmtCurrency(op.taxes)} />
+            <OutputRow label="Insurance"            value={'−' + fmtCurrency(op.ins)} />
+            <OutputRow label="HOA"                  value={'−' + fmtCurrency(op.hoa)} />
+            <OutputRow label="State income tax"     value={'−' + fmtCurrency(op.sit)} />
+            <OutputRow label="Property management"  value={'−' + fmtCurrency(op.mgmt)} />
+            <OutputRow label="Capex / vacancy"      value={'−' + fmtCurrency(op.capV)} />
+            <OutputRow label="Additional monthly"   value={'−' + fmtCurrency(op.extras)} />
+            <OutputRow label="Mortgage P&I"         value={'−' + fmtCurrency(brrrr.refiPI)} metricId="mortgage_pi" onLabelClick={click} />
+            <OutputRow label="Total Operating expenses (Include PITI) / w/o Capex"
+              value={'−' + fmtCurrency(brrrr.totalOpexWithPI) + ' / −' + fmtCurrency(brrrr.totalOpexNoCapexWithPI)}
+              metricId="total_opex" onLabelClick={click} />
+            <OutputRow label="NOI / w/o Capex"
+              value={fmtCurrency(brrrr.cashflow) + ' / ' + fmtCurrency(brrrr.cashflowNoCapex)}
+              metricId="noi" onLabelClick={click} />
+            <OutputRow label="Monthly cashflow / w/o Capex"
+              value={fmtCurrency(brrrr.cashflow) + ' / ' + fmtCurrency(brrrr.cashflowNoCapex)}
+              status={statusFor('cashflow', brrrr.cashflow, deal)} metricId="cashflow" onLabelClick={click} accent />
+          </OutputGroup>
+        )
+      })()}
 
       <OutputGroup title="Hard money loan">
         <OutputRow label={`HML principal (${deal.hmlLevPP.toFixed(1)}% LTC)`} value={fmtCurrency(brrrr.hmlPrincipal)} metricId="hml_principal" onLabelClick={click} />

@@ -278,13 +278,13 @@ export function totalRehab(d: Deal): number {
   return d.rehabEstimate + co
 }
 
-interface OpExpenses {
+export interface OpExpenses {
   taxes: number; ins: number; hoa: number; sit: number
   capV: number; mgmt: number; extras: number; total: number
   totalNoCapex: number
 }
 
-function monthlyOpExpenses(d: Deal): OpExpenses {
+export function monthlyOpExpenses(d: Deal): OpExpenses {
   const taxes = toMonthly(d.taxes, d.taxesUnit)
   const ins    = toMonthly(d.insurance, d.insuranceUnit)
   const hoa    = toMonthly(d.hoa, d.hoaUnit)
