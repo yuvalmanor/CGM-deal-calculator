@@ -103,13 +103,24 @@ closingCostsBuy = closingCostsBuyOverride >= 0
 
 holdingCosts  = rehabMonths × (tax + ins + hoa + stateTax) + $300 × rehabMonths
 
-allInCost     = PP + closingCostsBuy + rehab + changeOrders + holdingCosts
+totalRehab        = rehabEstimate + changeOrders
+additionalCosts   = Σ rehabAdditionalCosts[].amount    // funded + unfunded
+oneTimeCosts      = Σ oneTimeCosts[].amount
+
+totalProjectCost  = PP
+                  + totalRehab
+                  + additionalCosts
+                  + closingCostsBuy
+                  + oneTimeCosts
+                  + holdingCosts
 
 ppsqftPurchase = PP / sqft
 ppsqftSale     = ARV / sqft
 ```
 
 **Holding costs** use the actual monthly expenses entered for the property (not estimated). The `$300/mo` is a misc buffer.
+
+**Total project cost** is the all-in unfinanced cost of acquiring and rehabbing the property. Both funded and unfunded rehab additional costs are included — "funded" only controls whether HML lends against the amount, not whether it contributes to the total cost.
 
 ---
 
