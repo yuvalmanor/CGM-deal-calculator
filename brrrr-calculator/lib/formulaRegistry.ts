@@ -48,10 +48,10 @@ export const formulaRegistry: Record<string, FormulaEntry> = {
 
   moneyInDeal: {
     title: 'Money in deal',
-    formula: 'Total Cash In − Cash Returned at Refi',
+    formula: '(Total Project Cost − HML loan + HML fees) − Cash Returned at Refi',
     calcFn: (d, b) =>
-      `${fmtCurrency(b.totalCashIn)} − ${fmtCurrency(b.cashReturnedAtRefi)} = ${fmtCurrency(b.moneyInDeal)}`,
-    note: 'Capital permanently tied up after refinancing. $0 or negative = full BRRRR (cash back). Target: ≤ $65k.',
+      `${fmtCurrency(b.totalCashIn)} (Total Cash In: TPC − HML loan + fees) − ${fmtCurrency(b.cashReturnedAtRefi)} = ${fmtCurrency(b.moneyInDeal)}`,
+    note: 'Capital permanently tied up after refinancing. Total Cash In = Total Project Cost − HML loan amount + HML fees (points + lender fees + post-closing misc + extras). $0 or negative = full BRRRR (cash back). Target: ≤ $65k.',
   },
 
   mao: {

@@ -245,11 +245,19 @@ dscr = rent / (mortgagePI + ins + tax)
 ## Section 9 — Money in Deal
 
 ```
-moneyInDeal (HML)  = hmlCashToClose − netCashAtClosing − otherAdjustmentsAtClose
-moneyInDeal (Cash) = allInCost − cashFromLender − otherAdjustmentsAtClose
+totalCashIn        = totalProjectCost − hmlPrincipal + hmlTotalCost
+cashReturnedAtRefi = refiLoan − hmlTotalDebt − refiTotalClosing
+moneyInDeal        = totalCashIn − cashReturnedAtRefi
 ```
 
-Both scenarios subtract `otherAdjustmentsAtClose`. This matches the Excel sheet where rows 39 and 55 both subtract the same deal-specific cash items (prepaid insurance, earnest money credits, seller concessions, etc.).
+Where:
+- `totalProjectCost` = PP + total rehab + additional rehab costs + closing costs (buy) + one-time costs + holding costs − project cost adjustments (seller concessions, EM credits, etc.)
+- `hmlPrincipal` = PP × hmlLevPP% + rehab × hmlLevRehab% + additionalFunded
+- `hmlTotalCost` = points + lender fees + post-closing misc + extra fees (fees only, excludes interest carry)
+- `hmlTotalDebt` = HML principal + accrued interest carry (paid off at refi)
+- `refiTotalClosing` = refi points + title/escrow + appraisal + underwriting + other + extras
+
+`moneyInDeal` is the capital permanently tied up after the cash-out refinance. $0 or negative = full BRRRR (cash back). Project cost adjustments (seller concessions, EM credits) flow through `totalProjectCost` and so reduce both equity-side and cash-in-side calculations consistently.
 
 ---
 

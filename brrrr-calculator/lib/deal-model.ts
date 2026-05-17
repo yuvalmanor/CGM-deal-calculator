@@ -416,19 +416,21 @@ export function calcBRRRR(d: Deal): BRRRRResult {
   const hml = calcHML(d, additionalFunded)
   const totalProjectCost = d.purchasePrice + rehab + additionalFunded + additionalNotFunded + d.closingCostsBuy + oneTime + holdingCosts - d.projectCostAdjustments
 
-  // Corrected acqGap: PP*(1-ltcPP) + baseRehab*(1-ltcRehab) + unfunded additional costs
-  const acqGap = Math.max(0,
-    d.purchasePrice * (1 - d.hmlLevPP / 100)
+  // totalCashIn = Total Project Cost − HML loan + HML fees
+  // Algebraically equals (PP×(1−levPP%) + rehab×(1−levRehab%) + additionalNotFunded)
+  // + closingCostsBuy + oneTime + holdingCosts + fees − projectCostAdjustments
+  const totalCashIn = totalProjectCost - hml.principal + hml.totalCost
+
+  // Retained for backward compatibility (UI/scoring may reference these)
+  const acqGap = d.purchasePrice * (1 - d.hmlLevPP / 100)
     + rehab * (1 - d.hmlLevRehab / 100)
-    + additionalNotFunded,
-  )
+    + additionalNotFunded
   const cashInAcq = acqGap + d.closingCostsBuy + hml.points + hml.lenderFees + hml.postClosingMisc + hml.extraFees + oneTime
+  const cashInHolding = holdingCosts
 
   // Fix C: carry runs until the later of rehab completion or seasoning requirement
   const hmlCarryMonths = Math.max(d.rehabMonths, d.refiSeasoningMonths)
   const hmlCarryInterest = hml.monthlyInterest * hmlCarryMonths
-  const cashInHolding = holdingCosts
-  const totalCashIn = cashInAcq + cashInHolding
 
   const refi = calcRefi(d)
   // HML total debt = principal + carry interest (paid off at refi close)
