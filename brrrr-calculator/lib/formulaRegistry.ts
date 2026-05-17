@@ -156,6 +156,16 @@ export const formulaRegistry: Record<string, FormulaEntry> = {
     note: '30-year fixed amortization. Principal + interest only — taxes and insurance are separate.',
   },
 
+  refi_total: {
+    title: 'Total Refi closing cost',
+    formula: 'Points + Title/Escrow + Appraisal + Underwriting + Other + Extra Fees',
+    calcFn: (d, b) => {
+      const extras = (d.refiExtraFees || []).reduce((s, f) => s + (f.amount || 0), 0)
+      return `${fmtCurrency(b.refiPointsDollar)} + ${fmtCurrency(b.refiTitleEscrow)} + ${fmtCurrency(d.refiAppraisal)} + ${fmtCurrency(d.refiUnderwriting)} + ${fmtCurrency(d.refiOtherMisc)} + ${fmtCurrency(extras)} = ${fmtCurrency(b.refiTotalClosing)}`
+    },
+    note: 'All costs paid at the Refi closing. Points = Refi Loan × Refi Points%. Title/Escrow auto-defaults to ARV × 2% + $500 if not overridden.',
+  },
+
   cash_returned: {
     title: 'Cash returned at Refi',
     formula: 'Refi Loan − Total Debt to HML − Refi Closing Costs',

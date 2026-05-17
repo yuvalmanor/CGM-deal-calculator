@@ -162,7 +162,7 @@ function BRRRRView({ deal, brrrr, onLabelClick }: { deal: Deal; brrrr: BRRRRResu
 
       <OutputGroup title="Refinance">
         <OutputRow label={`New loan (${deal.refiLtv}% LTV)`}  value={fmtCurrency(brrrr.refiLoan)} metricId="refi_loan" onLabelClick={click} />
-        <OutputRow label="Refi closing + points"               value={fmtCurrency(brrrr.refiTotalClosing)} />
+        <OutputRow label="Refi closing + points"               value={fmtCurrency(brrrr.refiTotalClosing)} metricId="refi_total" onLabelClick={click} />
         <OutputRow label="Cash returned at refi"               value={fmtCurrency(brrrr.cashReturnedAtRefi)} metricId="cash_returned" onLabelClick={click} accent />
         <OutputRow label="Money in deal"                       value={fmtCurrency(brrrr.moneyInDeal)}
           status={statusFor('moneyInDeal', brrrr.moneyInDeal, deal)} metricId="moneyInDeal" onLabelClick={click} accent />
