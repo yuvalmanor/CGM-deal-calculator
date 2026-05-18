@@ -376,84 +376,84 @@ function AdvancedMetrics({ deal, brrrr, onLabelClick }: { deal: Deal; brrrr: BRR
   const equityPct    = equityMode === 'book' ? brrrr.equityPct    : brrrr.equityLiquidationPct
 
   return (
-    <div className="advanced-metrics">
-      <div className="adv-header">
-        <div className="adv-title">Advanced Metrics</div>
+    <div className="am-panel">
+      <div className="am-header">
+        <div className="am-title">Advanced Metrics</div>
       </div>
 
-      <div className="adv-grid">
-        <div className={`adv-cell adv-${capRateStatus}`}>
-          <span className="adv-label adv-label-clickable" style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#3a4a66', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }} onClick={() => click?.('cap_rate')}>Cap Rate</span>
-          <div className="adv-value">{fmtPct(brrrr.capRate)}</div>
+      <div className="am-grid">
+        <div className={`am-cell am-${capRateStatus}`}>
+          <div className="am-label am-label-clickable" onClick={() => click?.('cap_rate')}>Cap Rate</div>
+          <div className="am-value">{fmtPct(brrrr.capRate)}</div>
         </div>
-        <div className="adv-cell adv-neutral">
-          <span className="adv-label adv-label-clickable" style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#3a4a66', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }} onClick={() => click?.('grm')}>GRM</span>
-          <div className="adv-value">{brrrr.grm.toFixed(1)}×</div>
+        <div className="am-cell am-neutral">
+          <div className="am-label am-label-clickable" onClick={() => click?.('grm')}>GRM</div>
+          <div className="am-value">{brrrr.grm.toFixed(1)}×</div>
         </div>
-        <div className="adv-cell adv-neutral">
-          <span className="adv-label adv-label-clickable" style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#3a4a66', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }} onClick={() => click?.('noi')}>Monthly NOI</span>
-          <div className="adv-value">{fmtCurrency(brrrr.noi)}</div>
+        <div className="am-cell am-neutral">
+          <div className="am-label am-label-clickable" onClick={() => click?.('noi')}>Monthly NOI</div>
+          <div className="am-value">{fmtCurrency(brrrr.noi)}</div>
         </div>
-        <div className="adv-cell adv-neutral">
-          <span className="adv-label adv-label-clickable" style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#3a4a66', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }} onClick={() => click?.('annual_cashflow')}>Annual CF</span>
-          <div className="adv-value">{fmtCurrency(brrrr.annualCashflow)}</div>
+        <div className="am-cell am-neutral">
+          <div className="am-label am-label-clickable" onClick={() => click?.('annual_cashflow')}>Annual CF</div>
+          <div className="am-value">{fmtCurrency(brrrr.annualCashflow)}</div>
         </div>
-        <div className="adv-cell adv-neutral">
-          <span className="adv-label adv-label-clickable" style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#3a4a66', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }} onClick={() => click?.('roe')}>ROE</span>
-          <div className="adv-value">{fmtPct(brrrr.roe)}</div>
+        <div className="am-cell am-neutral">
+          <div className="am-label am-label-clickable" onClick={() => click?.('roe')}>ROE</div>
+          <div className="am-value">{fmtPct(brrrr.roe)}</div>
         </div>
-        <div className="adv-cell adv-neutral">
-          <span className="adv-label adv-label-clickable" style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#3a4a66', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }} onClick={() => click?.('equity_margin_arv')}>Margin/ARV</span>
-          <div className="adv-value">{fmtPct(brrrr.equityMarginArv)}</div>
+        <div className="am-cell am-neutral">
+          <div className="am-label am-label-clickable" onClick={() => click?.('equity_margin_arv')}>Margin/ARV</div>
+          <div className="am-value">{fmtPct(brrrr.equityMarginArv)}</div>
         </div>
       </div>
 
-      <div className="adv-irr">
-        <div className="adv-irr-title adv-label-clickable" onClick={() => click?.('irr_scenarios')}>
+      <div className="am-irr">
+        <div className="am-irr-title am-label-clickable" onClick={() => click?.('irr_scenarios')}>
           5-Year IRR
         </div>
         {brrrr.moneyInDeal <= 0 ? (
-          <div className="adv-irr-note">Full BRRRR — infinite return (no money left in deal)</div>
+          <div className="am-irr-note">Full BRRRR — infinite return (no money left in deal)</div>
         ) : (
-          <div className="adv-irr-rows">
-            <div className="adv-irr-row">
-              <span className="adv-irr-label">2% appreciation</span>
-              <span className={`adv-irr-value adv-${irrStatus2}`}>{fmtPct(brrrr.irr2pct)}</span>
+          <div className="am-irr-rows">
+            <div className="am-irr-row">
+              <span className="am-irr-label">2% appreciation</span>
+              <span className={`am-irr-value am-${irrStatus2}`}>{fmtPct(brrrr.irr2pct)}</span>
             </div>
-            <div className="adv-irr-row">
-              <span className="adv-irr-label">3% appreciation</span>
-              <span className={`adv-irr-value adv-${irrStatus3}`}>{fmtPct(brrrr.irr3pct)}</span>
+            <div className="am-irr-row">
+              <span className="am-irr-label">3% appreciation</span>
+              <span className={`am-irr-value am-${irrStatus3}`}>{fmtPct(brrrr.irr3pct)}</span>
             </div>
-            <div className="adv-irr-row">
-              <span className="adv-irr-label">4% appreciation</span>
-              <span className={`adv-irr-value adv-${irrStatus4}`}>{fmtPct(brrrr.irr4pct)}</span>
+            <div className="am-irr-row">
+              <span className="am-irr-label">4% appreciation</span>
+              <span className={`am-irr-value am-${irrStatus4}`}>{fmtPct(brrrr.irr4pct)}</span>
             </div>
           </div>
         )}
       </div>
 
-      <div className="adv-equity">
-        <div className="adv-equity-header">
-          <div className="adv-label">Equity post-Refi</div>
-          <div className="adv-equity-toggle">
+      <div className="am-equity">
+        <div className="am-equity-header">
+          <div className="am-label">Equity post-Refi</div>
+          <div className="am-equity-toggle">
             {(['book', 'liquidation'] as const).map((m) => (
               <button
                 key={m}
-                className={`adv-eq-btn${equityMode === m ? ' active' : ''}`}
+                className={`am-eq-btn${equityMode === m ? ' active' : ''}`}
                 onClick={() => setEquityMode(m)}
               >{m === 'book' ? 'Book' : 'Liquidation'}</button>
             ))}
           </div>
         </div>
-        <div className="adv-equity-values">
+        <div className="am-equity-values">
           <span
-            className="adv-equity-dollar adv-label-clickable"
+            className="am-equity-dollar am-label-clickable"
             onClick={() => click?.(equityMode === 'book' ? 'equity_book' : 'equity_liquidation')}
           >{fmtCurrency(equityDollar)}</span>
-          <span className="adv-equity-pct">{fmtPct(equityPct)}</span>
+          <span className="am-equity-pct">{fmtPct(equityPct)}</span>
         </div>
         {equityMode === 'liquidation' && (
-          <div className="adv-equity-note">After {deal.sellingCostsPct}% selling costs</div>
+          <div className="am-equity-note">After {deal.sellingCostsPct}% selling costs</div>
         )}
       </div>
     </div>

@@ -987,8 +987,8 @@ input, textarea { font-family: inherit; color: inherit; }
 .mao-rule-clickable:hover { text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 2px; }
 .bd-label-clickable { cursor: pointer; }
 .bd-label-clickable:hover { text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 2px; }
-.adv-label-clickable { cursor: pointer; }
-.adv-label-clickable:hover { text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 2px; }
+.am-label-clickable { cursor: pointer; }
+.am-label-clickable:hover { text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 2px; }
 
 /* ---- Drawer save button ---- */
 .drawer-save {
@@ -1001,7 +1001,7 @@ input, textarea { font-family: inherit; color: inherit; }
 .drawer-save.error { background: var(--bad); border-color: var(--bad); }
 
 /* ---- Advanced metrics ---- */
-.advanced-metrics {
+.am-panel {
   margin-top: var(--s-4);
   padding: var(--s-4);
   background: var(--bg-card-2);
@@ -1009,42 +1009,42 @@ input, textarea { font-family: inherit; color: inherit; }
   border: 1px solid var(--line);
   display: flex; flex-direction: column; gap: var(--s-4);
 }
-.adv-header { display: flex; align-items: center; justify-content: space-between; }
-.adv-title { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-mute); }
+.am-header { display: flex; align-items: center; justify-content: space-between; }
+.am-title { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-mute); }
 
-.adv-grid {
+.am-grid {
   display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-2);
 }
-.adv-cell {
+.am-cell {
   background: var(--bg-card); border: 1px solid var(--line); border-radius: var(--radius-sm);
   padding: var(--s-2) var(--s-3); display: flex; flex-direction: column; gap: 2px;
 }
-.adv-label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-mute); line-height: 1.2; }
-.adv-value { font-size: 15px; font-weight: 700; font-family: var(--font-mono); color: var(--text); }
-.adv-good .adv-value { color: var(--good); }
-.adv-warn .adv-value { color: var(--warn); }
-.adv-bad  .adv-value { color: var(--bad); }
+.am-label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-mute); line-height: 1.2; }
+.am-value { font-size: 15px; font-weight: 700; font-family: var(--font-mono); color: var(--text); }
+.am-good .am-value { color: var(--good); }
+.am-warn .am-value { color: var(--warn); }
+.am-bad  .am-value { color: var(--bad); }
 
-.adv-irr { display: flex; flex-direction: column; gap: var(--s-2); }
-.adv-irr-title { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-mute); }
-.adv-irr-note { font-size: 11px; color: var(--text-mute); font-style: italic; }
-.adv-irr-rows { display: flex; flex-direction: column; gap: 4px; }
-.adv-irr-row { display: flex; justify-content: space-between; align-items: center; }
-.adv-irr-label { font-size: 12px; color: var(--text-dim); }
-.adv-irr-value { font-size: 13px; font-weight: 700; font-family: var(--font-mono); }
-.adv-irr-value.adv-good { color: var(--good); }
-.adv-irr-value.adv-warn { color: var(--warn); }
-.adv-irr-value.adv-bad  { color: var(--bad); }
+.am-irr { display: flex; flex-direction: column; gap: var(--s-2); }
+.am-irr-title { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-mute); }
+.am-irr-note { font-size: 11px; color: var(--text-mute); font-style: italic; }
+.am-irr-rows { display: flex; flex-direction: column; gap: 4px; }
+.am-irr-row { display: flex; justify-content: space-between; align-items: center; }
+.am-irr-label { font-size: 12px; color: var(--text-dim); }
+.am-irr-value { font-size: 13px; font-weight: 700; font-family: var(--font-mono); }
+.am-irr-value.am-good { color: var(--good); }
+.am-irr-value.am-warn { color: var(--warn); }
+.am-irr-value.am-bad  { color: var(--bad); }
 
-.adv-equity { display: flex; flex-direction: column; gap: var(--s-2); }
-.adv-equity-header { display: flex; align-items: center; justify-content: space-between; }
-.adv-equity-toggle { display: flex; gap: 2px; background: var(--bg-input); padding: 3px; border-radius: var(--radius-sm); border: 1px solid var(--line); }
-.adv-eq-btn { padding: 4px 9px; background: transparent; border: 0; border-radius: 5px; color: var(--text-mute); font-size: 11px; cursor: pointer; }
-.adv-eq-btn.active { background: var(--bg-card); color: var(--text); font-weight: 600; }
-.adv-equity-values { display: flex; align-items: baseline; gap: var(--s-3); }
-.adv-equity-dollar { font-size: 20px; font-weight: 700; font-family: var(--font-mono); color: var(--text); }
-.adv-equity-pct { font-size: 14px; font-weight: 600; font-family: var(--font-mono); color: var(--text-dim); }
-.adv-equity-note { font-size: 11px; color: var(--text-mute); font-style: italic; }
+.am-equity { display: flex; flex-direction: column; gap: var(--s-2); }
+.am-equity-header { display: flex; align-items: center; justify-content: space-between; }
+.am-equity-toggle { display: flex; gap: 2px; background: var(--bg-input); padding: 3px; border-radius: var(--radius-sm); border: 1px solid var(--line); }
+.am-eq-btn { padding: 4px 9px; background: transparent; border: 0; border-radius: 5px; color: var(--text-mute); font-size: 11px; cursor: pointer; }
+.am-eq-btn.active { background: var(--bg-card); color: var(--text); font-weight: 600; }
+.am-equity-values { display: flex; align-items: baseline; gap: var(--s-3); }
+.am-equity-dollar { font-size: 20px; font-weight: 700; font-family: var(--font-mono); color: var(--text); }
+.am-equity-pct { font-size: 14px; font-weight: 600; font-family: var(--font-mono); color: var(--text-dim); }
+.am-equity-note { font-size: 11px; color: var(--text-mute); font-style: italic; }
 
 /* ---- Scrollbars ---- */
 .drawer-inputs::-webkit-scrollbar,
