@@ -384,6 +384,12 @@ input, textarea { font-family: inherit; color: inherit; }
   z-index: 2;
   border-bottom: 1px solid var(--line);
   flex-shrink: 0;
+  align-items: center;
+}
+.scenario-edit-btn {
+  margin-right: var(--s-4);
+  margin-bottom: var(--s-2);
+  align-self: center;
 }
 .scenario-tab {
   display: flex;

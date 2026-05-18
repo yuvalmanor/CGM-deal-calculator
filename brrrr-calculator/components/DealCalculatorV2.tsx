@@ -164,7 +164,6 @@ export default function DealCalculatorV2({ initialDeal, initialDealId }: Props) 
           brrrr={brrrr}
           mao={mao}
           score={score}
-          onEdit={() => setDrawerOpen(true)}
           onLabelClick={openModal}
         />
 
@@ -179,6 +178,7 @@ export default function DealCalculatorV2({ initialDeal, initialDealId }: Props) 
             score={score}
             scenario={scenario}
             setScenario={setScenario}
+            onEdit={() => setDrawerOpen(true)}
             onLabelClick={openModal}
           />
         </main>
@@ -219,16 +219,7 @@ export default function DealCalculatorV2({ initialDeal, initialDealId }: Props) 
           </div>
         </aside>
 
-        {/* Floating edit FAB (when drawer is closed) */}
-        {!drawerOpen && (
-          <button className="edit-fab" onClick={() => setDrawerOpen(true)} title="Edit deal (E)">
-            <span className="fab-icon" aria-hidden="true"><span /><span /><span /></span>
-            <span>Edit deal</span>
-            <kbd className="fab-kbd">E</kbd>
-          </button>
-        )}
-
-        {/* Tweaks panel */}
+{/* Tweaks panel */}
         {tweaksOpen && (
           <div className="tweaks-panel">
             <div className="tweaks-header">

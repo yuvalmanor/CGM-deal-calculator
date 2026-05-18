@@ -473,10 +473,11 @@ interface Props {
   score: DealScore
   scenario: ScenarioKey
   setScenario: (s: ScenarioKey) => void
+  onEdit?: () => void
   onLabelClick?: (id: string) => void
 }
 
-export function ScenarioPanel({ deal, brrrr, flipCash, flipHml, mao, score, scenario, setScenario, onLabelClick }: Props) {
+export function ScenarioPanel({ deal, brrrr, flipCash, flipHml, mao, score, scenario, setScenario, onEdit, onLabelClick }: Props) {
   const tabs: { key: ScenarioKey; label: string; sub: string }[] = [
     { key: 'brrrr',    label: 'BRRRR',       sub: fmtCurrency(brrrr.cashflow) + '/mo' },
     { key: 'flipCash', label: 'Flip · Cash',  sub: fmtCurrency(flipCash.profit) + ' profit' },
@@ -486,6 +487,13 @@ export function ScenarioPanel({ deal, brrrr, flipCash, flipHml, mao, score, scen
   return (
     <div className="scenario-panel">
       <div className="scenario-tabs">
+        {onEdit && (
+          <button className="edit-deal-btn scenario-edit-btn" onClick={onEdit} title="Edit deal (E)">
+            <span className="edb-icon" aria-hidden="true"><span /><span /><span /></span>
+            <span>Edit deal</span>
+            <kbd>E</kbd>
+          </button>
+        )}
         {tabs.map((t) => (
           <button
             key={t.key}

@@ -41,11 +41,10 @@ interface Props {
   brrrr: BRRRRResult
   mao: MAOResult
   score: DealScore
-  onEdit: () => void
   onLabelClick?: (id: string) => void
 }
 
-export function DashboardBar({ deal, brrrr, mao, score, onEdit, onLabelClick }: Props) {
+export function DashboardBar({ deal, brrrr, mao, score, onLabelClick }: Props) {
   const cfStatus   = statusFor('cashflow',    brrrr.cashflow,       deal)
   const cocStatus  = statusFor('coc',         brrrr.coc,            deal)
   const dscrStatus = statusFor('dscr',        brrrr.dscr,           deal)
@@ -79,11 +78,6 @@ export function DashboardBar({ deal, brrrr, mao, score, onEdit, onLabelClick }: 
             {deal.sellerAgent && <><span className="dot-sep">·</span><span>via {deal.sellerAgent}</span></>}
           </div>
         </div>
-        <button className="edit-deal-btn" onClick={onEdit} title="Edit deal (E)">
-          <span className="edb-icon" aria-hidden="true"><span /><span /><span /></span>
-          <span>Edit deal</span>
-          <kbd>E</kbd>
-        </button>
       </div>
 
       {/* Center: 6 metric chips */}
