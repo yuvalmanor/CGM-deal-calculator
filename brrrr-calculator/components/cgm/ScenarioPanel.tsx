@@ -64,7 +64,7 @@ function BRRRRView({ deal, brrrr, onLabelClick }: { deal: Deal; brrrr: BRRRRResu
             onClick={() => setEquityShowDollar((v) => !v)}
             style={{ cursor: 'pointer', userSelect: 'none' }}
           >
-            <div className="cell-label">Equity {equityShowDollar ? '$' : '%'}</div>
+            <div className="cell-label">equity_ScenarioPanel {equityShowDollar ? '$' : '%'}</div>
             <div className="cell-value">
               {equityShowDollar ? fmtCurrency(brrrr.equityForcedDollar) : fmtPct(brrrr.equityMarginArv)}
             </div>
