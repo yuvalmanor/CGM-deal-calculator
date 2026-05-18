@@ -250,11 +250,80 @@ export const formulaRegistry: Record<string, FormulaEntry> = {
   },
 
   equity_margin_arv: {
-    title: 'Equity margin (forced)',
+    title: 'Equity Margin on ARV',
+    formula: '(ARV − Total Project Cost) ÷ ARV',
+    calcFn: (d, b) =>
+      `(${fmtCurrency(d.arv)} − ${fmtCurrency(b.totalProjectCost)}) ÷ ${fmtCurrency(d.arv)} = ${fmtPct(b.equityMarginArv)}`,
+    note: 'Forced equity as a percentage of ARV. Measures how much of the property’s as-repaired value you own outright above your all-in cost.',
+  },
+
+  forced_equity_roi: {
+    title: 'Forced Equity ROI',
     formula: '(ARV − Total Project Cost) ÷ Total Project Cost',
     calcFn: (d, b) =>
       `(${fmtCurrency(d.arv)} − ${fmtCurrency(b.totalProjectCost)}) ÷ ${fmtCurrency(b.totalProjectCost)} = ${fmtPct(b.equityMarginArv)}`,
-    note: 'Safety cushion as a % of all-in cost. Positive = value created above cost.',
+    note: 'Return on all-in cost from forced appreciation. How much value the project created relative to every dollar spent acquiring + rehabbing.',
+  },
+
+  equity_pct_book: {
+    title: 'True Equity % (book)',
+    formula: '(ARV − Refi Loan) ÷ ARV',
+    calcFn: (d, b) =>
+      `(${fmtCurrency(d.arv)} − ${fmtCurrency(b.refiLoan)}) ÷ ${fmtCurrency(d.arv)} = ${fmtPct((d.arv - b.refiLoan) / (d.arv || 1))}`,
+    note: 'Ownership share of the property after the cash-out refinance, before any sale costs. Effectively (1 − Refi LTV).',
+  },
+
+  equity_multiplier: {
+    title: 'Equity Multiplier',
+    formula: 'Property Equity Post-Refi ÷ Money in Deal',
+    calcFn: (d, b) =>
+      `(${fmtCurrency(d.arv)} − ${fmtCurrency(b.refiLoan)}) ÷ ${fmtCurrency(b.moneyInDeal)} = equity created per dollar still in the deal`,
+    note: 'How many dollars of post-refi equity you control per dollar of capital still tied up. Higher = more leverage on remaining cash.',
+  },
+
+  annual_cashflow_hml_pi: {
+    title: 'Annual Cashflow — HML · P&I',
+    formula: '(Gross Rent − PITI − OpEx) × 12  (post-refi P&I)',
+    calcFn: (d, b) =>
+      `Monthly NOI (post-refi P&I) × 12 — HML scenario`,
+    note: 'Annual net cashflow under the HML/refi scenario, using fully-amortizing principal + interest on the refi loan.',
+  },
+
+  annual_cashflow_hml_io: {
+    title: 'Annual Cashflow — HML · Interest-Only',
+    formula: '(Gross Rent − Interest-Only debt − OpEx) × 12',
+    calcFn: () => `Monthly NOI (interest-only debt) × 12 — HML scenario`,
+    note: 'Annual cashflow if the refi debt service were interest-only instead of fully amortizing. Higher than P&I — principal is not being paid down.',
+  },
+
+  annual_cashflow_cash_pi: {
+    title: 'Annual Cashflow — Cash · P&I',
+    formula: '(Gross Rent − PITI − OpEx) × 12  (all-cash buy)',
+    calcFn: () => `Monthly NOI (post-refi P&I) × 12 — all-cash scenario`,
+    note: 'Annual cashflow under the all-cash purchase scenario with P&I debt service applied.',
+  },
+
+  annual_cashflow_cash_io: {
+    title: 'Annual Cashflow — Cash · Interest-Only',
+    formula: '(Gross Rent − Interest-Only debt − OpEx) × 12  (all-cash buy)',
+    calcFn: () => `Monthly NOI (interest-only) × 12 — all-cash scenario`,
+    note: 'Annual cashflow under the all-cash purchase scenario with interest-only debt service.',
+  },
+
+  roe_hml: {
+    title: 'Return on Equity — HML',
+    formula: 'Annual Cashflow (HML P&I) ÷ Property Equity Post-Refi',
+    calcFn: (d, b) =>
+      `Annual CF (HML P&I) ÷ (${fmtCurrency(d.arv)} − ${fmtCurrency(b.refiLoan)})`,
+    note: 'Return on the equity locked into the property post-refi (ARV − Refi Loan), under the HML scenario.',
+  },
+
+  roe_cash: {
+    title: 'Return on Equity — Cash',
+    formula: 'Annual Cashflow (Cash P&I) ÷ ARV',
+    calcFn: (d) =>
+      `Annual CF (Cash P&I) ÷ ${fmtCurrency(d.arv)}`,
+    note: 'All-cash scenario divides annual cashflow by ARV (full equity ownership, no loan). Effectively an unlevered yield on as-repaired value.',
   },
 
   irr_scenarios: {

@@ -65,6 +65,7 @@ export default function AdvancedMetrics({ results: r, inputs }: Props) {
           <MetricItem
             label="Equity Multiplier"
             value={r.hmlMoneyInDeal > 0 ? fmtNumber(r.propertyEquityPostRefi / r.hmlMoneyInDeal, 2) + '×' : '—'}
+            metricId="equity_multiplier"
           />
         </div>
       </div>
@@ -73,10 +74,10 @@ export default function AdvancedMetrics({ results: r, inputs }: Props) {
       <div>
         <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">Annual Cash Flow</p>
         <div className="grid grid-cols-2 gap-2">
-          <MetricItem label="HML · PI" value={fmtCurrency(r.hmlAnnualCashflow_PI)} metricId="annual_cashflow" />
-          <MetricItem label="HML · IO" value={fmtCurrency(r.hmlAnnualCashflow_IO)} metricId="annual_cashflow" />
-          <MetricItem label="Cash · PI" value={fmtCurrency(r.cashAnnualCashflow_PI)} metricId="annual_cashflow" />
-          <MetricItem label="Cash · IO" value={fmtCurrency(r.cashAnnualCashflow_IO)} metricId="annual_cashflow" />
+          <MetricItem label="HML · PI" value={fmtCurrency(r.hmlAnnualCashflow_PI)} metricId="annual_cashflow_hml_pi" />
+          <MetricItem label="HML · IO" value={fmtCurrency(r.hmlAnnualCashflow_IO)} metricId="annual_cashflow_hml_io" />
+          <MetricItem label="Cash · PI" value={fmtCurrency(r.cashAnnualCashflow_PI)} metricId="annual_cashflow_cash_pi" />
+          <MetricItem label="Cash · IO" value={fmtCurrency(r.cashAnnualCashflow_IO)} metricId="annual_cashflow_cash_io" />
         </div>
       </div>
 
@@ -84,8 +85,8 @@ export default function AdvancedMetrics({ results: r, inputs }: Props) {
       <div>
         <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">Return on Equity</p>
         <div className="grid grid-cols-2 gap-2">
-          <MetricItem label="HML ROE" value={fmtPct(r.hmlROE)} metricId="roe" />
-          <MetricItem label="Cash ROE" value={fmtPct(r.cashROE)} metricId="roe" />
+          <MetricItem label="HML ROE" value={fmtPct(r.hmlROE)} metricId="roe_hml" />
+          <MetricItem label="Cash ROE" value={fmtPct(r.cashROE)} metricId="roe_cash" />
         </div>
       </div>
 
