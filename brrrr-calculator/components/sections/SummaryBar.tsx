@@ -127,7 +127,7 @@ export default function SummaryBar({ results: r }: Props) {
         metricId="money_in_deal"
       />
       <KPICard
-        label="Equity %"
+        label="equity_SummaryBar"
         value={fmtPct(r.hmlEquityPctPostRefi)}
         colorClass="text-gray-900"
         metricId="equity_kpi"
