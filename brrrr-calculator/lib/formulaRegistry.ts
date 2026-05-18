@@ -234,10 +234,11 @@ export const formulaRegistry: Record<string, FormulaEntry> = {
 
   equity_book: {
     title: 'Book equity post-Refi',
-    formula: 'ARV − Refi Loan',
+    formula: 'Equity $ = ARV − Refi Loan\nEquity % = (Equity $ − Money in Deal) ÷ Money in Deal',
     calcFn: (d, b) =>
-      `${fmtCurrency(d.arv)} − ${fmtCurrency(b.refiLoan)} = ${fmtCurrency(b.equityDollar)} (${fmtPct(b.equityPct)})`,
-    note: 'Ownership value assuming you hold — does not deduct sale costs.',
+      `Equity $: ${fmtCurrency(d.arv)} − ${fmtCurrency(b.refiLoan)} = ${fmtCurrency(b.equityDollar)}\n`
+      + `Equity %: (${fmtCurrency(b.equityDollar)} − ${fmtCurrency(b.moneyInDeal)}) ÷ ${fmtCurrency(b.moneyInDeal)} = ${fmtPct(b.equityPct)}`,
+    note: 'Equity $ is ownership value assuming you hold (no sale costs deducted). Equity % expresses the return on money left in the deal — how much equity you have created per dollar still tied up after the refinance.',
   },
 
   equity_liquidation: {

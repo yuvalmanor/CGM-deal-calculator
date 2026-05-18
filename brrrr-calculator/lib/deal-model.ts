@@ -465,7 +465,8 @@ export function calcBRRRR(d: Deal): BRRRRResult {
     : (cashflowNoCapex > 0 ? Infinity : 0)
 
   const equityDollar = d.arv - refi.refiLoan
-  const equityPct = (equityDollar / d.arv) * 100
+  // Equity % = return on money left in deal: (Equity$ − Money in Deal) / Money in Deal
+  const equityPct = moneyInDeal > 0 ? ((equityDollar - moneyInDeal) / moneyInDeal) * 100 : 0
   // Forced equity = (ARV - total project cost) / total project cost
   const equityForcedDollar = d.arv - totalProjectCost
   const equityMarginArv = totalProjectCost > 0 ? (equityForcedDollar / totalProjectCost) * 100 : 0
