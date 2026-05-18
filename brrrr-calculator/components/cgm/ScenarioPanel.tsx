@@ -60,13 +60,13 @@ function BRRRRView({ deal, brrrr, onLabelClick }: { deal: Deal; brrrr: BRRRRResu
             <div className="cell-value">{fmtNum(brrrr.dscr)}</div>
           </div>
           <div
-            className={`summary-cell ${statusFor('equity', brrrr.equityMarginArv, deal)}`}
+            className={`summary-cell ${statusFor('equity', brrrr.equityPct, deal)}`}
             onClick={() => setEquityShowDollar((v) => !v)}
             style={{ cursor: 'pointer', userSelect: 'none' }}
           >
-            <div className="cell-label">equity_ScenarioPanel {equityShowDollar ? '$' : '%'}</div>
+            <div className="cell-label">Equity {equityShowDollar ? '$' : '%'}</div>
             <div className="cell-value">
-              {equityShowDollar ? fmtCurrency(brrrr.equityForcedDollar) : fmtPct(brrrr.equityMarginArv)}
+              {equityShowDollar ? fmtCurrency(brrrr.equityDollar) : fmtPct(brrrr.equityPct)}
             </div>
           </div>
           <div className={`summary-cell ${statusFor('moneyInDeal', brrrr.moneyInDeal, deal)}`}>

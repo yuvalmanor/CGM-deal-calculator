@@ -49,7 +49,7 @@ export function DashboardBar({ deal, brrrr, mao, score, onEdit, onLabelClick }: 
   const cfStatus   = statusFor('cashflow',    brrrr.cashflow,       deal)
   const cocStatus  = statusFor('coc',         brrrr.coc,            deal)
   const dscrStatus = statusFor('dscr',        brrrr.dscr,           deal)
-  const eqStatus   = statusFor('equity',      brrrr.equityMarginArv, deal)
+  const eqStatus   = statusFor('equity',      brrrr.equityPct,       deal)
   const midStatus  = statusFor('moneyInDeal', brrrr.moneyInDeal,    deal)
   const scoreStatus = statusFor('score',      score.score,          deal)
 
@@ -94,8 +94,8 @@ export function DashboardBar({ deal, brrrr, mao, score, onEdit, onLabelClick }: 
           sub={`w/o CapEx: ${fmtPct(brrrr.cocNoCapex)}`} metricId="coc" onLabelClick={onLabelClick} />
         <Metric label="DSCR"          value={fmtNum(brrrr.dscr)}                  status={dscrStatus}
           sub={`lender ratio: ${fmtNum(brrrr.lenderDscr, 2)}`} metricId="dscr" onLabelClick={onLabelClick} />
-        <Metric label="Equity"        value={fmtPct(brrrr.equityMarginArv)}       status={eqStatus}
-          sub={fmtCurrency(brrrr.equityForcedDollar)} metricId="equity" onLabelClick={onLabelClick} />
+        <Metric label="Equity"        value={fmtPct(brrrr.equityPct)}             status={eqStatus}
+          sub={fmtCurrency(brrrr.equityDollar)} metricId="equity_book" onLabelClick={onLabelClick} />
         <Metric label="Money in Deal" value={fmtCurrency(brrrr.moneyInDeal)}      status={midStatus}
           sub={brrrr.moneyInDeal <= 0 ? 'infinite return' : `target ≤ $${(deal.maxMoneyInDeal / 1000).toFixed(0)}k`}
           metricId="moneyInDeal" onLabelClick={onLabelClick} />
