@@ -38,6 +38,7 @@ function OutputGroup({ title, children }: { title: string; children: React.React
 function BRRRRView({ deal, brrrr, onLabelClick }: { deal: Deal; brrrr: BRRRRResult; onLabelClick?: (id: string) => void }) {
   const click = onLabelClick
   const [equityShowDollar, setEquityShowDollar] = useState(false)
+  const [cocNoCapexView, setCocNoCapexView] = useState(false)
   const [opexExpanded, setOpexExpanded] = useState(true)
   const [ioExpanded, setIoExpanded] = useState(false)
   return (
@@ -51,9 +52,13 @@ function BRRRRView({ deal, brrrr, onLabelClick }: { deal: Deal; brrrr: BRRRRResu
           <div className="summary-sub">{fmtCurrency(brrrr.cashflow)} / month after debt service</div>
         </div>
         <div className="summary-grid">
-          <div className={`summary-cell ${statusFor('coc', brrrr.coc, deal)}`}>
-            <div className="cell-label">Cash-on-Cash</div>
-            <div className="cell-value">{fmtPct(brrrr.coc)}</div>
+          <div
+            className={`summary-cell ${statusFor('coc', cocNoCapexView ? brrrr.cocNoCapex : brrrr.coc, deal)}`}
+            onClick={() => setCocNoCapexView((v) => !v)}
+            style={{ cursor: 'pointer', userSelect: 'none' }}
+          >
+            <div className="cell-label">Cash-on-Cash{cocNoCapexView ? ' (w/o CapEx)' : ''}</div>
+            <div className="cell-value">{fmtPct(cocNoCapexView ? brrrr.cocNoCapex : brrrr.coc)}</div>
           </div>
           <div className={`summary-cell ${statusFor('dscr', brrrr.dscr, deal)}`}>
             <div className="cell-label">DSCR</div>
