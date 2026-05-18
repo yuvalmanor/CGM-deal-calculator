@@ -383,27 +383,27 @@ function AdvancedMetrics({ deal, brrrr, onLabelClick }: { deal: Deal; brrrr: BRR
 
       <div className="adv-grid">
         <div className={`adv-cell adv-${capRateStatus}`}>
-          <div className="adv-label adv-label-clickable" onClick={() => click?.('cap_rate')}>Cap Rate</div>
+          <span className="adv-label adv-label-clickable" style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#3a4a66', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }} onClick={() => click?.('cap_rate')}>Cap Rate</span>
           <div className="adv-value">{fmtPct(brrrr.capRate)}</div>
         </div>
         <div className="adv-cell adv-neutral">
-          <div className="adv-label adv-label-clickable" onClick={() => click?.('grm')}>GRM</div>
+          <span className="adv-label adv-label-clickable" style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#3a4a66', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }} onClick={() => click?.('grm')}>GRM</span>
           <div className="adv-value">{brrrr.grm.toFixed(1)}×</div>
         </div>
         <div className="adv-cell adv-neutral">
-          <div className="adv-label adv-label-clickable" onClick={() => click?.('noi')}>Monthly NOI</div>
+          <span className="adv-label adv-label-clickable" style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#3a4a66', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }} onClick={() => click?.('noi')}>Monthly NOI</span>
           <div className="adv-value">{fmtCurrency(brrrr.noi)}</div>
         </div>
         <div className="adv-cell adv-neutral">
-          <div className="adv-label adv-label-clickable" onClick={() => click?.('annual_cashflow')}>Annual CF</div>
+          <span className="adv-label adv-label-clickable" style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#3a4a66', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }} onClick={() => click?.('annual_cashflow')}>Annual CF</span>
           <div className="adv-value">{fmtCurrency(brrrr.annualCashflow)}</div>
         </div>
         <div className="adv-cell adv-neutral">
-          <div className="adv-label adv-label-clickable" onClick={() => click?.('roe')}>ROE</div>
+          <span className="adv-label adv-label-clickable" style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#3a4a66', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }} onClick={() => click?.('roe')}>ROE</span>
           <div className="adv-value">{fmtPct(brrrr.roe)}</div>
         </div>
         <div className="adv-cell adv-neutral">
-          <div className="adv-label adv-label-clickable" onClick={() => click?.('equity_margin_arv')}>Margin/ARV</div>
+          <span className="adv-label adv-label-clickable" style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#3a4a66', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }} onClick={() => click?.('equity_margin_arv')}>Margin/ARV</span>
           <div className="adv-value">{fmtPct(brrrr.equityMarginArv)}</div>
         </div>
       </div>
