@@ -292,8 +292,8 @@ function MAODetail({ deal, mao, onLabelClick }: { deal: Deal; mao: MAOResult; on
           <div className="mao-rule-value">{fmtCurrency(mao.maoMoneyInDeal)}</div>
         </div>
         <div className="mao-detail-row">
-          <div className="mao-rule mao-rule-clickable" onClick={() => onLabelClick?.('mao_equity')}>Equity margin ({deal.minEquityPct}%)</div>
-          <div className="mao-rule-formula">project cost ≤ ARV × {100 - deal.minEquityPct}%</div>
+          <div className="mao-rule mao-rule-clickable" onClick={() => onLabelClick?.('mao_equity')}>Equity post-Refi ≥ {deal.minEquityPct}%</div>
+          <div className="mao-rule-formula">money in deal ≤ post-Refi equity ÷ (1 + {deal.minEquityPct}%)</div>
           <div className="mao-rule-value">{fmtCurrency(mao.maoEquity)}</div>
         </div>
         <div className="mao-detail-row mao-binding">

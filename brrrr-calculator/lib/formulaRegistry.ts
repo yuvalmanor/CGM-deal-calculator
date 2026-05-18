@@ -56,9 +56,9 @@ export const formulaRegistry: Record<string, FormulaEntry> = {
 
   mao: {
     title: 'Maximum Allowable Offer',
-    formula: 'min(70% Rule, Money-in-Deal ≤ target, Equity margin)',
+    formula: 'min(70% Rule, Money-in-Deal ≤ target, Equity post-Refi ≥ target)',
     calcFn: (d, _b, m) =>
-      `70% Rule: ${fmtCurrency(m.mao70)}\nMoney in deal ≤ $${(d.maxMoneyInDeal/1000).toFixed(0)}k: ${fmtCurrency(m.maoMoneyInDeal)}\nEquity margin (${d.minEquityPct}%): ${fmtCurrency(m.maoEquity)}\nBinding: ${m.constraint} → ${fmtCurrency(m.mao)}`,
+      `70% Rule: ${fmtCurrency(m.mao70)}\nMoney in deal ≤ $${(d.maxMoneyInDeal/1000).toFixed(0)}k: ${fmtCurrency(m.maoMoneyInDeal)}\nEquity post-Refi ≥ ${d.minEquityPct}%: ${fmtCurrency(m.maoEquity)}\nBinding: ${m.constraint} → ${fmtCurrency(m.mao)}`,
     note: 'Your offer price vs. the binding MAO constraint. Positive delta = you are below MAO (favorable).',
   },
 
@@ -279,15 +279,20 @@ export const formulaRegistry: Record<string, FormulaEntry> = {
     formula: 'Solve for PP: money in deal = maxMoneyInDeal',
     calcFn: (d, _b, m) =>
       `Max PP where money in deal ≤ $${(d.maxMoneyInDeal/1000).toFixed(0)}k: ${fmtCurrency(m.maoMoneyInDeal)}`,
-    note: 'The highest purchase price that keeps your permanently deployed capital at or below the target threshold.',
+    note: 'The highest purchase price that keeps permanently-deployed capital at or below the target. Inverts the full money-in-deal formula — includes total rehab, additional costs, closing, one-time costs, holding costs, project cost adjustments, HML fees + carry, and refi closing.',
   },
 
   mao_equity: {
-    title: 'MAO — Equity margin',
-    formula: 'ARV × (1 − minEquity%) − Rehab − Closing − One-Time',
-    calcFn: (d, _b, m) =>
-      `${fmtCurrency(d.arv)} × (1 − ${d.minEquityPct}%) − costs = ${fmtCurrency(m.maoEquity)}`,
-    note: 'Max PP to keep total project cost below ARV × (1 − minEquityPct). Ensures minimum equity buffer.',
+    title: 'MAO — Equity post-Refi ≥ target',
+    formula: 'Solve for PP: (Post-Refi Equity − Money in Deal) ÷ Money in Deal = minEquityPct',
+    calcFn: (d, b, m) => {
+      const propEqPostRefi = d.arv * (1 - d.sellingCostsPct / 100) - b.refiLoan
+      const moneyInDealCap = propEqPostRefi / (1 + d.minEquityPct / 100)
+      return `Post-Refi equity: ${fmtCurrency(propEqPostRefi)} (ARV × (1−${d.sellingCostsPct}%) − refi loan)\n`
+        + `Money-in-deal cap: ${fmtCurrency(moneyInDealCap)} = post-Refi equity ÷ (1 + ${d.minEquityPct}%)\n`
+        + `Max PP at that cap: ${fmtCurrency(m.maoEquity)}`
+    },
+    note: 'Leverage-aware safety margin (Excel row 67 definition). Caps money-in-deal at post-Refi equity ÷ (1 + minEquityPct), then back-solves for PP. Note: this is a different metric than the dashboard\'s "Equity %" (which is forced equity = (ARV − all-in cost) ÷ all-in cost).',
   },
 
   // ── Score components ─────────────────────────────────────────────────────────

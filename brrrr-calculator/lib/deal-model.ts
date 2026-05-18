@@ -601,32 +601,37 @@ export function calcMAO(d: Deal): MAOResult {
   const carryMonths = Math.max(d.rehabMonths, d.refiSeasoningMonths)
   const lenderMisc = d.hmlLenderFees + d.hmlPostClosingMisc + (d.hmlExtraFees || []).reduce((s, f) => s + (f.amount || 0), 0)
 
-  // MAO-1: solve for PP where moneyInDeal ≤ maxMoneyInDeal
-  // moneyInDeal(PP) = PP*ppCoef + C
-  // where ppCoef = 1 + ltcPP*(pts + r_mo*carryMonths)
+  // moneyInDeal(PP) = ppCoef*PP + C, derived by inverting calcBRRRR's moneyInDeal.
+  // Shared by MAO-1 and MAO-2 — both solve linearly for PP given a moneyInDeal cap.
   const ppCoef = 1 + ltcPP * (pts + r_mo * carryMonths)
   const hmlFinancedRehab = rehab * ltcRehab + additionalFunded
   const C = rehab * (1 - ltcRehab)
     + additionalNotFunded
     + d.closingCostsBuy
-    + lenderMisc
     + oneTime
+    + holdingCosts
+    - d.projectCostAdjustments
+    + lenderMisc
     + hmlFinancedRehab * (1 + pts + r_mo * carryMonths)
     - refi.refiLoan
     + refi.totalRefiClosing
+
+  // MAO-1: max PP where moneyInDeal ≤ maxMoneyInDeal
   const maoMoneyInDeal = ppCoef > 0 ? (d.maxMoneyInDeal - C) / ppCoef : 0
 
-  // MAO-2: max PP s.t. forced equity (ARV - totalProjectCost) / totalProjectCost ≥ minEquityPct
-  // totalProjectCost = PP + rehab + additionalAll + closingBuy + oneTime + holdingCosts - projectCostAdjustments
-  // solve: ARV / (1 + minEquityPct/100) - rehab - additionalAll - closingBuy - oneTime - holdingCosts + projectCostAdjustments
-  const minEqFactor = 1 + d.minEquityPct / 100
-  const maoEquity = d.arv / minEqFactor - rehab - additionalFunded - additionalNotFunded - d.closingCostsBuy - oneTime - holdingCosts + d.projectCostAdjustments
+  // MAO-2 (Excel row 67 — leverage-aware post-Refi equity):
+  //   (propEquityPostRefi − moneyInDeal) / moneyInDeal ≥ minEquityPct
+  //   ⇔ moneyInDeal ≤ propEquityPostRefi / (1 + minEquityPct)
+  // propEquityPostRefi = ARV × (1 − sellingCostsPct) − refiLoan (matches equityLiquidationDollar)
+  const propEquityPostRefi = d.arv * (1 - d.sellingCostsPct / 100) - refi.refiLoan
+  const moneyInDealEqCap = propEquityPostRefi / (1 + d.minEquityPct / 100)
+  const maoEquity = ppCoef > 0 ? (moneyInDealEqCap - C) / ppCoef : 0
 
   const mao = Math.min(mao70, maoMoneyInDeal, maoEquity)
   const constraints = [
     { val: mao70,           label: '70% Rule' },
     { val: maoMoneyInDeal,  label: `Money in deal ≤ $${(d.maxMoneyInDeal / 1000).toFixed(0)}k` },
-    { val: maoEquity,       label: `Equity margin (${d.minEquityPct}%)` },
+    { val: maoEquity,       label: `Equity post-Refi ≥ ${d.minEquityPct}%` },
   ]
   const binding = constraints.reduce((a, b) => a.val <= b.val ? a : b)
   return { mao70, maoMoneyInDeal, maoEquity, mao, constraint: binding.label, deltaToOffer: mao - d.purchasePrice }

@@ -316,35 +316,47 @@ Scoring uses the same `scoreEquity` / `scoreROI` functions, but applies to `hmlE
 
 ## Section 12 — Maximum Allowable Offer (MAO)
 
-Both formulas solve for PP algebraically, holding ARV and all settings constant.
+Three constraints solve for PP algebraically; binding MAO is the lowest. All three share the same linear expansion `moneyInDeal(PP) = ppCoef × PP + C`.
 
 ```
-hmlCostFactor = hmlMonthlyRate × seasoningMonths + hmlPointsPct
-hmlFixedFees  = hmlAppraisalCost + hmlUnderwritingFees + hmlOtherFees + hmlExtraFees
+carryMonths = max(rehabMonths, refiSeasoningMonths)
+k           = hmlPointsPct + hmlMonthlyRate × carryMonths
+ppCoef      = 1 + hmlLeveragePP × k
 
-MAO-1 (keep money-in-deal ≤ maxMoneyInDeal):
-  = (maxMoneyInDeal
-     − changeOrders − holdingCosts − hmlFixedFees
-     − rehab × (1 + hmlLeverageRehab × hmlCostFactor)
-     + cashFromLender)
-    / (1 + 0.02 + hmlLeveragePP × hmlCostFactor)
+lenderMisc  = hmlLenderFees + hmlPostClosingMisc + Σ hmlExtraFees
+hmlFinancedRehab = rehab × hmlLeverageRehab + additionalFunded
 
-MAO-2 (keep equity ≥ minEquityPct post-refi):
-  refiFixedFees = refiAppraisalCost + refiUnderwritingFees + refiOtherFees
-
-  = (propertyEquityPostRefi / (1 + minEquityPct)
-     − rehab − changeOrders − holdingCosts
-     − hmlLeverageRehab × rehab × hmlCostFactor
-     − hmlFixedFees
-     − refiFixedFees
-     − 0.02 × ARV − $500
-     + refiLoanAmount × (1 − refiPointsPct))
-    / (1.02 + hmlLeveragePP × hmlCostFactor)
-
-maoDiscount = max((PP − MAO-1)/PP,  (PP − MAO-2)/PP)
+C = rehab × (1 − hmlLeverageRehab)
+  + additionalNotFunded
+  + closingCostsBuy
+  + oneTimeCosts
+  + holdingCosts
+  − projectCostAdjustments
+  + lenderMisc
+  + hmlFinancedRehab × (1 + k)
+  − refiLoan
+  + refiTotalClosing
 ```
 
-`maoDiscount > 0` means the current asking price exceeds both MAOs — you need to negotiate down. `maoDiscount ≤ 0` means the asking price is already within target on both measures.
+```
+MAO-1 (Money-in-Deal cap):
+  moneyInDeal ≤ maxMoneyInDeal
+  ⇒ MAO-1 = (maxMoneyInDeal − C) / ppCoef
+
+MAO-2 (Post-Refi equity ratio, Excel row 67):
+  (propEquityPostRefi − moneyInDeal) / moneyInDeal ≥ minEquityPct
+  ⇒ moneyInDeal ≤ propEquityPostRefi / (1 + minEquityPct)
+  ⇒ MAO-2 = (propEquityPostRefi / (1 + minEquityPct) − C) / ppCoef
+
+  where propEquityPostRefi = ARV × (1 − sellingCostsPct) − refiLoan
+
+MAO-70 (classic wholesaler rule):
+  MAO-70 = ARV × 0.70 − rehab
+
+MAO     = min(MAO-1, MAO-2, MAO-70)
+```
+
+MAO-2 uses **leverage-aware equity** — equity relative to capital deployed, not relative to all-in cost. This is intentionally distinct from the dashboard's `Equity %` KPI (which is forced equity, `(ARV − totalProjectCost) / totalProjectCost`). MAO-2 enforces a leverage safety margin; the KPI measures value created vs. cost.
 
 ---
 
