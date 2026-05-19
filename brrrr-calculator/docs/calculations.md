@@ -379,6 +379,23 @@ The property's annual return assuming no mortgage. NOI includes all operating ex
 | `7–9%` | Strong |
 | `> 9%` | High risk or exceptional — verify area quality |
 
+### GRM (Gross Rent Multiplier)
+
+```
+grm = arv / (monthlyRent × 12)
+```
+
+A quick valuation ratio — how many years of gross rent would equal the property's value. Ignores expenses and financing, so it's a screening tool only. Lower = cheaper relative to rent.
+
+**Thresholds:**
+
+| GRM | Interpretation |
+|---|---|
+| `< 8` | Strong |
+| `8–12` | Healthy |
+| `12–15` | Thin |
+| `> 15` | Cashflow unlikely |
+
 ---
 
 ## Validation

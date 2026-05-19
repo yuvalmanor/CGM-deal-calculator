@@ -217,7 +217,11 @@ export const formulaRegistry: Record<string, FormulaEntry> = {
     formula: 'ARV ÷ (Monthly Rent × 12)',
     calcFn: (d, b) =>
       `${fmtCurrency(d.arv)} ÷ (${fmtCurrency(d.monthlyRent)} × 12) = ${b.grm.toFixed(1)}×`,
-    note: 'Lower GRM = cheaper relative to rent. Quick screening metric — does not account for expenses.',
+    note: `A quick valuation ratio — how many years of gross rent equal the property's value. Lower is better.
+
+< 8 — strong · 8–12 — healthy · 12–15 — thin · > 15 — cashflow unlikely
+
+"How many years of gross rent would it take to equal the property's market value?"`,
   },
 
   annual_cashflow: {

@@ -47,6 +47,13 @@ function capRateTone(v: number): ValueTone {
   return 'warn'
 }
 
+function grmTone(v: number): ValueTone {
+  if (!Number.isFinite(v) || v <= 0) return 'neutral'
+  if (v < 8) return 'good'
+  if (v <= 15) return 'warn'
+  return 'bad'
+}
+
 interface Props { results: DealResults; inputs: DealInputs }
 
 export default function AdvancedMetrics({ results: r, inputs }: Props) {
@@ -69,7 +76,7 @@ export default function AdvancedMetrics({ results: r, inputs }: Props) {
         <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">Valuation</p>
         <div className="grid grid-cols-2 gap-2">
           <MetricItem label="Cap Rate" value={fmtPct(r.capRate)} metricId="cap_rate" tone={capRateTone(r.capRate)} />
-          <MetricItem label="GRM" value={fmtNumber(r.grm, 1) + '×'} metricId="grm" />
+          <MetricItem label="GRM" value={fmtNumber(r.grm, 1) + '×'} metricId="grm" tone={grmTone(r.grm)} />
         </div>
       </div>
 
