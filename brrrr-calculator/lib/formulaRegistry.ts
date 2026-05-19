@@ -205,7 +205,11 @@ export const formulaRegistry: Record<string, FormulaEntry> = {
     formula: '(Monthly NOI × 12) ÷ ARV',
     calcFn: (d, b) =>
       `(${fmtCurrency(b.noi)} × 12) ÷ ${fmtCurrency(d.arv)} = ${fmtPct(b.capRate)}`,
-    note: 'Unlevered return. Financing-independent — use to compare properties across markets.',
+    note: `The property's annual return assuming no mortgage. Calculated as NOI ÷ ARV, where NOI includes all operating expenses (including CapEx) but excludes debt service.
+
+< 5% — weak · 5–7% — healthy · 7–9% — strong · > 9% — high risk or exceptional deal, check area quality
+
+"What percentage of the property's value do I earn back every year from rent, after paying all operating costs?"`,
   },
 
   grm: {

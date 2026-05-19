@@ -360,6 +360,27 @@ MAO-2 uses **leverage-aware equity** — equity relative to capital deployed, no
 
 ---
 
+## Section 13 — Advanced Metrics
+
+### Cap Rate
+
+```
+capRate = (monthlyNOI × 12) / arv
+```
+
+The property's annual return assuming no mortgage. NOI includes all operating expenses (taxes, insurance, HOA, CapEx, mgmt, custom expenses) but excludes debt service. Financing-independent — used to compare properties across markets.
+
+**Thresholds:**
+
+| Cap Rate | Interpretation |
+|---|---|
+| `< 5%` | Weak |
+| `5–7%` | Healthy |
+| `7–9%` | Strong |
+| `> 9%` | High risk or exceptional — verify area quality |
+
+---
+
 ## Validation
 
 All formulas were verified against column YB of `Deal Calc CGM V2.xlsx` (1805 Cedar Wood Trl, Anna TX) using Python:
