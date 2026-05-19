@@ -6,16 +6,7 @@ import Scorecard from './Scorecard'
 
 const clickableLabelCls = 'truncate text-xs text-gray-500 text-left underline decoration-dashed decoration-gray-300 underline-offset-2 hover:text-blue-500 hover:decoration-blue-300 transition-colors cursor-pointer'
 
-type ValueTone = 'good' | 'warn' | 'bad' | 'neutral'
-
-const toneClass: Record<ValueTone, string> = {
-  good: 'text-green-600',
-  warn: 'text-amber-500',
-  bad: 'text-red-500',
-  neutral: 'text-gray-900',
-}
-
-function MetricItem({ label, value, metricId, tone = 'neutral' }: { label: string; value: string; metricId?: string; tone?: ValueTone }) {
+function MetricItem({ label, value, metricId }: { label: string; value: string; metricId?: string }) {
   const openModal = useModal()
   return (
     <div className="flex items-center justify-between gap-2 rounded-lg bg-gray-50 px-3 py-2">
@@ -33,25 +24,9 @@ function MetricItem({ label, value, metricId, tone = 'neutral' }: { label: strin
           <span className="truncate text-xs text-gray-500">{label}</span>
         )}
       </div>
-      <span className={`flex-shrink-0 text-xs font-semibold ${toneClass[tone]}`}>{value}</span>
+      <span className="flex-shrink-0 text-xs font-semibold text-gray-900">{value}</span>
     </div>
   )
-}
-
-function capRateTone(v: number): ValueTone {
-  if (!Number.isFinite(v)) return 'neutral'
-  const pct = v * 100
-  if (pct < 5) return 'bad'
-  if (pct < 7) return 'warn'
-  if (pct <= 9) return 'good'
-  return 'warn'
-}
-
-function grmTone(v: number): ValueTone {
-  if (!Number.isFinite(v) || v <= 0) return 'neutral'
-  if (v < 8) return 'good'
-  if (v <= 15) return 'warn'
-  return 'bad'
 }
 
 interface Props { results: DealResults; inputs: DealInputs }
@@ -75,8 +50,8 @@ export default function AdvancedMetrics({ results: r, inputs }: Props) {
       <div>
         <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">Valuation</p>
         <div className="grid grid-cols-2 gap-2">
-          <MetricItem label="Cap Rate" value={fmtPct(r.capRate)} metricId="cap_rate" tone={capRateTone(r.capRate)} />
-          <MetricItem label="GRM" value={fmtNumber(r.grm, 1) + '×'} metricId="grm" tone={grmTone(r.grm)} />
+          <MetricItem label="Cap Rate" value={fmtPct(r.capRate)} metricId="cap_rate" />
+          <MetricItem label="GRM" value={fmtNumber(r.grm, 1) + '×'} metricId="grm" />
         </div>
       </div>
 

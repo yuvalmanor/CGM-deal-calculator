@@ -692,7 +692,8 @@ export function statusFor(metric: string, value: number, d: Deal): Status {
     case 'score':        return v >= 8 ? 'good' : v >= 5 ? 'warn' : 'bad'
     case 'roi':          return v >= 20 ? 'good' : v >= 10 ? 'warn' : 'bad'
     case 'irr':          return v >= 15 ? 'good' : v >= 8 ? 'warn' : 'bad'
-    case 'capRate':      return v >= 6 ? 'good' : v >= 4 ? 'warn' : 'bad'
+    case 'capRate':      return v < 5 ? 'bad' : v < 7 ? 'warn' : v <= 9 ? 'good' : 'warn'
+    case 'grm':          return v <= 0 ? 'neutral' : v < 8 ? 'good' : v <= 15 ? 'warn' : 'bad'
     default: return 'neutral'
   }
 }

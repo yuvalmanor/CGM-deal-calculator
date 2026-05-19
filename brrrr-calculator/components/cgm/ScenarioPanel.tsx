@@ -371,6 +371,7 @@ function AdvancedMetrics({ deal, brrrr, onLabelClick }: { deal: Deal; brrrr: BRR
   const irrStatus3 = statusFor('irr', brrrr.irr3pct, deal)
   const irrStatus4 = statusFor('irr', brrrr.irr4pct, deal)
   const capRateStatus = statusFor('capRate', brrrr.capRate, deal)
+  const grmStatus = statusFor('grm', brrrr.grm, deal)
 
   const equityDollar = equityMode === 'book' ? brrrr.equityDollar : brrrr.equityLiquidationDollar
   const equityPct    = equityMode === 'book' ? brrrr.equityPct    : brrrr.equityLiquidationPct
@@ -386,7 +387,7 @@ function AdvancedMetrics({ deal, brrrr, onLabelClick }: { deal: Deal; brrrr: BRR
           <div className="am-label am-label-clickable" onClick={() => click?.('cap_rate')}>Cap Rate</div>
           <div className="am-value">{fmtPct(brrrr.capRate)}</div>
         </div>
-        <div className="am-cell am-neutral">
+        <div className={`am-cell am-${grmStatus}`}>
           <div className="am-label am-label-clickable" onClick={() => click?.('grm')}>GRM</div>
           <div className="am-value">{brrrr.grm.toFixed(1)}×</div>
         </div>
