@@ -396,6 +396,23 @@ A quick valuation ratio — how many years of gross rent would equal the propert
 | `12–15` | Thin |
 | `> 15` | Cashflow unlikely |
 
+### Forced Equity ROI
+
+```
+forcedEquityROI = (arv − allInCost) / allInCost
+```
+
+How much equity was created relative to the total capital deployed (your cash + loan). Measures how efficiently the deal converted invested capital into equity, independent of financing structure. Equivalent to the "Forced Equity %" dashboard KPI.
+
+**Thresholds:**
+
+| Forced Equity ROI | Interpretation |
+|---|---|
+| `< 20%` | Weak |
+| `20–30%` | Acceptable |
+| `30–35%` | Good |
+| `> 35%` | Strong |
+
 ---
 
 ## Validation

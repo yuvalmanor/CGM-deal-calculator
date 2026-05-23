@@ -270,7 +270,11 @@ export const formulaRegistry: Record<string, FormulaEntry> = {
     formula: '(ARV − Total Project Cost) ÷ Total Project Cost',
     calcFn: (d, b) =>
       `(${fmtCurrency(d.arv)} − ${fmtCurrency(b.totalProjectCost)}) ÷ ${fmtCurrency(b.totalProjectCost)} = ${fmtPct(b.equityMarginArv)}`,
-    note: 'Return on all-in cost from forced appreciation. How much value the project created relative to every dollar spent acquiring + rehabbing.',
+    note: `How much equity you created relative to the total capital deployed into the deal (your cash + loan). Calculated as (ARV − All-In Cost) ÷ All-In Cost. Measures how efficiently the deal converted invested capital into equity — regardless of how it was financed.
+
+< 20% — weak · 20–30% — acceptable · 30–35% — good · > 35% — strong
+
+"For every dollar deployed into this deal, how much equity was created?"`,
   },
 
   equity_pct_book: {

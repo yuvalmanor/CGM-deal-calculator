@@ -694,6 +694,7 @@ export function statusFor(metric: string, value: number, d: Deal): Status {
     case 'irr':          return v >= 15 ? 'good' : v >= 8 ? 'warn' : 'bad'
     case 'capRate':      return v < 5 ? 'bad' : v < 7 ? 'warn' : v <= 9 ? 'good' : 'warn'
     case 'grm':          return v <= 0 ? 'neutral' : v < 8 ? 'good' : v <= 15 ? 'warn' : 'bad'
+    case 'forcedEquityROI': return v < 20 ? 'bad' : v < 30 ? 'warn' : 'good'
     default: return 'neutral'
   }
 }

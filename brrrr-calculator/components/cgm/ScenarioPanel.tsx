@@ -372,6 +372,7 @@ function AdvancedMetrics({ deal, brrrr, onLabelClick }: { deal: Deal; brrrr: BRR
   const irrStatus4 = statusFor('irr', brrrr.irr4pct, deal)
   const capRateStatus = statusFor('capRate', brrrr.capRate, deal)
   const grmStatus = statusFor('grm', brrrr.grm, deal)
+  const forcedEquityROIStatus = statusFor('forcedEquityROI', brrrr.equityMarginArv, deal)
 
   const equityDollar = equityMode === 'book' ? brrrr.equityDollar : brrrr.equityLiquidationDollar
   const equityPct    = equityMode === 'book' ? brrrr.equityPct    : brrrr.equityLiquidationPct
@@ -391,9 +392,9 @@ function AdvancedMetrics({ deal, brrrr, onLabelClick }: { deal: Deal; brrrr: BRR
           <div className="am-label am-label-clickable" onClick={() => click?.('grm')}>GRM</div>
           <div className="am-value">{brrrr.grm.toFixed(1)}×</div>
         </div>
-        <div className="am-cell am-neutral">
-          <div className="am-label am-label-clickable" onClick={() => click?.('noi')}>Monthly NOI</div>
-          <div className="am-value">{fmtCurrency(brrrr.noi)}</div>
+        <div className={`am-cell am-${forcedEquityROIStatus}`}>
+          <div className="am-label am-label-clickable" onClick={() => click?.('forced_equity_roi')}>Forced Equity ROI</div>
+          <div className="am-value">{fmtPct(brrrr.equityMarginArv)}</div>
         </div>
         <div className="am-cell am-neutral">
           <div className="am-label am-label-clickable" onClick={() => click?.('annual_cashflow')}>Annual CF</div>
