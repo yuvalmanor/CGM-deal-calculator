@@ -237,7 +237,11 @@ export const formulaRegistry: Record<string, FormulaEntry> = {
     formula: '(Annual Cashflow) ÷ Book Equity $',
     calcFn: (d, b) =>
       `${fmtCurrency(b.annualCashflow)}/yr ÷ ${fmtCurrency(b.equityDollar)} = ${fmtPct(b.roe)}`,
-    note: 'How hard your equity is working. Lower equity (higher LTV) amplifies ROE.',
+    note: `How hard your equity is working for you. Calculated as Annual Cashflow ÷ Equity in the property. Unlike CoC, ROE decreases over time as equity grows through appreciation and amortization — even if cashflow stays flat. Use it as a hold/refi/sell trigger: when ROE drops too low, your equity may work harder elsewhere.
+
+< 4% — weak · 4–7% — acceptable · 7–10% — healthy · > 10% — strong
+
+"For every dollar of equity I own in this property, how much cashflow am I generating?"`,
   },
 
   equity_book: {

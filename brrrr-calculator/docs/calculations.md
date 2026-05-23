@@ -413,6 +413,23 @@ How much equity was created relative to the total capital deployed (your cash + 
 | `30–35%` | Good |
 | `> 35%` | Strong |
 
+### Return on Equity (ROE)
+
+```
+roe = (monthlyCashflow × 12) / (arv − refiLoan)
+```
+
+How hard your equity is working. Denominator is **book equity post-refi** (ARV minus refi loan balance), not money-in-deal. Unlike CoC, ROE decreases over time as equity grows through appreciation and amortization — even if cashflow stays flat. Used as a hold/refi/sell trigger.
+
+**Thresholds:**
+
+| ROE | Interpretation |
+|---|---|
+| `< 4%` | Weak |
+| `4–7%` | Acceptable |
+| `7–10%` | Healthy |
+| `> 10%` | Strong |
+
 ---
 
 ## Validation
