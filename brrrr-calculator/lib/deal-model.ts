@@ -691,7 +691,7 @@ export function statusFor(metric: string, value: number, d: Deal): Status {
     case 'cashLeftIn':   return v <= 0 ? 'good' : v <= d.maxMoneyInDeal ? 'warn' : 'bad'
     case 'score':        return v >= 8 ? 'good' : v >= 5 ? 'warn' : 'bad'
     case 'roi':          return v >= 20 ? 'good' : v >= 10 ? 'warn' : 'bad'
-    case 'irr':          return v >= 15 ? 'good' : v >= 8 ? 'warn' : 'bad'
+    case 'irr':          return v < 8 ? 'bad' : v < 12 ? 'warn' : v <= 25 ? 'good' : 'warn'
     case 'capRate':      return v < 5 ? 'bad' : v < 7 ? 'warn' : v <= 9 ? 'good' : 'warn'
     case 'grm':          return v <= 0 ? 'neutral' : v < 8 ? 'good' : v <= 15 ? 'warn' : 'bad'
     case 'forcedEquityROI': return v < 20 ? 'bad' : v < 30 ? 'warn' : 'good'

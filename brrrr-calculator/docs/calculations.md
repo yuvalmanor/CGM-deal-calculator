@@ -430,6 +430,26 @@ How hard your equity is working. Denominator is **book equity post-refi** (ARV m
 | `7–10%` | Healthy |
 | `> 10%` | Strong |
 
+### 5-Year IRR (appreciation scenarios)
+
+```
+cashflows = [−hmlMoneyInDeal, monthlyCF × 59, monthlyCF + exitProceeds]
+exitProceeds = arv × (1 + appreciationRate)^5 × (1 − sellingCostsPct/100) − remainingLoanBalance
+irr = (1 + monthlyIRR)^12 − 1
+```
+
+Annualized total return over 5 years — combines monthly cashflow, loan paydown, appreciation, and net sale proceeds. Solved iteratively (bisection / Newton-Raphson) on the monthly cashflow stream, then annualized. Returns 0 if `hmlMoneyInDeal ≤ 0` (full BRRRR — infinite return). Run across 3 appreciation scenarios (2%, 3%, 4%) for stress-testing.
+
+**Thresholds:**
+
+| 5-Year IRR | Interpretation |
+|---|---|
+| `< 8%` | Weak |
+| `8–12%` | Acceptable |
+| `12–18%` | Healthy |
+| `18–25%` | Strong |
+| `> 25%` | Verify assumptions |
+
 ---
 
 ## Validation

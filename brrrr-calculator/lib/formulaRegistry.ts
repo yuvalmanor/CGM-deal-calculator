@@ -344,10 +344,19 @@ export const formulaRegistry: Record<string, FormulaEntry> = {
 
   irr_scenarios: {
     title: '5-Year IRR (appreciation scenarios)',
-    formula: 'IRR on [−CashLeftIn, monthly CFs × 60, + exit at month 60]',
+    formula: `IRR of: [−hmlMoneyInDeal, CF_yr1, CF_yr2, CF_yr3, CF_yr4, CF_yr5 + exitProceeds]
+Where:
+  exitProceeds = ARV × (1 + appreciationRate)^5 × 0.92 − remainingLoanBalance
+  Solved iteratively (Newton-Raphson / bisection)
+  Annualized as: (1 + monthlyIRR)^12 − 1
+Run across 3 scenarios: 2%, 3%, 4% annual appreciation`,
     calcFn: (d, b) =>
       `2% appreciation: ${fmtPct(b.irr2pct)}\n3% appreciation: ${fmtPct(b.irr3pct)}\n4% appreciation: ${fmtPct(b.irr4pct)}\nExit = ARV × (1+rate)^5 × (1−${d.sellingCostsPct}%) − remaining balance`,
-    note: 'Annualised total return (cashflow + amortization + appreciation + exit) over 5 years. Returns 0 if cash left in ≤ $0 (full BRRRR).',
+    note: `The annualized total return over 5 years, combining cashflow, loan paydown, appreciation, and net sale proceeds. The most comprehensive single-number performance metric for a deal. Calculated across 3 appreciation scenarios (2%, 3%, 4%) so you can stress-test the outcome.
+
+< 8% — weak · 8–12% — acceptable · 12–18% — healthy · 18–25% — strong · > 25% — verify assumptions
+
+"If I account for every dollar this deal generates over 5 years — cashflow, equity, and the eventual sale — what's my true annualized return?"`,
   },
 
   // ── MAO ──────────────────────────────────────────────────────────────────────
