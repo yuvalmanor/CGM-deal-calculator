@@ -384,7 +384,8 @@ export interface BRRRRResult {
   // Equity (book)
   equityDollar: number
   equityPct: number
-  equityMarginArv: number    // (ARV - totalProjectCost) / totalProjectCost — "forced equity"
+  equityMarginArv: number    // (ARV - totalProjectCost) / totalProjectCost — "forced equity ROI"
+  equityMarginOnArv: number  // (ARV - totalProjectCost) / ARV — "margin on ARV"
   equityForcedDollar: number // ARV - totalProjectCost
   trueEquityBook: number
   equityMultiplier: number
@@ -470,6 +471,7 @@ export function calcBRRRR(d: Deal): BRRRRResult {
   // Forced equity = (ARV - total project cost) / total project cost
   const equityForcedDollar = d.arv - totalProjectCost
   const equityMarginArv = totalProjectCost > 0 ? (equityForcedDollar / totalProjectCost) * 100 : 0
+  const equityMarginOnArv = d.arv > 0 ? (equityForcedDollar / d.arv) * 100 : 0
   const trueEquityBook = ((d.arv - refi.refiLoan) / d.arv) * 100
   const equityMultiplier = totalCashIn > 0 ? (d.arv - refi.refiLoan + cashReturnedAtRefi) / totalCashIn : 0
 
@@ -501,7 +503,7 @@ export function calcBRRRR(d: Deal): BRRRRResult {
     totalOpex, totalOpexNoCapex, totalOpexWithPI, totalOpexNoCapexWithPI, capexVacancy,
     noi, cashflow, annualCashflow: cashflow * 12, cashflowNoCapex,
     coc, cocNoCapex, dscr, lenderDscr,
-    equityDollar, equityPct, equityMarginArv, equityForcedDollar,
+    equityDollar, equityPct, equityMarginArv, equityMarginOnArv, equityForcedDollar,
     trueEquityBook, equityMultiplier,
     equityLiquidationDollar, equityLiquidationPct,
     capRate, grm, roe,
@@ -696,6 +698,7 @@ export function statusFor(metric: string, value: number, d: Deal): Status {
     case 'grm':          return v <= 0 ? 'neutral' : v < 8 ? 'good' : v <= 15 ? 'warn' : 'bad'
     case 'forcedEquityROI': return v < 20 ? 'bad' : v < 30 ? 'warn' : 'good'
     case 'roe':          return v < 4 ? 'bad' : v < 7 ? 'warn' : 'good'
+    case 'marginOnArv':  return v < 20 ? 'bad' : v < 25 ? 'warn' : 'good'
     default: return 'neutral'
   }
 }

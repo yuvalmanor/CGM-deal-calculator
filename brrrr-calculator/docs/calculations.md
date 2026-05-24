@@ -464,6 +464,23 @@ Total annual income after all operating expenses and refi debt service. The Adva
 
 The toggle does not affect any other metric (ROE, CoC, scoring, IRR all continue to use the with-CapEx cashflow as the source of truth).
 
+### Equity Margin on ARV
+
+```
+equityMarginOnArv = (arv − allInCost) / arv
+```
+
+The cushion between what you spent and the property's market value, as a percentage of ARV. Directly reflects the 70% rule — a 30% margin means you're all-in at 70% of ARV. Distinct from **Forced Equity ROI** (which divides the same numerator by All-In Cost instead).
+
+**Thresholds:**
+
+| Equity Margin on ARV | Interpretation |
+|---|---|
+| `< 20%` | Dangerous |
+| `20–25%` | Minimum |
+| `25–35%` | Healthy |
+| `> 35%` | Strong |
+
 ---
 
 ## Validation

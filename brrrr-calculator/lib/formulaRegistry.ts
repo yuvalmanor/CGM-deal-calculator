@@ -266,10 +266,14 @@ export const formulaRegistry: Record<string, FormulaEntry> = {
 
   equity_margin_arv: {
     title: 'Equity Margin on ARV',
-    formula: '(ARV − Total Project Cost) ÷ ARV',
+    formula: '(ARV − All-In Cost) ÷ ARV',
     calcFn: (d, b) =>
-      `(${fmtCurrency(d.arv)} − ${fmtCurrency(b.totalProjectCost)}) ÷ ${fmtCurrency(d.arv)} = ${fmtPct(b.equityMarginArv)}`,
-    note: 'Forced equity as a percentage of ARV. Measures how much of the property’s as-repaired value you own outright above your all-in cost.',
+      `(${fmtCurrency(d.arv)} − ${fmtCurrency(b.totalProjectCost)}) ÷ ${fmtCurrency(d.arv)} = ${fmtPct(b.equityMarginOnArv)}`,
+    note: `How much cushion exists between what you spent and the property's market value, expressed as a percentage of ARV. Calculated as (ARV − All-In Cost) ÷ ARV. Directly reflects the 70% rule — a 30% margin means you're all-in at 70% of ARV.
+
+< 20% — dangerous · 20–25% — minimum · 25–35% — healthy · > 35% — strong
+
+"How wrong can my ARV estimate be before I lose money on this deal?"`,
   },
 
   forced_equity_roi: {
