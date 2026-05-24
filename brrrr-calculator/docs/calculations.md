@@ -450,6 +450,20 @@ Annualized total return over 5 years — combines monthly cashflow, loan paydown
 | `18–25%` | Strong |
 | `> 25%` | Verify assumptions |
 
+### Annual Cashflow
+
+```
+annualCashflow         = monthlyCashflow × 12
+annualCashflowNoCapex  = (monthlyCashflow + capexVacancy) × 12
+```
+
+Total annual income after all operating expenses and refi debt service. The Advanced Metrics cell offers a toggle between two views:
+
+- **w/ capex** — uses `monthlyCashflow`, which deducts the CapEx/vacancy reserve. This is the true long-run cashflow once you've set money aside for repairs and turnover.
+- **no capex** — adds the CapEx/vacancy reserve back. This is the cashflow before reserving — useful for comparing against properties that exclude reserves from their pro-forma.
+
+The toggle does not affect any other metric (ROE, CoC, scoring, IRR all continue to use the with-CapEx cashflow as the source of truth).
+
 ---
 
 ## Validation

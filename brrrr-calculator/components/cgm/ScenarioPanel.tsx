@@ -365,6 +365,7 @@ function ScoreBreakdown({ score, onLabelClick }: { score: DealScore; onLabelClic
 
 function AdvancedMetrics({ deal, brrrr, onLabelClick }: { deal: Deal; brrrr: BRRRRResult; onLabelClick?: (id: string) => void }) {
   const [equityMode, setEquityMode] = useState<'book' | 'liquidation'>('book')
+  const [annualCFNoCapex, setAnnualCFNoCapex] = useState(false)
   const click = onLabelClick
 
   const irrStatus2 = statusFor('irr', brrrr.irr2pct, deal)
@@ -398,8 +399,16 @@ function AdvancedMetrics({ deal, brrrr, onLabelClick }: { deal: Deal; brrrr: BRR
           <div className="am-value">{fmtPct(brrrr.equityMarginArv)}</div>
         </div>
         <div className="am-cell am-neutral">
-          <div className="am-label am-label-clickable" onClick={() => click?.('annual_cashflow')}>Annual CF</div>
-          <div className="am-value">{fmtCurrency(brrrr.annualCashflow)}</div>
+          <div className="am-label am-label-clickable" onClick={() => click?.('annual_cashflow')}>
+            Annual CF {annualCFNoCapex ? '(no capex)' : '(w/ capex)'}
+          </div>
+          <div
+            className="am-value am-label-clickable"
+            title="Click to toggle CapEx"
+            onClick={() => setAnnualCFNoCapex((v) => !v)}
+          >
+            {fmtCurrency(annualCFNoCapex ? brrrr.cashflowNoCapex * 12 : brrrr.annualCashflow)}
+          </div>
         </div>
         <div className={`am-cell am-${roeStatus}`}>
           <div className="am-label am-label-clickable" onClick={() => click?.('roe')}>ROE</div>

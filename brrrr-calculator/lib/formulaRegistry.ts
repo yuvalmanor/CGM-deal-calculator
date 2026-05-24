@@ -229,7 +229,10 @@ export const formulaRegistry: Record<string, FormulaEntry> = {
     formula: 'Monthly Cashflow × 12',
     calcFn: (d, b) =>
       `${fmtCurrency(b.cashflow)}/mo × 12 = ${fmtCurrency(b.annualCashflow)}/yr`,
-    note: 'Total annual income after all expenses and debt service.',
+    note: `Total annual income after all expenses and debt service. Click the dollar amount in the Advanced Metrics cell to toggle between including or excluding CapEx/vacancy reserve in the operating expenses.
+
+• "w/ capex" — includes CapEx & vacancy reserve (true long-run cashflow)
+• "no capex" — excludes the reserve (cashflow before setting money aside)`,
   },
 
   roe: {
