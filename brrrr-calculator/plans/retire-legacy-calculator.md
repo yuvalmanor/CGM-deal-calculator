@@ -1,7 +1,7 @@
 # Plan: Retire Legacy Calculator — delete the dead V1 path, make the repo tell one coherent story
 
 > Feature: Retire Legacy Calculator (slug: `retire-legacy-calculator`) — implement with `/build-phase retire-legacy-calculator`
-> **Sequencing: do NOT start until the lender-comparison feature has shipped.** Its (re-planned) phases build on V2 and will touch several files named below — re-verify the inventory with grep at execution time.
+> **Sequencing: this plan runs FIRST, before the lender-comparison feature is re-planned.** Lender-comparison planning restarts only after this plan completes, against the cleaned-up repo. `plans/lender-comparison.md` is stale (authored against the dead V1 model) and is archived in Phase 5; do not build from it.
 > Origin: discovered 2026-07-04 while attempting `/build-phase lender-comparison` — the live app runs an entirely different calculator than the one CLAUDE.md and the docs describe.
 
 ## Why this plan exists
@@ -21,7 +21,7 @@ Consequences today:
 Durable decisions that apply across all phases:
 
 - **V2 is the only calculator.** The V1 tree is deleted, not archived in-repo — git history is the archive. No compatibility shims for the V1 UI.
-- **Nothing is deleted before a replacement safety net exists.** V2 gets golden-value tests (Vitest) pinning the outputs of `calcBRRRR` / `calcFlipCash` / `calcFlipHML` / `calcMAO` / `calcDealScore` **before** any V1 file is removed. If the lender-comparison feature already introduced Vitest + V2 golden values, Phase 1 shrinks to extending them.
+- **Nothing is deleted before the calculator brain is frozen.** Phase 1 lands golden-value tests (Vitest) pinning the outputs of `calcBRRRR` / `calcFlipCash` / `calcFlipHML` / `calcMAO` / `calcDealScore` **before** any file is removed. From that point on, any change — accidental or deliberate — to any formula in `lib/deal-model.ts` fails `npm test`, and every later phase runs `npm test` as a mandatory gate. This is the "formulas won't be touched" guarantee for the whole plan, and it carries forward into future feature work (lender-comparison inherits the suite).
 - **Gate redefinition.** Phase 1 runs the full legacy gates (`python scripts/verify_excel.py` + `npx tsc --noEmit`). From Phase 2 onward — once the script and the engine it verifies are gone — the mandatory gates are: `npm test` (all green) + `npx tsc --noEmit` (zero errors) + `npm run build` (succeeds). This supersedes CLAUDE.md's verify_excel rule from Phase 2 on; CLAUDE.md itself is updated in the same commit that deletes the script (never a window where the docs demand a gate that doesn't exist).
 - **"Formula engine is sacred" transfers to `lib/deal-model.ts`.** Same rule, new target: golden tests pin its behavior; suspected bugs are reported, not silently fixed. Deleting `lib/calculations.ts` is not a violation — it is this plan's explicit purpose, recorded in ADR-0002.
 - **API drops V1 payload support.** The `{ inputs, settings, results }` branches in `POST /api/deals` and `PUT /api/deals/[id]` are removed; only the flat V2 payload remains. Acceptable break: the only V1 client is the dead UI being deleted.
@@ -45,17 +45,18 @@ Durable decisions that apply across all phases:
 
 ---
 
-## Phase 1: Safety net — pin V2 behavior with golden tests
+## Phase 1: Freeze the calculator brain — golden tests before anything else
 
 ### What to build
 
-Vitest (if not already present from lender-comparison) + golden-value tests that snapshot the full numeric output of `calcBRRRR`, `calcFlipCash`, `calcFlipHML`, `calcMAO`, `calcDealScore` for (a) `DEFAULT_DEAL` (Anna TX) and (b) at least one hand-built fixture exercising the non-default branches: `yr` units, `pctOfRehab` change orders, pct-mode capex/mgmt, funded + not-funded `rehabAdditionalCosts`, extra fees on both lenders, `refiTitleEscrow = 0` (auto) vs explicit. Golden numbers are captured from the current engine and reviewed by the user for plausibility before being frozen — they define "correct" from then on.
+The safety mechanism that guarantees the formulas are never silently touched, landed **before any cleanup begins**. Introduce Vitest and golden-value tests that snapshot the full numeric output of `calcBRRRR`, `calcFlipCash`, `calcFlipHML`, `calcMAO`, `calcDealScore` for (a) `DEFAULT_DEAL` (Anna TX) and (b) at least one hand-built fixture exercising the non-default branches: `yr` units, `pctOfRehab` change orders, pct-mode capex/mgmt, funded + not-funded `rehabAdditionalCosts`, extra fees on both lenders, `refiTitleEscrow = 0` (auto) vs explicit. Golden numbers are captured from the current engine and reviewed by the user for plausibility before being frozen — they define "correct" from then on. Also add the ground rule to CLAUDE.md in this phase (not Phase 5): `lib/deal-model.ts` is the sacred formula engine — do not modify; suspected bugs are reported, never fixed silently.
 
 ### Acceptance criteria
 
 - [ ] `npm test` runs golden tests covering all five calc functions and both fixtures, all green.
 - [ ] Changing any formula constant in `lib/deal-model.ts` (trial edit, then revert) makes at least one test fail — the net actually catches regressions.
 - [ ] User has eyeballed and approved the golden numbers.
+- [ ] CLAUDE.md's ground rules name `lib/deal-model.ts` as the untouchable engine, protected by `npm test`.
 - [ ] Legacy gates still pass: `python scripts/verify_excel.py` (all 12) + `npx tsc --noEmit`.
 
 ---
@@ -94,7 +95,7 @@ Deal with rows in `DEALS_APP` saved by the V1 calculator (shape: `inputsJson` = 
 
 ### What to build
 
-Pure renames, zero behavior change: `DealCalculatorV2.tsx` → `DealCalculator.tsx` (component `DealCalculator`), `saveDealV2`/`updateDealV2` → `saveDeal`/`updateDeal`, and a decision on the `components/cgm/` folder name (keep as brand or fold into `components/`). Decide what `settingsJson` now means going forward and document it in the code + CLAUDE.md schema table — **coordinate with lender-comparison**, whose re-plan may have claimed that column for Term Sheets; whatever shipped there wins. Keep the localStorage key `cgm-deal-calc-v2` as-is (changing it silently discards users' drafts) unless the user opts to migrate it.
+Pure renames, zero behavior change: `DealCalculatorV2.tsx` → `DealCalculator.tsx` (component `DealCalculator`), `saveDealV2`/`updateDealV2` → `saveDeal`/`updateDeal`, and a decision on the `components/cgm/` folder name (keep as brand or fold into `components/`). Keep the `settingsJson` `"v2"` sentinel as-is for now, documented in the code + CLAUDE.md schema table as "reserved — currently a shape marker"; the upcoming lender-comparison re-plan is free to claim the column (e.g. for Term Sheets) later. Keep the localStorage key `cgm-deal-calc-v2` as-is (changing it silently discards users' drafts) unless the user opts to migrate it.
 
 ### Acceptance criteria
 
@@ -112,9 +113,9 @@ Make every document describe the repo as it now is:
 
 - **CLAUDE.md** — full rewrite: current state table (V2-only), required reading order, new gates, `DEALS_APP` schema (with whatever `settingsJson` now holds), file placement reference matching the real tree, ground rules with `lib/deal-model.ts` as the sacred engine, common-mistakes list refreshed.
 - **CONTEXT.md** — fix the stale "(today: the two halves of `LenderSettings`)" line and any other V1 references; glossary stays.
-- **docs/architecture.md** — rewrite around: `Deal` model, `deal-model.ts` engine, cgm component tree, dashboard, Sheets persistence, cache tags, plus whatever lender-comparison added.
+- **docs/architecture.md** — rewrite around: `Deal` model, `deal-model.ts` engine, cgm component tree, dashboard, Sheets persistence, cache tags.
 - **docs/calculations.md** — currently a hybrid (V1 reference + appended V2 entries). Rebuild as the V2 formula reference; consider absorbing the untracked `../BRRRR_Cheat_Sheet.md` into the repo as the formulas' business-side source.
-- **docs/archive/** — move `docs/new/PLAN.md`, `docs/new/SPEC.md`, `docs/new/DECISIONS.md`, `docs/new/VERIFY_GUIDE.md`, `docs/design.md`, `docs/input-reference.md` (+ review `docs/overview.md`, `docs/roadmap.md`, `docs/new/FORMULA_REGISTRY_GUIDE.md` individually: rewrite, archive, or delete) with a historical banner on each.
+- **docs/archive/** — move `docs/new/PLAN.md`, `docs/new/SPEC.md`, `docs/new/DECISIONS.md`, `docs/new/VERIFY_GUIDE.md`, `docs/design.md`, `docs/input-reference.md` (+ review `docs/overview.md`, `docs/roadmap.md`, `docs/new/FORMULA_REGISTRY_GUIDE.md` individually: rewrite, archive, or delete) with a historical banner on each. Also archive the stale `plans/lender-comparison.md` — it targets the deleted V1 model; the feature gets a fresh plan afterwards. CONTEXT.md's glossary and ADR-0001 (Term Sheets are snapshots) remain live — they describe the upcoming feature's domain, not V1.
 - **docs/adr/0002-v2-calculator-is-canonical.md** — new ADR recording: V1 retired, why the Excel gate was replaced by golden tests, and that `deal-model.ts` formulas intentionally diverge from the old Excel workbook.
 - **docs/new/CHANGELOG.md** — entries for all phases of this plan.
 
