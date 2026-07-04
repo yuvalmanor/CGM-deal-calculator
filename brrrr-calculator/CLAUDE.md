@@ -76,8 +76,14 @@ If a change requires a new secret (e.g. a new API key), add it in two places:
 ## Ground Rules
 
 ### Formula engine is sacred
-`lib/calculations.ts` is a verified pure function. Do not modify it.
-If you suspect a bug, stop and report — do not fix silently.
+`lib/deal-model.ts` is the live calculator engine — do not modify it.
+Its formulas are frozen by golden-value tests (`tests/deal-model.golden.test.ts`):
+run `npm test` after any change; all tests must pass.
+If you suspect a formula bug, stop and report — never fix silently.
+A deliberate, user-approved formula change re-captures goldens with
+`UPDATE_GOLDEN=1 npm test`, and the diff must be reviewed and approved.
+
+`lib/calculations.ts` (legacy V1 engine) is likewise a verified pure function — do not modify it.
 
 ### Run Excel verification after every file change
 ```bash

@@ -53,11 +53,11 @@ The safety mechanism that guarantees the formulas are never silently touched, la
 
 ### Acceptance criteria
 
-- [ ] `npm test` runs golden tests covering all five calc functions and both fixtures, all green.
-- [ ] Changing any formula constant in `lib/deal-model.ts` (trial edit, then revert) makes at least one test fail — the net actually catches regressions.
-- [ ] User has eyeballed and approved the golden numbers.
-- [ ] CLAUDE.md's ground rules name `lib/deal-model.ts` as the untouchable engine, protected by `npm test`.
-- [ ] Legacy gates still pass: `python scripts/verify_excel.py` (all 12) + `npx tsc --noEmit`.
+- [x] `npm test` runs golden tests covering all five calc functions and both fixtures, all green.
+- [x] Changing any formula constant in `lib/deal-model.ts` (trial edit, then revert) makes at least one test fail — the net actually catches regressions.
+- [x] User has eyeballed and approved the golden numbers (2026-07-04, cross-checked against the live saved Anna deal — differences were input edits, engine outputs reproduced exactly).
+- [x] CLAUDE.md's ground rules name `lib/deal-model.ts` as the untouchable engine, protected by `npm test`.
+- [x] Legacy gates still pass: `python scripts/verify_excel.py` (all 12) + `npx tsc --noEmit`.
 
 ---
 
