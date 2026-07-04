@@ -1,16 +1,16 @@
 New session starting. Before doing anything else, read the following files in this exact order:
 
 1. `CLAUDE.md` — ground rules, what not to touch, reading order
-2. `docs/new/SPEC.md` — UI/UX specification (design authority)
-3. `docs/new/PLAN.md` — execution plan and acceptance criteria
-4. `docs/new/CHANGELOG.md` — what has been completed and what is pending
-5. `docs/new/DECISIONS.md` — rationale for key decisions
+2. `docs/new/CHANGELOG.md` — what has been completed and what is pending
+3. `CONTEXT.md` — domain glossary (canonical terms)
+4. `docs/adr/0001-term-sheets-are-snapshots.md` and `docs/adr/0002-v2-calculator-is-canonical.md` — accepted decisions
+5. Any active plan in `plans/` — current feature phases and acceptance criteria
 
-After reading all five files, give me a status report in this format:
+After reading all of the above, give me a status report in this format:
 
-**Current phase:** [Phase A / B / C / D — or "All phases complete"]
+**Current phase:** [Next phase with unchecked criteria in the active plan — or "No active plan"]
 **Last completed task:** [The last specific thing finished — file name and what changed]
-**Next task:** [The exact next step from PLAN.md]
+**Next task:** [The exact next step from the active plan]
 **Verification status:** [Did the gates (`npm test`, `npx tsc --noEmit`, `npm run build`) last pass ALL GREEN? When were they last run?]
 **Blockers:** [Any open failing criterion or TypeScript error from the last session — or "None"]
 

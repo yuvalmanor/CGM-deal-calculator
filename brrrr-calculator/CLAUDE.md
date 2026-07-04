@@ -7,15 +7,21 @@ Read this file first, then follow the reading order below before writing any cod
 
 ## Current State
 
-All four phases are complete. The app is live on Vercel.
+The app is live on Vercel: a single-calculator BRRRR deal analyzer backed by Google Sheets.
+The original build phases (engine, UI, persistence, dashboard, deployment) are complete, and the
+legacy V1 calculator has been fully retired (see `docs/adr/0002-v2-calculator-is-canonical.md`).
 
 | Layer | Status |
 |---|---|
-| Formula engine (`lib/deal-model.ts`) | ✅ Complete — frozen by golden tests |
-| UI/UX overhaul (Phase 1.5: A–D) | ✅ Complete |
-| Google Sheets API + deal persistence (Phase 2) | ✅ Complete |
-| Dashboard + deal management (Phase 3) | ✅ Complete |
-| Vercel deployment (Phase 4) | ✅ Complete — app is live |
+| Formula engine (`lib/deal-model.ts`) | ✅ Live — frozen by golden tests (`npm test`) |
+| Calculator UI (`components/DealCalculator.tsx` + `components/cgm/*`) | ✅ Live |
+| Google Sheets persistence (`lib/sheets.ts` + `app/api/deals/*`) | ✅ Live |
+| Dashboard + deal management (`app/page.tsx`) | ✅ Live |
+| Vercel deployment | ✅ Live — auto-deploys on push to `main` |
+
+Next planned feature: **lender comparison** (Lender Library / Term Sheets — see `CONTEXT.md`
+and `docs/adr/0001-term-sheets-are-snapshots.md`). It has no current plan file; the old one
+was authored against the retired V1 model and is archived at `docs/archive/plan-lender-comparison.md`.
 
 ---
 
@@ -24,10 +30,13 @@ All four phases are complete. The app is live on Vercel.
 Read in this exact order before writing any code:
 
 1. `docs/new/CHANGELOG.md` — what has been built and verified
-2. `docs/new/PLAN.md` — phase history and acceptance criteria
-3. `docs/new/SPEC.md` — UI/UX ground truth (reference if fixing UI bugs)
-4. `docs/calculations.md` — formula engine reference (do not modify)
+2. `CONTEXT.md` — domain glossary (canonical terms for code, UI copy, commits)
+3. `docs/adr/*.md` — accepted decisions; never "fix" what an ADR declares deliberate
+4. `docs/calculations.md` — formula engine reference (the engine itself is frozen — do not modify)
 5. `docs/architecture.md` — stack, data flow, component patterns
+
+`docs/brrrr-cheat-sheet.md` is the business-side reference for the formulas.
+Anything under `docs/archive/` is historical (retired V1 calculator) — never treat it as a spec.
 
 ---
 
@@ -37,7 +46,7 @@ This is the standard process for any change — formula fix, layout tweak, new f
 
 ### 1. Make the change locally
 
-Edit the relevant file(s). Then:
+Edit the relevant file(s). Then run the gates:
 
 ```bash
 # Always run after any change — golden tests prove formulas are untouched
@@ -85,9 +94,8 @@ run `npm test` after any change; all tests must pass.
 If you suspect a formula bug, stop and report — never fix silently.
 A deliberate, user-approved formula change re-captures goldens with
 `UPDATE_GOLDEN=1 npm test`, and the diff must be reviewed and approved.
-
-(The legacy V1 engine and its Excel verification script were deleted in the
-retire-legacy-calculator cleanup — golden tests are now the only formula gate.)
+The engine's formulas intentionally diverge from the old Excel workbook —
+differences from `docs/brrrr-cheat-sheet.md` or `docs/archive/` are not bugs (ADR-0002).
 
 ### Run the golden tests after every file change
 ```bash
@@ -120,6 +128,12 @@ Confirm `.env.local` is in `.gitignore` before any git operations.
 Any route that writes to Sheets (POST, PUT, DELETE) must call `revalidateTag('deals')`
 so the dashboard cache is purged immediately. Do not skip this on new mutation routes.
 
+### Saved deals fail loudly, never silently
+`app/deal/[id]/page.tsx` validates stored JSON with `lib/parse-saved-deal.ts`.
+An unrecognized shape renders an explicit error page — never backfill a saved deal
+with `DEFAULT_DEAL` values. (Blank deals at `/deal/new` deliberately seed from the
+Anna TX `DEFAULT_DEAL` as a worked example.)
+
 ---
 
 ## Database Architecture
@@ -137,39 +151,14 @@ The app creates it automatically on first save if it doesn't exist.
 | Col | Field | Notes |
 |---|---|---|
 | A | `id` | UUID |
-| B | `address` | From `inputs.address` |
+| B | `address` | From `deal.address` |
 | C | `savedAt` | ISO timestamp |
 | D | `score` | Overall score (X.X) at save time |
 | E | `arv` | For quick reading in Sheets |
 | F | `moneyInDeal` | For quick reading in Sheets |
 | G | `monthlyNOI` | For quick reading in Sheets |
 | H | `inputsJson` | Full `Deal` (see `lib/deal-model.ts`) as JSON |
-| I | `settingsJson` | `"v2"` shape marker (reserved) |
-
----
-
-## What Is Complete — Do Not Rebuild
-
-### Formula engine
-- `lib/deal-model.ts` — `Deal` model, all formulas, defaults, formatting helpers
-- `tests/deal-model.golden.test.ts` — golden-value tests freezing the engine
-
-### UI
-- `components/DealCalculator.tsx` — main calculator, owns all state
-- `components/cgm/*` — dashboard bar, scenario panel, input form, form controls
-- Formula modal system (`FormulaModal.tsx`, `formulaRegistry.ts`)
-
-### Persistence (Phase 2)
-- `lib/sheets.ts` — Google Sheets API wrapper (server-side only)
-- `app/api/deals/route.ts` — GET list + POST new
-- `app/api/deals/[id]/route.ts` — GET + PUT + DELETE
-- `app/deal/[id]/page.tsx` — server component that loads a saved deal
-- Save/Update button in `DealCalculator.tsx`
-
-### Dashboard (Phase 3)
-- `app/page.tsx` — server component dashboard with `unstable_cache` (tag: `deals`, TTL: 60s)
-- `components/DealCard.tsx` — deal summary card with delete
-- `components/DealFilters.tsx` — real-time text search + address dropdown
+| I | `settingsJson` | `"v2"` shape marker — reserved; a future feature may claim this column |
 
 ---
 
@@ -177,6 +166,8 @@ The app creates it automatically on first save if it doesn't exist.
 
 ### State ownership
 `DealCalculator.tsx` owns all deal state. Child components receive props only.
+Unsaved drafts persist to localStorage under `cgm-deal-calc-v2` (key kept from
+before the V1 retirement so users' drafts survive — do not rename it).
 
 ### Data flow
 ```
@@ -184,17 +175,17 @@ User input → DealCalculator state → calcBRRRR()/calcFlipCash()/calcFlipHML()
                                     calcMAO()/calcDealScore() → display
                                                      ↓
                                         (on Save) POST /api/deals → revalidateTag('deals')
-                                        (on Load) GET  /api/deals/[id]
+                                        (on Load) GET  /api/deals/[id] → parseSavedDeal()
 
 Dashboard: GET /api/deals → unstable_cache (tag: deals, 60s TTL)
            Any mutation   → revalidateTag('deals') → next load hits Sheets fresh
 ```
 
 ### Input and override conventions
-The `Deal` model and its field conventions (units, pct-vs-dollar modes, auto
-sentinels) are defined in `lib/deal-model.ts` — read the interface and its
-comments before touching inputs. Numeric inputs use the blur-to-commit
-pattern in `components/cgm/FormControls.tsx`.
+The `Deal` model and its field conventions (whole-number percents, `mo`/`yr` units,
+pct-vs-fixed modes, the `refiTitleEscrow = 0` auto sentinel) are defined in
+`lib/deal-model.ts` — read the interface and its comments before touching inputs.
+Numeric inputs use the blur-to-commit pattern in `components/cgm/FormControls.tsx`.
 
 ---
 
@@ -209,11 +200,12 @@ brrrr-calculator/
 │   │       └── [id]/route.ts         ← GET + PUT + DELETE by id
 │   ├── deal/
 │   │   ├── new/page.tsx              ← blank calculator
-│   │   └── [id]/page.tsx             ← load saved deal
+│   │   └── [id]/page.tsx             ← load saved deal (validates shape)
 │   └── page.tsx                      ← dashboard (server component, cached)
 ├── lib/
 │   ├── deal-model.ts                 ← Deal model + formula engine (do not modify)
 │   ├── sheets.ts                     ← Sheets API wrapper (server-side only)
+│   ├── parse-saved-deal.ts           ← saved-row shape validation
 │   ├── formulaRegistry.ts            ← formula modal content
 │   └── modalContext.ts               ← React context for formula modal
 ├── components/
@@ -223,13 +215,18 @@ brrrr-calculator/
 │   ├── cgm/                          ← dashboard bar, scenario panel, input form
 │   └── ui/                           ← FormulaModal
 ├── tests/
-│   └── deal-model.golden.test.ts     ← golden tests freezing the engine
+│   ├── deal-model.golden.test.ts     ← golden tests freezing the engine
+│   ├── golden/                       ← captured golden values
+│   └── parse-saved-deal.test.ts      ← saved-shape validation tests
+├── plans/                            ← phased feature plans (/build-phase)
 ├── docs/
-│   └── new/
-│       ├── PLAN.md                   ← phase history + acceptance criteria
-│       ├── SPEC.md                   ← UI/UX ground truth
-│       ├── CHANGELOG.md              ← what's done and when
-│       └── DECISIONS.md              ← rationale for key decisions
+│   ├── adr/                          ← accepted decisions (0001 Term Sheets, 0002 V2 canonical)
+│   ├── architecture.md               ← stack, data flow, patterns
+│   ├── calculations.md               ← formula engine reference
+│   ├── brrrr-cheat-sheet.md          ← business-side formula source
+│   ├── new/CHANGELOG.md              ← what's done and when
+│   └── archive/                      ← historical V1 docs — do not follow
+├── CONTEXT.md                        ← domain glossary
 └── CLAUDE.md                         ← this file
 ```
 
@@ -243,6 +240,7 @@ brrrr-calculator/
 | `react` | UI |
 | `tailwindcss` | Styling |
 | `googleapis` | Google Sheets API client (server-side only) |
+| `vitest` | Golden tests (dev) |
 
 ---
 
@@ -254,5 +252,8 @@ brrrr-calculator/
 4. **Modifying `lib/deal-model.ts`** for any reason — it is the sacred engine.
 5. **Skipping the gates** (`npm test`, `npx tsc --noEmit`, `npm run build`) after a file change.
 6. **Skipping `revalidateTag('deals')`** in a new mutation route.
-7. **Calling hooks after a conditional return** — ESLint will catch it, but Vercel build will fail.
-8. **Hardcoding the spreadsheet ID** anywhere other than environment variables.
+7. **Treating `docs/archive/` as current.** It describes the retired V1 calculator.
+8. **"Fixing" a formula because it differs from the cheat sheet or the old workbook.** Divergence is deliberate (ADR-0002) — report, don't fix.
+9. **Renaming the localStorage key `cgm-deal-calc-v2`** — it silently discards users' drafts.
+10. **Calling hooks after a conditional return** — ESLint will catch it, but Vercel build will fail.
+11. **Hardcoding the spreadsheet ID** anywhere other than environment variables.

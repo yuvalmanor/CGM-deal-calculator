@@ -1,3 +1,5 @@
+> **Historical — describes the retired V1 calculator.** Kept for project history only; do not follow. The live app is documented in `CLAUDE.md`, `docs/architecture.md`, and `docs/calculations.md`. See `docs/adr/0002-v2-calculator-is-canonical.md`.
+
 # UI/UX Specification — CGM Ventures Deal Calculator
 **Version:** 2.0
 **Status:** Ground truth. Overrides design.md on any conflict.

@@ -1,3 +1,5 @@
+> **Historical — describes the retired V1 calculator.** Kept for project history only; do not follow. The live app is documented in `CLAUDE.md`, `docs/architecture.md`, and `docs/calculations.md`. See `docs/adr/0002-v2-calculator-is-canonical.md`.
+
 # Input Reference — What to Enter and When
 
 This is a practical guide to every input field in the calculator, what it means, and how to fill it in for a real deal.

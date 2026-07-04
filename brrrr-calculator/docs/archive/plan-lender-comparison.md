@@ -1,3 +1,5 @@
+> **Historical — authored against the retired V1 calculator's data model.** Do not build from this plan. The lender-comparison feature will be re-planned against the live `Deal` model (`lib/deal-model.ts`). The domain language (Lender Library, Lender Profile, Term Sheet) in `CONTEXT.md` and ADR-0001 remains live.
+
 # Plan: Lender Comparison — Lender Library + per-deal Term Sheets
 
 > Feature: Lender Comparison (slug: `lender-comparison`) — implement with `/build-phase lender-comparison`

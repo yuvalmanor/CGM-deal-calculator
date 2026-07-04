@@ -28,11 +28,11 @@ One lender's deal-local terms — a snapshot of a Lender Profile copied into a D
 _Avoid_: Quote, offer, snapshot, candidate
 
 **Active Term Sheet**:
-The one Term Sheet per role that feeds `calculateDeal()` and the deal's saved score.
+The one Term Sheet per role that feeds the deal calculation (`calcBRRRR` and friends in `lib/deal-model.ts`) and the deal's saved score.
 
 ## Relationships
 
-- A **Deal** has exactly one active **HML** and exactly one active **Refi Lender** at a time (today: the two halves of `LenderSettings`).
+- A **Deal** has exactly one active **HML** and exactly one active **Refi Lender** at a time (today: the flat `hml*` and `refi*` field groups on `Deal` in `lib/deal-model.ts`).
 - A **Lender Profile** belongs to the **Lender Library** and serves exactly one role (HML or Refi).
 - A **Deal** holds zero or more **Term Sheets** per role; exactly one per role is the **Active Term Sheet**.
 - Pulling a **Lender Profile** into a **Deal** creates a **Term Sheet**; edits to a **Term Sheet** never write back to the **Lender Library**.
@@ -49,5 +49,5 @@ The one Term Sheet per role that feeds `calculateDeal()` and the deal's saved sc
 
 ## Flagged ambiguities
 
-- "Lender" previously meant "the two name strings inside a deal's `LenderSettings`" — resolved: a **Lender Profile** is a first-class, library-level entity; a deal holds snapshots of profiles, not references.
-- A lender's full cost picture was split across `LenderSettings` (rates/points/fees) and `DealInputs` (`hmlCustomFees`, `refiCustomFees`, `hmlLoanPP`, `hmlLoanRehab`) — resolved: everything a lender controls (rates, points, leverage, fixed fees, custom fee line items, negotiated dollar amounts, refi LTV) lives on the **Term Sheet** (baselines on the **Lender Profile**); everything the deal/market controls (title costs, other adjustments at close, seasoning, MAO targets) stays on the **Deal**.
+- "Lender" previously meant "the two name strings on a deal" (today: `hmlName`, `refiName`) — resolved: a **Lender Profile** is a first-class, library-level entity; a deal holds snapshots of profiles, not references.
+- A lender's full cost picture is today intermixed with deal/market fields on the flat `Deal` (`hmlLevPP`, `hmlRate`, `hmlPoints`, `hmlLenderFees`, `hmlExtraFees`, `refiRate`, `refiLtv`, …) — resolved: everything a lender controls (rates, points, leverage, fixed fees, custom fee line items, refi LTV) lives on the **Term Sheet** (baselines on the **Lender Profile**); everything the deal/market controls (title costs, adjustments at close, seasoning, MAO targets) stays on the **Deal**.

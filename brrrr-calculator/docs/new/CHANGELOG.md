@@ -113,6 +113,74 @@ Date: 2026-04-26
 
 ---
 
+## Retire Legacy Calculator — Phase 1: Freeze the calculator brain ✅ Complete
+
+Date: 2026-07-04 (commit `8c72900`)
+
+**Changed:**
+- `tests/deal-model.golden.test.ts` + `tests/golden/` — Vitest golden-value tests pinning `calcBRRRR`, `calcFlipCash`, `calcFlipHML`, `calcMAO`, `calcDealScore` for `DEFAULT_DEAL` and a branch-exercising fixture. Golden numbers user-approved (cross-checked against the live saved Anna TX deal).
+- `package.json` — added `vitest`; `npm test` runs the suite
+- `CLAUDE.md` — ground rule: `lib/deal-model.ts` is the sacred engine, protected by `npm test`
+
+**Verified:** trial formula edit made tests fail (net catches regressions), then reverted. Legacy gates still green.
+
+---
+
+## Retire Legacy Calculator — Phase 2: Delete the V1 path ✅ Complete
+
+Date: 2026-07-04 (commit `e37a9e9`)
+
+**Changed:**
+- Deleted the dead V1 calculator: `components/DealCalculator.tsx` (V1), `components/sections/*`, V1-only UI atoms, `lib/calculations.ts`, `lib/types.ts`, `lib/defaults.ts`, `lib/format.ts`
+- Deleted V1 halves of `lib/sheets.ts` and V1 payload branches in both API routes
+- Deleted `scripts/verify_excel.py` + `scripts/run_calc.mjs`; gates redefined to `npm test` + `npx tsc --noEmit` + `npm run build` in the same commit (CLAUDE.md, skills, commands updated)
+
+**Verified:** all three gates green; manual smoke of the full save/load/update/delete cycle against the live sheet.
+
+---
+
+## Retire Legacy Calculator — Phase 3: Validate saved-deal shapes on load ✅ Complete
+
+Date: 2026-07-04 (commit `9f31bac`)
+
+**Changed:**
+- `lib/parse-saved-deal.ts` + `tests/parse-saved-deal.test.ts` — saved rows are validated for the V2 `Deal` shape; unrecognized shapes render an explicit error page instead of being silently backfilled with `DEFAULT_DEAL`
+- `app/deal/[id]/page.tsx` — uses the validator
+- Inventory: `DEALS_APP` held 2 rows, both already V2 — no legacy-row migration needed
+
+**Verified:** gates green (16 tests); end-to-end check with a throwaway V1-shaped row (rejected loudly), both real deals render their own values.
+
+---
+
+## Retire Legacy Calculator — Phase 4: Drop the V2 suffix ✅ Complete
+
+Date: 2026-07-04 (commit `14c8de9`)
+
+**Changed:**
+- `DealCalculatorV2.tsx` → `DealCalculator.tsx`; `saveDealV2`/`updateDealV2` → `saveDeal`/`updateDeal` — pure renames
+- Kept deliberately: localStorage key `cgm-deal-calc-v2` (renaming discards drafts), `settingsJson` `"v2"` sentinel (reserved shape marker), `components/cgm/` folder (brand namespace, not a version suffix)
+
+**Verified:** gates green; save/reload round-trip and pre-rename localStorage draft both intact.
+
+---
+
+## Retire Legacy Calculator — Phase 5: Re-author the docs ✅ Complete
+
+Date: 2026-07-04
+
+**Changed:**
+- `CLAUDE.md` — full rewrite: V2-only current state, new reading order, gates, refreshed file tree and common mistakes
+- `CONTEXT.md` — stale V1 model references fixed; glossary unchanged
+- `docs/architecture.md`, `docs/calculations.md` — rewritten around the `Deal` model and `lib/deal-model.ts`
+- `docs/brrrr-cheat-sheet.md` — business-side formula source absorbed into the repo
+- `docs/adr/0002-v2-calculator-is-canonical.md` — new ADR: V1 retired, Excel gate → golden tests, deliberate formula divergence
+- `docs/archive/` — historical docs moved with banners (`docs/new/` PLAN/SPEC/DECISIONS/VERIFY_GUIDE/FORMULA_REGISTRY_GUIDE, `docs/` design/input-reference/overview/roadmap, the stale `plans/lender-comparison.md`, and the `Deal Calc CGM V2.xlsx` workbook); stale duplicate `New docs/` folder deleted
+- `.claude/commands/session-start.md` — reading list updated to the live docs
+
+**Verified:** gates green; `git grep` for V1 identifiers clean outside `docs/archive/`, ADRs, and the plan's own inventory text.
+
+---
+
 ## How to Update This File
 
 After completing each phase or significant change, add an entry here:
@@ -124,5 +192,5 @@ Date: YYYY-MM-DD
 **Changed:**
 - `file` — [what changed and why]
 
-**Verified:** Excel verification script passed all 12 checks. `npx tsc --noEmit` zero errors.
+**Verified:** Gates green — `npm test` all passing, `npx tsc --noEmit` zero errors, `npm run build` succeeds.
 ```

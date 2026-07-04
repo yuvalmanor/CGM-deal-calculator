@@ -123,7 +123,7 @@ Make every document describe the repo as it now is:
 
 ### Acceptance criteria
 
-- [ ] A cold read of CLAUDE.md's required reading order describes only files and commands that exist, and nothing it says contradicts the code.
-- [ ] `git grep -l "LenderSettings\|DealInputs\|calculateDeal"` outside `docs/archive/` and ADRs returns nothing.
-- [ ] ADR-0002 exists and is linked from the plan/docs where relevant.
-- [ ] Gates pass: `npm test`, `npx tsc --noEmit`, `npm run build` (docs-only phase, but gates are unconditional).
+- [x] A cold read of CLAUDE.md's required reading order describes only files and commands that exist, and nothing it says contradicts the code. (2026-07-04: full rewrite — reading order is CHANGELOG → CONTEXT.md → ADRs → calculations.md → architecture.md, all present; file tree, gates, and schema verified against the repo.)
+- [x] `git grep -l "LenderSettings\|DealInputs\|calculateDeal"` outside `docs/archive/` and ADRs returns nothing — with one deliberate exception: this plan's own dead-code inventory quotes the names (same carve-out Phase 2's criterion recorded). CONTEXT.md fixed; `tests/parse-saved-deal.test.ts` reworded; every other former hit archived or rewritten.
+- [x] ADR-0002 exists (`docs/adr/0002-v2-calculator-is-canonical.md`) and is linked from CLAUDE.md, docs/architecture.md, docs/calculations.md, docs/brrrr-cheat-sheet.md, and every docs/archive banner.
+- [x] Gates pass: `npm test` (32 tests green), `npx tsc --noEmit` (zero errors), `npm run build` (succeeds). (2026-07-04)

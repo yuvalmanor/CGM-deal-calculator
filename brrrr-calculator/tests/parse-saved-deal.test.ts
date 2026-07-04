@@ -33,8 +33,8 @@ describe('parseSavedDeal', () => {
     expect(parseSavedDeal([savedDeal])).toBeNull()
   })
 
-  it('rejects a legacy V1 DealInputs shape instead of rendering it as defaults', () => {
-    // Representative V1 keys — no hmlLevPP/refiLtv, lender terms lived in LenderSettings
+  it('rejects a legacy V1-shaped row instead of rendering it as defaults', () => {
+    // Representative retired-V1 keys — no hmlLevPP/refiLtv; lender terms lived on a separate settings object
     const v1Row = {
       address: '123 Legacy Ln',
       purchasePrice: 150000,
