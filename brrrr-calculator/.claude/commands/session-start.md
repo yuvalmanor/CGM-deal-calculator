@@ -11,7 +11,7 @@ After reading all five files, give me a status report in this format:
 **Current phase:** [Phase A / B / C / D — or "All phases complete"]
 **Last completed task:** [The last specific thing finished — file name and what changed]
 **Next task:** [The exact next step from PLAN.md]
-**Verification status:** [Did `scripts/verify_excel.py` last pass ALL GREEN? When was it last run?]
+**Verification status:** [Did the gates (`npm test`, `npx tsc --noEmit`, `npm run build`) last pass ALL GREEN? When were they last run?]
 **Blockers:** [Any open failing criterion or TypeScript error from the last session — or "None"]
 
 Once you have given me the status report, wait for my instruction before touching any code.

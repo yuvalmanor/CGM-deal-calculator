@@ -1,6 +1,6 @@
 ---
 name: brrrr-fix
-description: Audit and fix BRRRR-calculator formulas, formula descriptions, and small UI/output changes in this project. Use this skill whenever the user asks to "check", "audit", "verify", "fix", or "tweak" anything related to a KPI/metric/formula (e.g., cashflow, DSCR, MAO, money-in-deal, equity), a formula modal's title/description, an input field label/default/tooltip, an output display (KPI strip, scorecard, advanced metrics) formatting/rounding/color, or a section/card reorder. Trigger even when the user names a metric without saying "fix" — e.g., "the CoC modal looks wrong", "DSCR seems off", "rename this label". Always finish by running verify_excel.py + tsc + commit + push.
+description: Audit and fix BRRRR-calculator formulas, formula descriptions, and small UI/output changes in this project. Use this skill whenever the user asks to "check", "audit", "verify", "fix", or "tweak" anything related to a KPI/metric/formula (e.g., cashflow, DSCR, MAO, money-in-deal, equity), a formula modal's title/description, an input field label/default/tooltip, an output display (KPI strip, scorecard, advanced metrics) formatting/rounding/color, or a section/card reorder. Trigger even when the user names a metric without saying "fix" — e.g., "the CoC modal looks wrong", "DSCR seems off", "rename this label". Always finish by running npm test + tsc + npm run build + commit + push.
 ---
 
 # brrrr-fix
@@ -19,7 +19,7 @@ Both paths end with the same verify-and-ship checklist. The skill never edits `l
 Before doing anything, load these three files into your working memory. They are the ground truth:
 
 - `lib/formulaRegistry.ts` — every formula modal's `{ title, formula, calcFn, note }`. The `formula` field is a human-readable formula string; `note` is the description shown under the modal.
-- `lib/deal-model.ts` — the actual implementation (functions, types, `BRRRRResult` interface). Note: CLAUDE.md and `docs/calculations.md` both refer to `lib/calculations.ts` as the implementation file, but that file is a thin re-export or stale; the live math is in `lib/deal-model.ts`. Treat `lib/deal-model.ts` as the "sacred" file — do not edit without explicit user confirmation, even if you suspect a bug. If you ever find `lib/calculations.ts` actually contains the math, use it instead and flag the discrepancy.
+- `lib/deal-model.ts` — the actual implementation (functions, types, `BRRRRResult` interface). Treat it as the "sacred" file — do not edit without explicit user confirmation, even if you suspect a bug. Its outputs are frozen by golden tests (`tests/deal-model.golden.test.ts`); any edit to its math fails `npm test`.
 - `docs/calculations.md` — the prose/spec version. **It is organized by section** (`## Section 1 — Property Metrics`, `## Section 2 — Cash Flip`, …), not one entry per registry key. A single section can define multiple registry formulas, and some registry formulas have no dedicated section. When auditing, scan the section likely to contain the formula by topic (e.g., `total_project_cost` lives in Section 1 alongside `holdingCosts` and `closingCostsBuy`). If after scanning the relevant section you find no matching definition, report that as `Formula ↔ docs: ❌ no entry`.
 
 If any of these don't load, stop and tell the user — the audit is meaningless without all three.
@@ -58,7 +58,7 @@ Use this exact shape per formula:
 (If any ❌:)
 Registry formula:  <quoted formula string>
 docs/calculations.md (<section>): <quoted prose>
-lib/calculations.ts (<line range>): <quoted code>
+lib/deal-model.ts (<line range>): <quoted code>
 
 Which is correct? I will update the other two to match.
 ```
@@ -83,10 +83,11 @@ Triggered when the user asks for a concrete edit that isn't a formula audit: ren
 
 | Fix type | File(s) |
 |---|---|
-| Input field label / default / tooltip / unit | `components/sections/*.tsx`, `lib/defaults.ts` |
-| Output display (KPI strip, scorecard, advanced metrics) — formatting, rounding, colors | `components/sections/*.tsx`, `lib/format.ts` |
+| Input field label / tooltip / unit | `components/cgm/InputForm.tsx`, `components/cgm/FormControls.tsx` |
+| Input defaults | `DEFAULT_DEAL` in `lib/deal-model.ts` — a default change is a Mode A stop-and-ask, the file is sacred |
+| Output display (dashboard bar, scenario panel) — formatting, rounding, colors | `components/cgm/DashboardBar.tsx`, `components/cgm/ScenarioPanel.tsx` |
 | Formula modal title / formula string / note | `lib/formulaRegistry.ts` |
-| Section reordering / card grouping / collapse defaults | `components/DealCalculator.tsx`, `components/ui/Card.tsx` |
+| Section reordering / card grouping / collapse defaults | `components/DealCalculatorV2.tsx`, `components/cgm/InputForm.tsx` |
 
 Make the edit, keep the change minimal, then go straight to the verify-and-ship checklist below. Do not refactor surrounding code.
 
@@ -100,11 +101,11 @@ A request that looks like a small fix but would require editing `lib/deal-model.
 
 Both modes end here. Run these in order; do not skip steps even if the change is one line.
 
-1. **Excel formula verification.** From the project root:
+1. **Golden formula tests.** From the project root:
    ```bash
-   python scripts/verify_excel.py
+   npm test
    ```
-   All 12 checks must pass. If any fails, stop and report — do not attempt to fix the failure as part of this skill invocation.
+   All tests must pass. If any fails, stop and report — do not attempt to fix the failure as part of this skill invocation.
 
 2. **TypeScript compile check.**
    ```bash
@@ -112,7 +113,13 @@ Both modes end here. Run these in order; do not skip steps even if the change is
    ```
    Zero errors required.
 
-3. **Commit and push.** Stage only the files you actually changed (no `git add -A`). Use a short, specific message that says what changed and why:
+3. **Production build.**
+   ```bash
+   npm run build
+   ```
+   Must succeed — Vercel runs the same build.
+
+4. **Commit and push.** Stage only the files you actually changed (no `git add -A`). Use a short, specific message that says what changed and why:
    ```bash
    git add <files>
    git commit -m "<verb> <thing>: <why>"
@@ -120,7 +127,7 @@ Both modes end here. Run these in order; do not skip steps even if the change is
    ```
    The remote auto-deploys to Vercel within ~60s; no further action needed.
 
-If any step fails, report the failure and stop. Do not paper over a failure with `--no-verify` or by editing the verification script.
+If any step fails, report the failure and stop. Do not paper over a failure with `--no-verify` or by editing the golden tests.
 
 ---
 
@@ -128,7 +135,7 @@ If any step fails, report the failure and stop. Do not paper over a failure with
 
 - For audits: lead with the verdict per formula, then evidence. No preamble.
 - For fixes: one line on what changed, then the checklist results. No trailing summary of the diff — the user reads the diff themselves.
-- Quote file paths and line numbers when pointing at code. Use markdown links: `[calculations.ts:142](lib/calculations.ts:142)`.
+- Quote file paths and line numbers when pointing at code. Use markdown links: `[deal-model.ts:142](lib/deal-model.ts:142)`.
 
 ---
 

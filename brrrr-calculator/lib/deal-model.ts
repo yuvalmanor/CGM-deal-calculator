@@ -207,7 +207,7 @@ export function mapLocationScore(grade: number): number {
   return 0
 }
 
-// ---- IRR helpers (ported from lib/calculations.ts) ----
+// ---- IRR helpers (ported from the retired V1 engine; see git history) ----
 
 function pmtCalc(annualRate: number, periods: number, principal: number): number {
   if (principal === 0) return 0

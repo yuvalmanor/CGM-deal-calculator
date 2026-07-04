@@ -1,6 +1,5 @@
 // server-side only — never import from a client component
 import { google } from 'googleapis'
-import type { DealInputs, LenderSettings, DealResults } from './types'
 
 const TAB = 'DEALS_APP'
 const HEADERS = ['id', 'address', 'savedAt', 'score', 'arv', 'moneyInDeal', 'monthlyNOI', 'inputsJson', 'settingsJson']
@@ -61,34 +60,6 @@ async function findRowById(client: SheetClient, id: string): Promise<number | nu
   }
 }
 
-function locationScore(raw: number): number {
-  return raw >= 15 ? 10 : raw >= 12 ? 9 : raw >= 10 ? 8 : raw >= 9 ? 7 : 0
-}
-
-function overallScore(inputs: DealInputs, results: DealResults): number {
-  const loc = locationScore(inputs.locationScore)
-  return parseFloat(((results.hmlEquityScore + results.hmlROIScore + loc) / 3).toFixed(1))
-}
-
-function buildRow(
-  id: string,
-  inputs: DealInputs,
-  settings: LenderSettings,
-  results: DealResults,
-): (string | number)[] {
-  return [
-    id,
-    inputs.address,
-    new Date().toISOString(),
-    overallScore(inputs, results),
-    inputs.arv,
-    results.moneyInDeal,
-    results.hmlNOI_PI,
-    JSON.stringify(inputs),
-    JSON.stringify(settings),
-  ]
-}
-
 export async function listDeals(): Promise<DealSummary[]> {
   const client = await getClient()
   const { sheets, sheetId } = client
@@ -111,26 +82,9 @@ export async function listDeals(): Promise<DealSummary[]> {
   }))
 }
 
-export async function saveDeal(
-  inputs: DealInputs,
-  settings: LenderSettings,
-  results: DealResults,
-): Promise<string> {
-  const client = await getClient()
-  await ensureDealsTab(client)
-  const { sheets, sheetId } = client
-  const id = crypto.randomUUID()
-  await sheets.spreadsheets.values.append({
-    spreadsheetId: sheetId,
-    range: `${TAB}!A:I`,
-    valueInputOption: 'RAW',
-    insertDataOption: 'INSERT_ROWS',
-    requestBody: { values: [buildRow(id, inputs, settings, results)] },
-  })
-  return id
-}
-
-export async function loadDeal(id: string): Promise<{ inputs: DealInputs; settings: LenderSettings }> {
+// inputs is the deal's inputsJson parsed as-is; callers validate the shape.
+// settings holds the settingsJson column ("v2" shape marker for current rows).
+export async function loadDeal(id: string): Promise<{ inputs: unknown; settings: unknown }> {
   const client = await getClient()
   const { sheets, sheetId } = client
   const rowNum = await findRowById(client, id)
@@ -145,24 +99,6 @@ export async function loadDeal(id: string): Promise<{ inputs: DealInputs; settin
     inputs:   JSON.parse(row[7]),
     settings: JSON.parse(row[8]),
   }
-}
-
-export async function updateDeal(
-  id: string,
-  inputs: DealInputs,
-  settings: LenderSettings,
-  results: DealResults,
-): Promise<void> {
-  const client = await getClient()
-  const { sheets, sheetId } = client
-  const rowNum = await findRowById(client, id)
-  if (!rowNum) throw new Error('NOT_FOUND')
-  await sheets.spreadsheets.values.update({
-    spreadsheetId: sheetId,
-    range: `${TAB}!A${rowNum}:I${rowNum}`,
-    valueInputOption: 'RAW',
-    requestBody: { values: [buildRow(id, inputs, settings, results)] },
-  })
 }
 
 interface V2Payload {

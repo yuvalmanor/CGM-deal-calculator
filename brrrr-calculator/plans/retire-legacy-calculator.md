@@ -69,10 +69,10 @@ Remove everything in the dead-code inventory: V1 component tree, V1 engine/model
 
 ### Acceptance criteria
 
-- [ ] `git grep` finds no references to `calculations.ts`, `DealInputs`, `LenderSettings`, `verify_excel`, or `run_calc` outside `docs/` archives and git history.
-- [ ] New gates all pass: `npm test`, `npx tsc --noEmit`, `npm run build`.
-- [ ] Manual smoke on the running app: dashboard lists deals → open a saved deal → edit a field → Update → re-open shows the edit → delete a throwaway deal works.
-- [ ] No instruction file (CLAUDE.md, skills, commands) references a gate or file that no longer exists.
+- [x] `git grep` finds no references to `calculations.ts`, `DealInputs`, `LenderSettings`, `verify_excel`, or `run_calc` outside `docs/` archives and git history. (Verified 2026-07-04: code and instruction files are clean; remaining hits are only in `docs/`, `New docs/` (stale tracked duplicate — add to Phase 5 archive list), `plans/` (this plan's inventory + the stale lender-comparison plan Phase 5 archives), and `CONTEXT.md` (its fix is an explicit Phase 5 task).)
+- [x] New gates all pass: `npm test`, `npx tsc --noEmit`, `npm run build`.
+- [x] Manual smoke on the running app: dashboard lists deals → open a saved deal → edit a field → Update → re-open shows the edit → delete a throwaway deal works. (2026-07-04, full save/load/update/reload/delete cycle on a throwaway row against the live sheet.)
+- [x] No instruction file (CLAUDE.md, skills, commands) references a gate or file that no longer exists.
 
 ---
 
@@ -115,7 +115,7 @@ Make every document describe the repo as it now is:
 - **CONTEXT.md** — fix the stale "(today: the two halves of `LenderSettings`)" line and any other V1 references; glossary stays.
 - **docs/architecture.md** — rewrite around: `Deal` model, `deal-model.ts` engine, cgm component tree, dashboard, Sheets persistence, cache tags.
 - **docs/calculations.md** — currently a hybrid (V1 reference + appended V2 entries). Rebuild as the V2 formula reference; consider absorbing the untracked `../BRRRR_Cheat_Sheet.md` into the repo as the formulas' business-side source.
-- **docs/archive/** — move `docs/new/PLAN.md`, `docs/new/SPEC.md`, `docs/new/DECISIONS.md`, `docs/new/VERIFY_GUIDE.md`, `docs/design.md`, `docs/input-reference.md` (+ review `docs/overview.md`, `docs/roadmap.md`, `docs/new/FORMULA_REGISTRY_GUIDE.md` individually: rewrite, archive, or delete) with a historical banner on each. Also archive the stale `plans/lender-comparison.md` — it targets the deleted V1 model; the feature gets a fresh plan afterwards. CONTEXT.md's glossary and ADR-0001 (Term Sheets are snapshots) remain live — they describe the upcoming feature's domain, not V1.
+- **docs/archive/** — move `docs/new/PLAN.md`, `docs/new/SPEC.md`, `docs/new/DECISIONS.md`, `docs/new/VERIFY_GUIDE.md`, `docs/design.md`, `docs/input-reference.md` (+ review `docs/overview.md`, `docs/roadmap.md`, `docs/new/FORMULA_REGISTRY_GUIDE.md`, and the stale tracked duplicate folder `New docs/` — discovered in Phase 2 — individually: rewrite, archive, or delete) with a historical banner on each. Also archive the stale `plans/lender-comparison.md` — it targets the deleted V1 model; the feature gets a fresh plan afterwards. CONTEXT.md's glossary and ADR-0001 (Term Sheets are snapshots) remain live — they describe the upcoming feature's domain, not V1.
 - **docs/adr/0002-v2-calculator-is-canonical.md** — new ADR recording: V1 retired, why the Excel gate was replaced by golden tests, and that `deal-model.ts` formulas intentionally diverge from the old Excel workbook.
 - **docs/new/CHANGELOG.md** — entries for all phases of this plan.
 

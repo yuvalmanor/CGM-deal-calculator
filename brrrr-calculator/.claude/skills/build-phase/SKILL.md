@@ -34,9 +34,9 @@ State which phase you're building and what it covers, then implement **that phas
 Run every verification the project requires (per CLAUDE.md), typically:
 
 ```bash
-python scripts/verify_excel.py   # all checks must pass
-npx tsc --noEmit                 # zero errors
-npm test                         # if a test script exists
+npm test          # golden tests — all green
+npx tsc --noEmit  # zero errors
+npm run build     # must succeed
 ```
 
 All gates must pass. Zero tolerance — a failure stops work until fixed. Never weaken a gate to make it pass.

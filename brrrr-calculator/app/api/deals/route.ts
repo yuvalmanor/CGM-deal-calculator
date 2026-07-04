@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { revalidateTag } from 'next/cache'
-import { listDeals, saveDeal, saveDealV2 } from '@/lib/sheets'
+import { listDeals, saveDealV2 } from '@/lib/sheets'
 
 export async function GET() {
   try {
@@ -16,19 +16,11 @@ export async function POST(request: Request) {
   try {
     const body = await request.json()
 
-    // v2 payload: flat { address, score, arv, moneyInDeal, monthlyNOI, inputsJson, settingsJson }
-    if (body.inputsJson !== undefined) {
-      const id = await saveDealV2(body)
-      revalidateTag('deals')
-      return NextResponse.json({ id }, { status: 201 })
+    // flat payload: { address, score, arv, moneyInDeal, monthlyNOI, inputsJson, settingsJson }
+    if (body.inputsJson === undefined) {
+      return NextResponse.json({ error: 'Missing inputsJson' }, { status: 400 })
     }
-
-    // v1 payload: { inputs, settings, results }
-    const { inputs, settings, results } = body
-    if (!inputs || !settings || !results) {
-      return NextResponse.json({ error: 'Missing inputs, settings, or results' }, { status: 400 })
-    }
-    const id = await saveDeal(inputs, settings, results)
+    const id = await saveDealV2(body)
     revalidateTag('deals')
     return NextResponse.json({ id }, { status: 201 })
   } catch (err) {

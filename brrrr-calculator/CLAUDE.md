@@ -11,7 +11,7 @@ All four phases are complete. The app is live on Vercel.
 
 | Layer | Status |
 |---|---|
-| Formula engine (`lib/calculations.ts`) | ✅ Complete and verified |
+| Formula engine (`lib/deal-model.ts`) | ✅ Complete — frozen by golden tests |
 | UI/UX overhaul (Phase 1.5: A–D) | ✅ Complete |
 | Google Sheets API + deal persistence (Phase 2) | ✅ Complete |
 | Dashboard + deal management (Phase 3) | ✅ Complete |
@@ -40,14 +40,17 @@ This is the standard process for any change — formula fix, layout tweak, new f
 Edit the relevant file(s). Then:
 
 ```bash
-# Always run after any change to verify formulas are untouched
-python scripts/verify_excel.py
+# Always run after any change — golden tests prove formulas are untouched
+npm test
 
-# Always run after any change to verify TypeScript compiles
+# TypeScript must compile clean
 npx tsc --noEmit
+
+# Production build must succeed
+npm run build
 ```
 
-Both must pass with zero errors before proceeding.
+All three must pass with zero errors before proceeding.
 
 ### 2. Commit and push to GitHub
 
@@ -83,20 +86,26 @@ If you suspect a formula bug, stop and report — never fix silently.
 A deliberate, user-approved formula change re-captures goldens with
 `UPDATE_GOLDEN=1 npm test`, and the diff must be reviewed and approved.
 
-`lib/calculations.ts` (legacy V1 engine) is likewise a verified pure function — do not modify it.
+(The legacy V1 engine and its Excel verification script were deleted in the
+retire-legacy-calculator cleanup — golden tests are now the only formula gate.)
 
-### Run Excel verification after every file change
+### Run the golden tests after every file change
 ```bash
-python scripts/verify_excel.py
+npm test
 ```
-All 12 checks must pass. Zero tolerance — any failure stops work immediately.
-See `docs/new/VERIFY_GUIDE.md` for full details.
+All tests must pass. Zero tolerance — any failure stops work immediately.
 
 ### TypeScript must compile clean after every change
 ```bash
 npx tsc --noEmit
 ```
 Zero errors before moving to the next task.
+
+### Production build must succeed before shipping
+```bash
+npm run build
+```
+Vercel runs the same build — a local failure means a failed deploy.
 
 ### API routes are server-side only
 All Google Sheets API calls go through Next.js API routes in `app/api/`.
@@ -134,25 +143,20 @@ The app creates it automatically on first save if it doesn't exist.
 | E | `arv` | For quick reading in Sheets |
 | F | `moneyInDeal` | For quick reading in Sheets |
 | G | `monthlyNOI` | For quick reading in Sheets |
-| H | `inputsJson` | Full `DealInputs` as JSON |
-| I | `settingsJson` | Full `LenderSettings` as JSON |
+| H | `inputsJson` | Full `Deal` (see `lib/deal-model.ts`) as JSON |
+| I | `settingsJson` | `"v2"` shape marker (reserved) |
 
 ---
 
 ## What Is Complete — Do Not Rebuild
 
 ### Formula engine
-- `lib/calculations.ts` — all formulas, verified against Excel column C (Anna TX deal)
-- `lib/types.ts` — all interfaces
-- `lib/defaults.ts` — default values
-- `lib/format.ts` — formatting helpers
-- `scripts/verify_excel.py` + `scripts/run_calc.mjs` — verification scripts
+- `lib/deal-model.ts` — `Deal` model, all formulas, defaults, formatting helpers
+- `tests/deal-model.golden.test.ts` — golden-value tests freezing the engine
 
-### UI (Phase 1 + 1.5)
-- `components/ui/FormField.tsx` — blur-to-commit input pattern
-- `components/ui/Card.tsx` — collapsible card wrapper
-- Two-panel layout in `DealCalculator.tsx`
-- Deal header, KPI strip, scenario tabs, scorecard, MAO block
+### UI
+- `components/DealCalculatorV2.tsx` — main calculator, owns all state
+- `components/cgm/*` — dashboard bar, scenario panel, input form, form controls
 - Formula modal system (`FormulaModal.tsx`, `formulaRegistry.ts`)
 
 ### Persistence (Phase 2)
@@ -160,7 +164,7 @@ The app creates it automatically on first save if it doesn't exist.
 - `app/api/deals/route.ts` — GET list + POST new
 - `app/api/deals/[id]/route.ts` — GET + PUT + DELETE
 - `app/deal/[id]/page.tsx` — server component that loads a saved deal
-- Save/Update button in `DealCalculator.tsx`
+- Save/Update button in `DealCalculatorV2.tsx`
 
 ### Dashboard (Phase 3)
 - `app/page.tsx` — server component dashboard with `unstable_cache` (tag: `deals`, TTL: 60s)
@@ -172,11 +176,12 @@ The app creates it automatically on first save if it doesn't exist.
 ## Key Architectural Patterns
 
 ### State ownership
-`DealCalculator.tsx` owns all deal state. Child components receive props only.
+`DealCalculatorV2.tsx` owns all deal state. Child components receive props only.
 
 ### Data flow
 ```
-User input → DealCalculator state → calculateDeal() → DealResults (display)
+User input → DealCalculatorV2 state → calcBRRRR()/calcFlipCash()/calcFlipHML()/
+                                      calcMAO()/calcDealScore() → display
                                                      ↓
                                         (on Save) POST /api/deals → revalidateTag('deals')
                                         (on Load) GET  /api/deals/[id]
@@ -185,17 +190,11 @@ Dashboard: GET /api/deals → unstable_cache (tag: deals, 60s TTL)
            Any mutation   → revalidateTag('deals') → next load hits Sheets fresh
 ```
 
-### Sentinel values for overrides
-- `closingCostsBuyOverride = -1` → auto (2% of PP)
-- `rehabMonthsManual = 0` → auto-calculate
-- `refiLTVOverride = 0` → auto back-solve
-- `hmlLoanPP = 0` → use leverage %
-
-### HML dollar-amount mode
-If `hmlLoanPP > 0` OR `hmlLoanRehab > 0`, both are treated as exact dollars. Do not break this.
-
-### FormField blur-to-commit
-All numeric inputs: raw digits while focused, formatted at rest. Empty → commits as `0`.
+### Input and override conventions
+The `Deal` model and its field conventions (units, pct-vs-dollar modes, auto
+sentinels) are defined in `lib/deal-model.ts` — read the interface and its
+comments before touching inputs. Numeric inputs use the blur-to-commit
+pattern in `components/cgm/FormControls.tsx`.
 
 ---
 
@@ -213,29 +212,24 @@ brrrr-calculator/
 │   │   └── [id]/page.tsx             ← load saved deal
 │   └── page.tsx                      ← dashboard (server component, cached)
 ├── lib/
-│   ├── calculations.ts               ← formula engine (do not modify)
+│   ├── deal-model.ts                 ← Deal model + formula engine (do not modify)
 │   ├── sheets.ts                     ← Sheets API wrapper (server-side only)
-│   ├── types.ts                      ← all TypeScript interfaces
-│   ├── defaults.ts                   ← default input values
-│   ├── format.ts                     ← number formatting helpers
 │   ├── formulaRegistry.ts            ← formula modal content
 │   └── modalContext.ts               ← React context for formula modal
 ├── components/
-│   ├── DealCalculator.tsx            ← main calculator, owns all state
+│   ├── DealCalculatorV2.tsx          ← main calculator, owns all state
 │   ├── DealCard.tsx                  ← dashboard deal card
 │   ├── DealFilters.tsx               ← search + address dropdown
-│   ├── sections/                     ← all input/output panel sections
-│   └── ui/                           ← FormField, Card, FormulaModal, etc.
+│   ├── cgm/                          ← dashboard bar, scenario panel, input form
+│   └── ui/                           ← FormulaModal
+├── tests/
+│   └── deal-model.golden.test.ts     ← golden tests freezing the engine
 ├── docs/
 │   └── new/
 │       ├── PLAN.md                   ← phase history + acceptance criteria
 │       ├── SPEC.md                   ← UI/UX ground truth
 │       ├── CHANGELOG.md              ← what's done and when
-│       ├── DECISIONS.md              ← rationale for key decisions
-│       └── VERIFY_GUIDE.md           ← Excel verification guide
-├── scripts/
-│   ├── verify_excel.py               ← run after every file change
-│   └── run_calc.mjs
+│       └── DECISIONS.md              ← rationale for key decisions
 └── CLAUDE.md                         ← this file
 ```
 
@@ -257,8 +251,8 @@ brrrr-calculator/
 1. **Writing to `CALC - BRRRR` tab.** Only `DEALS_APP` tab is touched by the app.
 2. **Importing `lib/sheets.ts` in a client component.** API routes and server components only.
 3. **Committing `.env.local`.** Contains the service account key — must stay local.
-4. **Modifying `lib/calculations.ts`** for non-formula reasons.
-5. **Skipping Excel verification** after a file change.
+4. **Modifying `lib/deal-model.ts`** for any reason — it is the sacred engine.
+5. **Skipping the gates** (`npm test`, `npx tsc --noEmit`, `npm run build`) after a file change.
 6. **Skipping `revalidateTag('deals')`** in a new mutation route.
 7. **Calling hooks after a conditional return** — ESLint will catch it, but Vercel build will fail.
 8. **Hardcoding the spreadsheet ID** anywhere other than environment variables.
