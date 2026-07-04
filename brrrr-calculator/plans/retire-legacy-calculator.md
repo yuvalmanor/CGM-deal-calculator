@@ -99,9 +99,11 @@ Pure renames, zero behavior change: `DealCalculatorV2.tsx` → `DealCalculator.t
 
 ### Acceptance criteria
 
-- [ ] No identifier, filename, or comment contains a `V2`/`v2` suffix except deliberate persistence artifacts (localStorage key, `settingsJson` sentinel if retained) — each carrying a comment saying why.
-- [ ] `git grep -i "dealcalculatorv2\|savedealv2\|updatedealv2"` returns nothing.
-- [ ] Gates pass: `npm test`, `npx tsc --noEmit`, `npm run build`; smoke: save + reload a deal still round-trips.
+- [x] No identifier, filename, or comment contains a `V2`/`v2` suffix except deliberate persistence artifacts (localStorage key, `settingsJson` sentinel if retained) — each carrying a comment saying why. (2026-07-04: residual `v2` strings are only the localStorage key `cgm-deal-calc-v2` and the `settingsJson` `"v2"` sentinel — both commented — plus the `lib/sheets.ts` comment and `tests/parse-saved-deal.test.ts` assertion that describe/test those persisted values. Historical "V1" mentions in load-path comments stay: they name the retired calculator's data, not a live name.)
+- [x] `git grep -i "dealcalculatorv2\|savedealv2\|updatedealv2"` returns nothing. (Verified 2026-07-04: only remaining hits are this plan's own text describing the rename — code, docs, and instruction files are clean.)
+- [x] Gates pass: `npm test`, `npx tsc --noEmit`, `npm run build`; smoke: save + reload a deal still round-trips. (2026-07-04: 16 tests green, tsc clean, build succeeds. Smoke on the dev server: saved a throwaway deal via the Save button and via POST, reloaded it at `/deal/[id]` rendering its own data with the button in "Update" state, deleted both throwaway rows — only the two real deals remain. A pre-rename localStorage draft also loaded intact, confirming the kept storage key preserves drafts.)
+
+> Decisions (2026-07-04): `components/cgm/` kept as-is — it is the CGM brand namespace, not a version suffix; folding it into `components/` is churn with no clarity gain. localStorage key and `settingsJson` sentinel kept per the phase header. CLAUDE.md's file references were updated to `DealCalculator.tsx` so no instruction file names a file that no longer exists (full re-author still Phase 5).
 
 ---
 

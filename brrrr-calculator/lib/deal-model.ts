@@ -1,4 +1,4 @@
-// New deal model for CGM Design v2
+// Deal model + formula engine — frozen by tests/deal-model.golden.test.ts
 // Self-contained: types, defaults, and all calc functions
 
 export interface ExtraFee {

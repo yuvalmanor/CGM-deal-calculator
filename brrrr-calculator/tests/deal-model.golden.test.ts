@@ -1,4 +1,4 @@
-// Golden-value tests for the live V2 calculator engine (lib/deal-model.ts).
+// Golden-value tests for the live calculator engine (lib/deal-model.ts).
 //
 // These tests freeze the numeric output of the five calc functions. Any change
 // to a formula — accidental or deliberate — fails this suite. The golden files

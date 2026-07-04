@@ -1,5 +1,5 @@
-import DealCalculatorV2 from '@/components/DealCalculatorV2'
+import DealCalculator from '@/components/DealCalculator'
 
 export default function NewDealPage() {
-  return <DealCalculatorV2 />
+  return <DealCalculator />
 }

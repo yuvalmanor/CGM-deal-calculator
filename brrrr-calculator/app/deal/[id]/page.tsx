@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { loadDeal } from '@/lib/sheets'
-import DealCalculatorV2 from '@/components/DealCalculatorV2'
+import DealCalculator from '@/components/DealCalculator'
 import { parseSavedDeal } from '@/lib/parse-saved-deal'
 
 interface Props {
@@ -37,5 +37,5 @@ export default async function DealPage({ params }: Props) {
     )
   }
 
-  return <DealCalculatorV2 initialDeal={deal} initialDealId={params.id} />
+  return <DealCalculator initialDeal={deal} initialDealId={params.id} />
 }

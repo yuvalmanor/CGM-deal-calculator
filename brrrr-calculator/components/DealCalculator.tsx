@@ -10,6 +10,8 @@ import { ScenarioPanel } from './cgm/ScenarioPanel'
 import { SectionNav, InputForm, SECTIONS } from './cgm/InputForm'
 import FormulaModal from './ui/FormulaModal'
 
+// The 'v2' in this key is a persisted artifact — changing it would silently
+// discard users' in-progress drafts saved under the old key.
 const STORAGE_KEY = 'cgm-deal-calc-v2'
 
 function loadDeal(): Deal {
@@ -34,7 +36,7 @@ interface Props {
   initialDealId?: string
 }
 
-export default function DealCalculatorV2({ initialDeal, initialDealId }: Props) {
+export default function DealCalculator({ initialDeal, initialDealId }: Props) {
   const [deal, setDeal] = useState<Deal>(() => initialDeal ?? loadDeal())
   const [scenario, setScenario] = useState<ScenarioKey>('brrrr')
   const [activeSection, setActiveSection] = useState('property')
@@ -121,7 +123,7 @@ export default function DealCalculatorV2({ initialDeal, initialDealId }: Props) 
         moneyInDeal: brrrr.moneyInDeal,
         monthlyNOI: brrrr.noi,
         inputsJson: JSON.stringify(deal),
-        settingsJson: '"v2"',
+        settingsJson: '"v2"', // reserved — persisted shape marker for saved rows (see CLAUDE.md schema table)
       }
       const url = dealId ? `/api/deals/${dealId}` : '/api/deals'
       const method = dealId ? 'PUT' : 'POST'

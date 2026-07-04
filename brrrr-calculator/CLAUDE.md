@@ -155,7 +155,7 @@ The app creates it automatically on first save if it doesn't exist.
 - `tests/deal-model.golden.test.ts` — golden-value tests freezing the engine
 
 ### UI
-- `components/DealCalculatorV2.tsx` — main calculator, owns all state
+- `components/DealCalculator.tsx` — main calculator, owns all state
 - `components/cgm/*` — dashboard bar, scenario panel, input form, form controls
 - Formula modal system (`FormulaModal.tsx`, `formulaRegistry.ts`)
 
@@ -164,7 +164,7 @@ The app creates it automatically on first save if it doesn't exist.
 - `app/api/deals/route.ts` — GET list + POST new
 - `app/api/deals/[id]/route.ts` — GET + PUT + DELETE
 - `app/deal/[id]/page.tsx` — server component that loads a saved deal
-- Save/Update button in `DealCalculatorV2.tsx`
+- Save/Update button in `DealCalculator.tsx`
 
 ### Dashboard (Phase 3)
 - `app/page.tsx` — server component dashboard with `unstable_cache` (tag: `deals`, TTL: 60s)
@@ -176,12 +176,12 @@ The app creates it automatically on first save if it doesn't exist.
 ## Key Architectural Patterns
 
 ### State ownership
-`DealCalculatorV2.tsx` owns all deal state. Child components receive props only.
+`DealCalculator.tsx` owns all deal state. Child components receive props only.
 
 ### Data flow
 ```
-User input → DealCalculatorV2 state → calcBRRRR()/calcFlipCash()/calcFlipHML()/
-                                      calcMAO()/calcDealScore() → display
+User input → DealCalculator state → calcBRRRR()/calcFlipCash()/calcFlipHML()/
+                                    calcMAO()/calcDealScore() → display
                                                      ↓
                                         (on Save) POST /api/deals → revalidateTag('deals')
                                         (on Load) GET  /api/deals/[id]
@@ -217,7 +217,7 @@ brrrr-calculator/
 │   ├── formulaRegistry.ts            ← formula modal content
 │   └── modalContext.ts               ← React context for formula modal
 ├── components/
-│   ├── DealCalculatorV2.tsx          ← main calculator, owns all state
+│   ├── DealCalculator.tsx            ← main calculator, owns all state
 │   ├── DealCard.tsx                  ← dashboard deal card
 │   ├── DealFilters.tsx               ← search + address dropdown
 │   ├── cgm/                          ← dashboard bar, scenario panel, input form

@@ -87,7 +87,7 @@ Triggered when the user asks for a concrete edit that isn't a formula audit: ren
 | Input defaults | `DEFAULT_DEAL` in `lib/deal-model.ts` — a default change is a Mode A stop-and-ask, the file is sacred |
 | Output display (dashboard bar, scenario panel) — formatting, rounding, colors | `components/cgm/DashboardBar.tsx`, `components/cgm/ScenarioPanel.tsx` |
 | Formula modal title / formula string / note | `lib/formulaRegistry.ts` |
-| Section reordering / card grouping / collapse defaults | `components/DealCalculatorV2.tsx`, `components/cgm/InputForm.tsx` |
+| Section reordering / card grouping / collapse defaults | `components/DealCalculator.tsx`, `components/cgm/InputForm.tsx` |
 
 Make the edit, keep the change minimal, then go straight to the verify-and-ship checklist below. Do not refactor surrounding code.
 

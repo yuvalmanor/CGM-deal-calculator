@@ -2,7 +2,7 @@
 //
 // The contract: a saved row's actual data is never silently replaced by
 // DEFAULT_DEAL. Unrecognized shapes (legacy V1 rows, corrupt JSON values)
-// return null so the page can fail loudly; recognized V2 rows keep every
+// return null so the page can fail loudly; recognized rows keep every
 // saved field, with defaults filling only fields added to the model later.
 
 import { describe, it, expect } from 'vitest'
@@ -21,7 +21,7 @@ const savedDeal: Deal = {
 }
 
 describe('parseSavedDeal', () => {
-  it('returns a complete V2 deal unchanged — no default substitution', () => {
+  it('returns a complete saved deal unchanged — no default substitution', () => {
     expect(parseSavedDeal(JSON.parse(JSON.stringify(savedDeal)))).toEqual(savedDeal)
   })
 
@@ -46,7 +46,7 @@ describe('parseSavedDeal', () => {
     expect(parseSavedDeal(v1Row)).toBeNull()
   })
 
-  it('rejects an object missing any V2 marker key', () => {
+  it('rejects an object missing any Deal marker key', () => {
     const { hmlLevPP: _dropped, ...partial } = savedDeal
     expect(parseSavedDeal(partial)).toBeNull()
   })

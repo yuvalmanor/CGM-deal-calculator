@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { revalidateTag } from 'next/cache'
-import { listDeals, saveDealV2 } from '@/lib/sheets'
+import { listDeals, saveDeal } from '@/lib/sheets'
 
 export async function GET() {
   try {
@@ -20,7 +20,7 @@ export async function POST(request: Request) {
     if (body.inputsJson === undefined) {
       return NextResponse.json({ error: 'Missing inputsJson' }, { status: 400 })
     }
-    const id = await saveDealV2(body)
+    const id = await saveDeal(body)
     revalidateTag('deals')
     return NextResponse.json({ id }, { status: 201 })
   } catch (err) {

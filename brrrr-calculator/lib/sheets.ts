@@ -83,7 +83,8 @@ export async function listDeals(): Promise<DealSummary[]> {
 }
 
 // inputs is the deal's inputsJson parsed as-is; callers validate the shape.
-// settings holds the settingsJson column ("v2" shape marker for current rows).
+// settings holds the settingsJson column — reserved; currently the persisted
+// "v2" shape marker written by every save since the current engine shipped.
 export async function loadDeal(id: string): Promise<{ inputs: unknown; settings: unknown }> {
   const client = await getClient()
   const { sheets, sheetId } = client
@@ -101,7 +102,7 @@ export async function loadDeal(id: string): Promise<{ inputs: unknown; settings:
   }
 }
 
-interface V2Payload {
+interface DealPayload {
   address: string
   score: number
   arv: number
@@ -111,7 +112,7 @@ interface V2Payload {
   settingsJson: string
 }
 
-function buildRowV2(id: string, p: V2Payload): (string | number)[] {
+function buildRow(id: string, p: DealPayload): (string | number)[] {
   return [
     id, p.address, new Date().toISOString(),
     p.score, p.arv, p.moneyInDeal, p.monthlyNOI,
@@ -119,7 +120,7 @@ function buildRowV2(id: string, p: V2Payload): (string | number)[] {
   ]
 }
 
-export async function saveDealV2(payload: V2Payload): Promise<string> {
+export async function saveDeal(payload: DealPayload): Promise<string> {
   const client = await getClient()
   await ensureDealsTab(client)
   const { sheets, sheetId } = client
@@ -129,12 +130,12 @@ export async function saveDealV2(payload: V2Payload): Promise<string> {
     range: `${TAB}!A:I`,
     valueInputOption: 'RAW',
     insertDataOption: 'INSERT_ROWS',
-    requestBody: { values: [buildRowV2(id, payload)] },
+    requestBody: { values: [buildRow(id, payload)] },
   })
   return id
 }
 
-export async function updateDealV2(id: string, payload: V2Payload): Promise<void> {
+export async function updateDeal(id: string, payload: DealPayload): Promise<void> {
   const client = await getClient()
   const { sheets, sheetId } = client
   const rowNum = await findRowById(client, id)
@@ -143,7 +144,7 @@ export async function updateDealV2(id: string, payload: V2Payload): Promise<void
     spreadsheetId: sheetId,
     range: `${TAB}!A${rowNum}:I${rowNum}`,
     valueInputOption: 'RAW',
-    requestBody: { values: [buildRowV2(id, payload)] },
+    requestBody: { values: [buildRow(id, payload)] },
   })
 }
 

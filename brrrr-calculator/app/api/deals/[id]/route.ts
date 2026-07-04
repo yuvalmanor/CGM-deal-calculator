@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { revalidateTag } from 'next/cache'
-import { loadDeal, updateDealV2, deleteDeal } from '@/lib/sheets'
+import { loadDeal, updateDeal, deleteDeal } from '@/lib/sheets'
 
 export async function GET(
   _request: Request,
@@ -29,7 +29,7 @@ export async function PUT(
     if (body.inputsJson === undefined) {
       return NextResponse.json({ error: 'Missing inputsJson' }, { status: 400 })
     }
-    await updateDealV2(params.id, body)
+    await updateDeal(params.id, body)
     revalidateTag('deals')
     return NextResponse.json({ ok: true })
   } catch (err) {
