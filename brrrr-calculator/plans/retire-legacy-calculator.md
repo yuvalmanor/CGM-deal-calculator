@@ -84,10 +84,10 @@ Deal with rows in `DEALS_APP` saved by the V1 calculator (shape: `inputsJson` = 
 
 ### Acceptance criteria
 
-- [ ] Count of pre-V2 rows in `DEALS_APP` is known and reported.
-- [ ] User has decided the legacy-row treatment; it is implemented (or explicitly recorded as "no legacy rows exist — nothing to do").
-- [ ] Loading every existing deal in `DEALS_APP` renders without silently substituting Anna TX defaults for that deal's actual data.
-- [ ] Gates pass: `npm test`, `npx tsc --noEmit`, `npm run build`.
+- [x] Count of pre-V2 rows in `DEALS_APP` is known and reported. (2026-07-04: 2 data rows total, both `settingsJson` = `"v2"` + full V2 `Deal` shape — **0 legacy rows**. Neither row is missing any current model key.)
+- [x] User has decided the legacy-row treatment; it is implemented (or explicitly recorded as "no legacy rows exist — nothing to do"). (No legacy rows exist — nothing to do; the decision branch never arose.)
+- [x] Loading every existing deal in `DEALS_APP` renders without silently substituting Anna TX defaults for that deal's actual data. (`lib/parse-saved-deal.ts` validates V2 marker keys; unrecognized shapes render an explicit error page instead of defaults — verified end-to-end with a throwaway V1-shaped row, then deleted. Both real deals verified rendering their own saved values. Blank-deal seeding from the Anna TX `DEFAULT_DEAL` kept as-is — deliberate worked example, no behavior change.)
+- [x] Gates pass: `npm test`, `npx tsc --noEmit`, `npm run build`. (16 tests green incl. new `tests/parse-saved-deal.test.ts`.)
 
 ---
 
