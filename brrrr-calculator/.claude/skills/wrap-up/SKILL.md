@@ -1,6 +1,6 @@
 ---
-name: baton
-description: Compact the current conversation into a structured handoff document for the next session to pick up. Use when user types /baton, wants to wrap up a session, close out, pass the baton, or asks for an end-of-session summary. Surveys git state and tasks, distils only load-bearing context for the next session, and asks before committing.
+name: wrap-up
+description: Compact the current conversation into a structured handoff document for the next session to pick up. Use when user types /wrap-up, wants to wrap up a session, close out, or asks for an end-of-session summary. Surveys git state and tasks, distils only load-bearing context for the next session, and asks before committing.
 argument-hint: "What will the next session be used for?"
 ---
 
