@@ -53,6 +53,16 @@ Create files lazily — only when you have something to write. If no `CONTEXT.md
 
 ## During the session
 
+### Name the feature
+
+As soon as the feature's scope is clear (typically after the first one or two questions), propose a canonical **feature name** and its **kebab-case slug** (e.g. "Lender Comparison" / `lender-comparison`) and confirm them with the user. The slug is the key that ties the whole pipeline together — every downstream artifact must use it:
+
+- Plan file: `plans/<slug>.md` (created by /plan-phases)
+- PRD title: `PRD: <Feature Name> — ...` and a `Feature: <slug>` line in the PRD body (created by /forge-prd)
+- Implementation sessions reference the feature by slug (e.g. /build-phase `<slug>`)
+
+Record the name in `CONTEXT.md` only if it is also a domain term; otherwise it lives in the artifacts above. End the session summary by restating: **Feature: <Name> (slug: `<slug>`)**.
+
 ### Challenge against the glossary
 
 When the user uses a term that conflicts with the existing language in `CONTEXT.md`, call it out immediately. "Your glossary defines 'cancellation' as X, but you seem to mean Y — which is it?"
