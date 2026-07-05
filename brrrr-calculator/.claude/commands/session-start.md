@@ -3,7 +3,7 @@ New session starting. Before doing anything else, read the following files in th
 1. `CLAUDE.md` — ground rules, what not to touch, reading order
 2. `docs/new/CHANGELOG.md` — what has been completed and what is pending
 3. `CONTEXT.md` — domain glossary (canonical terms)
-4. `docs/adr/0001-term-sheets-are-snapshots.md` and `docs/adr/0002-v2-calculator-is-canonical.md` — accepted decisions
+4. `docs/adr/*.md` — accepted decisions
 5. Any active plan in `plans/` — current feature phases and acceptance criteria
 
 After reading all of the above, give me a status report in this format:

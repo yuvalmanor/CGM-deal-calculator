@@ -19,9 +19,8 @@ legacy V1 calculator has been fully retired (see `docs/adr/0002-v2-calculator-is
 | Dashboard + deal management (`app/page.tsx`) | ✅ Live |
 | Vercel deployment | ✅ Live — auto-deploys on push to `main` |
 
-Next planned feature: **lender comparison** (Lender Library / Term Sheets — see `CONTEXT.md`
-and `docs/adr/0001-term-sheets-are-snapshots.md`). It has no current plan file; the old one
-was authored against the retired V1 model and is archived at `docs/archive/plan-lender-comparison.md`.
+No feature is currently planned. New features start with a PRD (`/forge-prd`) and a phased
+plan (`/plan-phases` → `plans/<slug>.md`), then build phase-by-phase with `/build-phase <slug>`.
 
 ---
 
@@ -220,7 +219,7 @@ brrrr-calculator/
 │   └── parse-saved-deal.test.ts      ← saved-shape validation tests
 ├── plans/                            ← phased feature plans (/build-phase)
 ├── docs/
-│   ├── adr/                          ← accepted decisions (0001 Term Sheets, 0002 V2 canonical)
+│   ├── adr/                          ← accepted decisions (0002 V2 canonical)
 │   ├── architecture.md               ← stack, data flow, patterns
 │   ├── calculations.md               ← formula engine reference
 │   ├── brrrr-cheat-sheet.md          ← business-side formula source
