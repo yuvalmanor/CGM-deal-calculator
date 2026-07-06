@@ -64,11 +64,11 @@ Generalize Phases 1–2 to the Refi role: a Refi comparison section with the sam
 
 ### Acceptance criteria
 
-- [ ] Refi Term Sheets can be added, selected, and deleted; the input form edits the selected refi sheet
-- [ ] The Refi comparison table shows BRRRR decision-core KPIs regardless of the active scenario tab
-- [ ] Save/reload restores both roles' Term Sheets and selections; pre-existing deals open as one selected sheet per role
-- [ ] Core and comparison unit tests cover the Refi role
-- [ ] Gates pass: goldens untouched, tsc clean, production build succeeds
+- [x] Refi Term Sheets can be added, selected, and deleted; the input form edits the selected refi sheet
+- [x] The Refi comparison table shows BRRRR decision-core KPIs regardless of the active scenario tab
+- [x] Save/reload restores both roles' Term Sheets and selections; pre-existing deals open as one selected sheet per role
+- [x] Core and comparison unit tests cover the Refi role
+- [x] Gates pass: goldens untouched, tsc clean, production build succeeds
 
 ---
 

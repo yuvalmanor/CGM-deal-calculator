@@ -131,6 +131,61 @@ describe('deleteTermSheet', () => {
   })
 })
 
+describe('refi role', () => {
+  it('loses no terms across select → edit → select back', () => {
+    const s0 = initialTermSheetState(deal)
+    const idA = s0.refi.selectedId
+
+    // Add refi sheet B (copy of A, becomes selected), then edit the live fields
+    const s1 = addTermSheet(s0, deal, 'refi')
+    const idB = s1.refi.selectedId
+    expect(idB).not.toBe(idA)
+    const dealB: Deal = { ...deal, refiName: 'Bank B', refiRate: 7.5, refiLtv: 70 }
+
+    // Select A back: B's edited terms are stored, A's terms applied
+    const r1 = selectTermSheet(s1, dealB, 'refi', idA)
+    expect(r1.deal.refiName).toBe('Bank A')
+    expect(r1.deal.refiRate).toBe(6.75)
+    const storedB = r1.state.refi.sheets.find(s => s.id === idB)!
+    expect(storedB.terms.refiName).toBe('Bank B')
+    expect(storedB.terms.refiRate).toBe(7.5)
+    expect(storedB.terms.refiLtv).toBe(70)
+    // HML side untouched by refi operations
+    expect(r1.deal.hmlName).toBe(dealB.hmlName)
+    expect(r1.state.hml).toEqual(s0.hml)
+
+    // Select B again: full round trip, nothing lost
+    const r2 = selectTermSheet(r1.state, r1.deal, 'refi', idB)
+    expect(r2.deal.refiName).toBe('Bank B')
+    expect(r2.deal.refiRate).toBe(7.5)
+    expect(r2.deal.refiLtv).toBe(70)
+  })
+
+  it('add duplicates the selected refi sheet\'s live terms; delete falls back and applies terms', () => {
+    const s0 = initialTermSheetState(deal)
+    const edited: Deal = { ...deal, refiRate: 5.9 }
+    const s1 = addTermSheet(s0, edited, 'refi')
+    expect(s1.refi.sheets).toHaveLength(2)
+    const added = s1.refi.sheets.find(s => s.id === s1.refi.selectedId)!
+    expect(added.terms).toEqual(extractTerms(edited, 'refi'))
+    expect(s1.hml).toEqual(s0.hml)
+
+    // Deleting the selected refi sheet selects the remaining one and applies its terms
+    const dealB: Deal = { ...edited, refiName: 'Bank B' }
+    const r = deleteTermSheet(s1, dealB, 'refi', s1.refi.selectedId)
+    expect(r.state.refi.sheets).toHaveLength(1)
+    expect(r.state.refi.selectedId).toBe(s0.refi.selectedId)
+    expect(r.deal.refiName).toBe('Bank A')
+  })
+
+  it('refuses to delete the last refi sheet', () => {
+    const s0 = initialTermSheetState(deal)
+    const r = deleteTermSheet(s0, deal, 'refi', s0.refi.selectedId)
+    expect(r.state).toBe(s0)
+    expect(r.deal).toBe(deal)
+  })
+})
+
 describe('settings blob codec', () => {
   it('round-trips serialize → parse', () => {
     const state = syncSelected(addTermSheet(initialTermSheetState(deal), deal, 'hml'), deal)

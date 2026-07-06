@@ -91,6 +91,67 @@ describe('compareTermSheets — BRRRR', () => {
   })
 })
 
+describe('compareTermSheets — refi role', () => {
+  // Two refi sheets: A (initial, stored) and B (selected — live terms are the flat fields)
+  function twoRefiSheetSetup(): { state: TermSheetState; dealB: Deal; idA: string; idB: string } {
+    const base: Deal = { ...deal, refiName: 'Bank A', refiRate: 6.75 }
+    const s0 = initialTermSheetState(base)
+    const s1 = addTermSheet(s0, base, 'refi')
+    const dealB: Deal = { ...base, refiName: 'Bank B', refiRate: 7.5, refiLtv: 70 }
+    return { state: s1, dealB, idA: s0.refi.selectedId, idB: s1.refi.selectedId }
+  }
+
+  it('produces BRRRR rows per refi sheet matching direct engine calls per candidate', () => {
+    const { state, dealB, idA, idB } = twoRefiSheetSetup()
+    const rows = compareTermSheets(dealB, state, 'refi', 'brrrr')
+    expect(rows).toHaveLength(2)
+
+    const candidateA = applyTerms(dealB, state.refi.sheets.find(s => s.id === idA)!.terms)
+    const brrrrA = calcBRRRR(candidateA)
+    const rowA = rows.find(r => r.id === idA)!
+    expect(rowA.selected).toBe(false)
+    expect(rowA.name).toBe('Bank A')
+    expect(rowA.kpis).toEqual({
+      scenario: 'brrrr',
+      totalCashIn: brrrrA.totalCashIn,
+      moneyInDeal: brrrrA.moneyInDeal,
+      cashflow: brrrrA.cashflow,
+      coc: brrrrA.coc,
+      dscr: brrrrA.dscr,
+      score: calcDealScore(candidateA, brrrrA, calcMAO(candidateA)).score,
+    })
+
+    const brrrrB = calcBRRRR(dealB)
+    const rowB = rows.find(r => r.id === idB)!
+    expect(rowB.selected).toBe(true)
+    expect(rowB.name).toBe('Bank B')
+    expect(rowB.kpis).toMatchObject({
+      scenario: 'brrrr',
+      moneyInDeal: brrrrB.moneyInDeal,
+      dscr: brrrrB.dscr,
+    })
+  })
+
+  it('holds the HML role at its selected sheet (the flat fields) regardless of HML alternates', () => {
+    const { state, dealB, idA } = twoRefiSheetSetup()
+    const dealAltHml: Deal = { ...dealB, hmlRate: 15, hmlPoints: 4 }
+    const withHmlAlt: TermSheetState = {
+      ...state,
+      hml: {
+        sheets: [...state.hml.sheets, { id: 'hml-alt', terms: extractTerms(dealAltHml, 'hml') }],
+        selectedId: state.hml.selectedId,
+      },
+    }
+    const rows = compareTermSheets(dealB, withHmlAlt, 'refi', 'brrrr')
+    const candidateA = applyTerms(dealB, state.refi.sheets.find(s => s.id === idA)!.terms)
+    expect(rows.find(r => r.id === idA)!.kpis).toMatchObject({
+      moneyInDeal: calcBRRRR(candidateA).moneyInDeal,
+      dscr: calcBRRRR(candidateA).dscr,
+    })
+    expect(rows).toEqual(compareTermSheets(dealB, state, 'refi', 'brrrr'))
+  })
+})
+
 describe('compareTermSheets — scenario switch', () => {
   it('flipHml rows carry the Flip HML KPI set and match direct engine calls', () => {
     const { state, dealB, idA, idB } = twoSheetSetup()

@@ -168,6 +168,11 @@ export default function DealCalculator({ initialDeal, initialDealId, initialTerm
     () => compareTermSheets(deal, termSheets, 'hml', hmlCompareScenario),
     [deal, termSheets, hmlCompareScenario],
   )
+  // Refi always compares under BRRRR — a refi only exists in the BRRRR exit.
+  const refiCompareRows = useMemo(
+    () => compareTermSheets(deal, termSheets, 'refi', 'brrrr'),
+    [deal, termSheets],
+  )
 
   const brrrr   = useMemo(() => calcBRRRR(deal),   [deal])
   const flipCash = useMemo(() => calcFlipCash(deal), [deal])
@@ -254,13 +259,22 @@ export default function DealCalculator({ initialDeal, initialDealId, initialTerm
             onEdit={() => setDrawerOpen(true)}
             onLabelClick={openModal}
             termSheetSections={
-              <TermSheetSection
-                title="HML Term Sheets"
-                rows={hmlCompareRows}
-                onAdd={() => handleAddSheet('hml')}
-                onSelect={(id) => handleSelectSheet('hml', id)}
-                onDelete={(id) => handleDeleteSheet('hml', id)}
-              />
+              <>
+                <TermSheetSection
+                  title="HML Term Sheets"
+                  rows={hmlCompareRows}
+                  onAdd={() => handleAddSheet('hml')}
+                  onSelect={(id) => handleSelectSheet('hml', id)}
+                  onDelete={(id) => handleDeleteSheet('hml', id)}
+                />
+                <TermSheetSection
+                  title="Refi Term Sheets"
+                  rows={refiCompareRows}
+                  onAdd={() => handleAddSheet('refi')}
+                  onSelect={(id) => handleSelectSheet('refi', id)}
+                  onDelete={(id) => handleDeleteSheet('refi', id)}
+                />
+              </>
             }
           />
         </main>
