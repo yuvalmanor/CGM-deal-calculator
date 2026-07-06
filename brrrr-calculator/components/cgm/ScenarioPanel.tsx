@@ -488,9 +488,10 @@ interface Props {
   setScenario: (s: ScenarioKey) => void
   onEdit?: () => void
   onLabelClick?: (id: string) => void
+  termSheetSections?: React.ReactNode  // per-role Term Sheet panels, owned by DealCalculator
 }
 
-export function ScenarioPanel({ deal, brrrr, flipCash, flipHml, mao, score, scenario, setScenario, onEdit, onLabelClick }: Props) {
+export function ScenarioPanel({ deal, brrrr, flipCash, flipHml, mao, score, scenario, setScenario, onEdit, onLabelClick, termSheetSections }: Props) {
   const tabs: { key: ScenarioKey; label: string; sub: string }[] = [
     { key: 'brrrr',    label: 'BRRRR',       sub: fmtCurrency(brrrr.cashflow) + '/mo' },
     { key: 'flipCash', label: 'Flip · Cash',  sub: fmtCurrency(flipCash.profit) + ' profit' },
@@ -525,6 +526,7 @@ export function ScenarioPanel({ deal, brrrr, flipCash, flipHml, mao, score, scen
         {scenario === 'flipHml'  && <FlipHMLView  deal={deal} flip={flipHml} onLabelClick={onLabelClick} />}
       </div>
 
+      {termSheetSections}
       <MAODetail deal={deal} mao={mao} onLabelClick={onLabelClick} />
       <ScoreBreakdown score={score} onLabelClick={onLabelClick} />
       {scenario === 'brrrr' && <AdvancedMetrics deal={deal} brrrr={brrrr} onLabelClick={onLabelClick} />}

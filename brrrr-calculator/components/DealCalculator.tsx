@@ -5,22 +5,42 @@ import {
   type Deal,
 } from '@/lib/deal-model'
 import { ModalContext } from '@/lib/modalContext'
+import {
+  initialTermSheetState, isTermSheetState, syncSelected, serializeSettings,
+  addTermSheet, selectTermSheet, deleteTermSheet,
+  type TermSheetState, type LenderRole,
+} from '@/lib/term-sheets'
 import { DashboardBar } from './cgm/DashboardBar'
 import { ScenarioPanel } from './cgm/ScenarioPanel'
 import { SectionNav, InputForm, SECTIONS } from './cgm/InputForm'
+import { TermSheetSection } from './cgm/TermSheetSection'
 import FormulaModal from './ui/FormulaModal'
 
 // The 'v2' in this key is a persisted artifact — changing it would silently
 // discard users' in-progress drafts saved under the old key.
 const STORAGE_KEY = 'cgm-deal-calc-v2'
 
-function loadDeal(): Deal {
-  if (typeof window === 'undefined') return DEFAULT_DEAL
+interface Draft { deal: Deal; termSheets: TermSheetState }
+
+// Draft value shape: `{ deal, termSheets }`. Older drafts stored the Deal
+// directly — they load as the zero-migration case (one sheet per role).
+function loadDraft(): Draft {
+  const fallback = () => ({ deal: DEFAULT_DEAL, termSheets: initialTermSheetState(DEFAULT_DEAL) })
+  if (typeof window === 'undefined') return fallback()
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return DEFAULT_DEAL
-    return { ...DEFAULT_DEAL, ...JSON.parse(raw) }
-  } catch { return DEFAULT_DEAL }
+    if (!raw) return fallback()
+    const parsed = JSON.parse(raw)
+    if (parsed && typeof parsed === 'object' && 'deal' in parsed && 'termSheets' in parsed) {
+      const deal = { ...DEFAULT_DEAL, ...parsed.deal }
+      return {
+        deal,
+        termSheets: isTermSheetState(parsed.termSheets) ? parsed.termSheets : initialTermSheetState(deal),
+      }
+    }
+    const deal = { ...DEFAULT_DEAL, ...parsed }
+    return { deal, termSheets: initialTermSheetState(deal) }
+  } catch { return fallback() }
 }
 
 type ScenarioKey = 'brrrr' | 'flipCash' | 'flipHml'
@@ -34,10 +54,17 @@ const TWEAK_DEFAULTS: Tweaks = { accent: 'slate', density: 'comfortable' }
 interface Props {
   initialDeal?: Deal
   initialDealId?: string
+  initialTermSheets?: TermSheetState
 }
 
-export default function DealCalculator({ initialDeal, initialDealId }: Props) {
-  const [deal, setDeal] = useState<Deal>(() => initialDeal ?? loadDeal())
+export default function DealCalculator({ initialDeal, initialDealId, initialTermSheets }: Props) {
+  const [deal, setDeal] = useState<Deal>(() => initialDeal ?? DEFAULT_DEAL)
+  const [termSheets, setTermSheets] = useState<TermSheetState>(() =>
+    initialDeal ? (initialTermSheets ?? initialTermSheetState(initialDeal)) : initialTermSheetState(DEFAULT_DEAL))
+  // Draft restore happens after mount (localStorage doesn't exist during SSR;
+  // reading it in the initial render makes server and client HTML disagree).
+  // Until then the persist effect must not run, or it would clobber the draft.
+  const [draftLoaded, setDraftLoaded] = useState(false)
   const [scenario, setScenario] = useState<ScenarioKey>('brrrr')
   const [activeSection, setActiveSection] = useState('property')
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -49,11 +76,21 @@ export default function DealCalculator({ initialDeal, initialDealId }: Props) {
 
   const inputsRef = useRef<HTMLDivElement>(null)
 
+  // Restore the draft once, after hydration (skip if loaded from server)
+  useEffect(() => {
+    if (!initialDeal) {
+      const draft = loadDraft()
+      setDeal(draft.deal)
+      setTermSheets(draft.termSheets)
+    }
+    setDraftLoaded(true)
+  }, [initialDeal])
+
   // Persist to localStorage (skip if loaded from server)
   useEffect(() => {
-    if (initialDeal) return
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(deal)) } catch {}
-  }, [deal, initialDeal])
+    if (initialDeal || !draftLoaded) return
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ deal, termSheets })) } catch {}
+  }, [deal, termSheets, initialDeal, draftLoaded])
 
   // Apply tweaks to document root
   useEffect(() => {
@@ -100,7 +137,28 @@ export default function DealCalculator({ initialDeal, initialDealId }: Props) {
   }
 
   const update = useCallback((patch: Partial<Deal>) => setDeal((d) => ({ ...d, ...patch })), [])
-  const reset  = useCallback(() => { setDeal(DEFAULT_DEAL); setDealId(null); setSaveStatus('idle') }, [])
+  const reset  = useCallback(() => {
+    setDeal(DEFAULT_DEAL)
+    setTermSheets(initialTermSheetState(DEFAULT_DEAL))
+    setDealId(null)
+    setSaveStatus('idle')
+  }, [])
+
+  // Term Sheet management — the selected sheet mirrors the flat fields, so
+  // swaps go through the core module which never loses terms (ADR-0003).
+  function handleAddSheet(role: LenderRole) {
+    setTermSheets(addTermSheet(termSheets, deal, role))
+  }
+  function handleSelectSheet(role: LenderRole, id: string) {
+    const r = selectTermSheet(termSheets, deal, role, id)
+    setTermSheets(r.state)
+    setDeal(r.deal)
+  }
+  function handleDeleteSheet(role: LenderRole, id: string) {
+    const r = deleteTermSheet(termSheets, deal, role, id)
+    setTermSheets(r.state)
+    setDeal(r.deal)
+  }
 
   const brrrr   = useMemo(() => calcBRRRR(deal),   [deal])
   const flipCash = useMemo(() => calcFlipCash(deal), [deal])
@@ -116,6 +174,10 @@ export default function DealCalculator({ initialDeal, initialDealId }: Props) {
   async function handleSave() {
     setSaveStatus('saving')
     try {
+      // The selected sheets' stored terms may lag the live flat fields —
+      // sync before serializing so the blob matches what's being saved.
+      const synced = syncSelected(termSheets, deal)
+      setTermSheets(synced)
       const payload = {
         address: deal.address,
         score: score.score,
@@ -123,7 +185,7 @@ export default function DealCalculator({ initialDeal, initialDealId }: Props) {
         moneyInDeal: brrrr.moneyInDeal,
         monthlyNOI: brrrr.noi,
         inputsJson: JSON.stringify(deal),
-        settingsJson: '"v2"', // reserved — persisted shape marker for saved rows (see CLAUDE.md schema table)
+        settingsJson: serializeSettings(synced),
       }
       const url = dealId ? `/api/deals/${dealId}` : '/api/deals'
       const method = dealId ? 'PUT' : 'POST'
@@ -182,6 +244,20 @@ export default function DealCalculator({ initialDeal, initialDealId }: Props) {
             setScenario={setScenario}
             onEdit={() => setDrawerOpen(true)}
             onLabelClick={openModal}
+            termSheetSections={
+              <TermSheetSection
+                title="HML Term Sheets"
+                rows={termSheets.hml.sheets.map((s) => ({
+                  id: s.id,
+                  // the selected sheet's live terms are the flat fields, so its name comes from the deal
+                  name: s.id === termSheets.hml.selectedId ? deal.hmlName : String(s.terms.hmlName ?? ''),
+                  selected: s.id === termSheets.hml.selectedId,
+                }))}
+                onAdd={() => handleAddSheet('hml')}
+                onSelect={(id) => handleSelectSheet('hml', id)}
+                onDelete={(id) => handleDeleteSheet('hml', id)}
+              />
+            }
           />
         </main>
 

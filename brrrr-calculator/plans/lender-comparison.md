@@ -26,13 +26,13 @@ The Term Sheet core as a deep, pure module — Term Sheet types, extract/apply b
 
 ### Acceptance criteria
 
-- [ ] Core module unit tests pass: extract/apply round-trip, blob codec round-trip, legacy `"v2"`/empty → no sheets, malformed blob → explicit error preserving raw string, selection swap loses no terms
-- [ ] In the calculator, an HML Term Sheet can be added (copy of selected), selected, and deleted; the input form always shows and edits the selected sheet's terms
-- [ ] Save then reload restores all HML Term Sheets and the selection; the dashboard summary reflects the selected sheet
-- [ ] A pre-existing saved deal opens exactly as before, showing one selected HML Term Sheet
-- [ ] A page refresh with unsaved Term Sheets restores them from the draft
-- [ ] With a single Term Sheet per role, the calculator looks and behaves as it does today
-- [ ] Gates pass: goldens untouched, tsc clean, production build succeeds
+- [x] Core module unit tests pass: extract/apply round-trip, blob codec round-trip, legacy `"v2"`/empty → no sheets, malformed blob → explicit error preserving raw string, selection swap loses no terms
+- [x] In the calculator, an HML Term Sheet can be added (copy of selected), selected, and deleted; the input form always shows and edits the selected sheet's terms
+- [x] Save then reload restores all HML Term Sheets and the selection; the dashboard summary reflects the selected sheet
+- [x] A pre-existing saved deal opens exactly as before, showing one selected HML Term Sheet
+- [x] A page refresh with unsaved Term Sheets restores them from the draft
+- [x] With a single Term Sheet per role, the calculator looks and behaves as it does today
+- [x] Gates pass: goldens untouched, tsc clean, production build succeeds
 
 ---
 

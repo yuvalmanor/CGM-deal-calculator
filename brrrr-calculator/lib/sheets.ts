@@ -83,9 +83,10 @@ export async function listDeals(): Promise<DealSummary[]> {
 }
 
 // inputs is the deal's inputsJson parsed as-is; callers validate the shape.
-// settings holds the settingsJson column — reserved; currently the persisted
-// "v2" shape marker written by every save since the current engine shipped.
-export async function loadDeal(id: string): Promise<{ inputs: unknown; settings: unknown }> {
+// settings is the settingsJson column's raw string — deliberately NOT parsed
+// here: the Term Sheet codec (lib/term-sheets.ts) owns interpreting it, and a
+// malformed blob must never prevent the deal itself from loading (ADR-0003).
+export async function loadDeal(id: string): Promise<{ inputs: unknown; settings: string }> {
   const client = await getClient()
   const { sheets, sheetId } = client
   const rowNum = await findRowById(client, id)
@@ -98,7 +99,7 @@ export async function loadDeal(id: string): Promise<{ inputs: unknown; settings:
   if (!row) throw new Error('NOT_FOUND')
   return {
     inputs:   JSON.parse(row[7]),
-    settings: JSON.parse(row[8]),
+    settings: String(row[8] ?? ''),
   }
 }
 

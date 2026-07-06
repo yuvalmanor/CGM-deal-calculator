@@ -496,6 +496,88 @@ input, textarea { font-family: inherit; color: inherit; }
 .out-row.out-warn .out-value { color: var(--warn); }
 .out-row.out-bad  .out-value { color: var(--bad); }
 
+/* Term Sheets (lender comparison) */
+.ts-section {
+  margin: 0 auto var(--s-5);
+  max-width: 1180px;
+  width: calc(100% - var(--s-5) * 2);
+}
+.ts-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.ts-add {
+  border: 1px solid var(--line);
+  background: var(--bg-card);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  margin-bottom: var(--s-2);
+}
+.ts-add:hover { border-color: var(--accent); background: var(--accent-soft); }
+.ts-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.ts-item {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--line-faint);
+}
+.ts-item:last-child { border-bottom: 0; }
+.ts-item.selected { background: var(--accent-soft); }
+.ts-pick {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: 10px var(--s-4);
+  background: none;
+  border: 0;
+  font: inherit;
+  font-size: 13px;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+.ts-radio {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1.5px solid var(--line-strong);
+  flex: none;
+}
+.ts-item.selected .ts-radio {
+  border-color: var(--accent);
+  background: radial-gradient(circle, var(--accent) 0 40%, transparent 45%);
+}
+.ts-badge {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 600;
+}
+.ts-delete {
+  background: none;
+  border: 0;
+  color: var(--text-dim);
+  font-size: 16px;
+  line-height: 1;
+  padding: 10px var(--s-4);
+  cursor: pointer;
+}
+.ts-delete:hover { color: var(--bad); }
+
 /* MAO detail */
 .mao-detail {
   margin: 0 var(--s-5) var(--s-5);
