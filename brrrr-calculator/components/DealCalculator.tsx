@@ -10,6 +10,7 @@ import {
   addTermSheet, selectTermSheet, deleteTermSheet,
   type TermSheetState, type LenderRole,
 } from '@/lib/term-sheets'
+import { compareTermSheets } from '@/lib/compare-term-sheets'
 import { DashboardBar } from './cgm/DashboardBar'
 import { ScenarioPanel } from './cgm/ScenarioPanel'
 import { SectionNav, InputForm, SECTIONS } from './cgm/InputForm'
@@ -160,6 +161,14 @@ export default function DealCalculator({ initialDeal, initialDealId, initialTerm
     setDeal(r.deal)
   }
 
+  // HML compares under BRRRR or Flip HML; the Flip Cash tab (no HML in that
+  // exit) keeps showing the BRRRR comparison rather than an empty section.
+  const hmlCompareScenario = scenario === 'flipHml' ? 'flipHml' : 'brrrr'
+  const hmlCompareRows = useMemo(
+    () => compareTermSheets(deal, termSheets, 'hml', hmlCompareScenario),
+    [deal, termSheets, hmlCompareScenario],
+  )
+
   const brrrr   = useMemo(() => calcBRRRR(deal),   [deal])
   const flipCash = useMemo(() => calcFlipCash(deal), [deal])
   const flipHml  = useMemo(() => calcFlipHML(deal),  [deal])
@@ -247,12 +256,7 @@ export default function DealCalculator({ initialDeal, initialDealId, initialTerm
             termSheetSections={
               <TermSheetSection
                 title="HML Term Sheets"
-                rows={termSheets.hml.sheets.map((s) => ({
-                  id: s.id,
-                  // the selected sheet's live terms are the flat fields, so its name comes from the deal
-                  name: s.id === termSheets.hml.selectedId ? deal.hmlName : String(s.terms.hmlName ?? ''),
-                  selected: s.id === termSheets.hml.selectedId,
-                }))}
+                rows={hmlCompareRows}
                 onAdd={() => handleAddSheet('hml')}
                 onSelect={(id) => handleSelectSheet('hml', id)}
                 onDelete={(id) => handleDeleteSheet('hml', id)}

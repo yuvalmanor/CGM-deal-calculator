@@ -519,36 +519,47 @@ input, textarea { font-family: inherit; color: inherit; }
   margin-bottom: var(--s-2);
 }
 .ts-add:hover { border-color: var(--accent); background: var(--accent-soft); }
-.ts-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+.ts-table-wrap {
   background: var(--bg-card);
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
-  overflow: hidden;
+  overflow-x: auto;
 }
-.ts-item {
-  display: flex;
-  align-items: center;
-  border-bottom: 1px solid var(--line-faint);
-}
-.ts-item:last-child { border-bottom: 0; }
-.ts-item.selected { background: var(--accent-soft); }
-.ts-pick {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  gap: var(--s-2);
-  padding: 10px var(--s-4);
-  background: none;
-  border: 0;
-  font: inherit;
+.ts-table {
+  width: 100%;
+  border-collapse: collapse;
   font-size: 13px;
   color: var(--text);
-  text-align: left;
-  cursor: pointer;
 }
+.ts-table th {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  text-align: right;
+  padding: 8px var(--s-3);
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+.ts-table td {
+  text-align: right;
+  padding: 9px var(--s-3);
+  border-bottom: 1px solid var(--line-faint);
+  white-space: nowrap;
+}
+.ts-table th:first-child,
+.ts-table td:first-child { text-align: left; padding-left: var(--s-4); }
+.ts-table tbody tr:last-child td { border-bottom: 0; }
+.ts-table tbody tr { cursor: pointer; }
+.ts-table tbody tr:hover { background: var(--bg-card-2); }
+.ts-table tbody tr.selected { background: var(--accent-soft); }
+.ts-lender {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+.ts-del-cell { width: 1%; padding: 0 !important; }
 .ts-radio {
   width: 12px;
   height: 12px;
@@ -556,7 +567,7 @@ input, textarea { font-family: inherit; color: inherit; }
   border: 1.5px solid var(--line-strong);
   flex: none;
 }
-.ts-item.selected .ts-radio {
+.ts-table tr.selected .ts-radio {
   border-color: var(--accent);
   background: radial-gradient(circle, var(--accent) 0 40%, transparent 45%);
 }

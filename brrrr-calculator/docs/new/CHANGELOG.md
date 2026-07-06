@@ -181,6 +181,21 @@ Date: 2026-07-04
 
 ---
 
+## Lender Comparison — Phase 2: HML comparison table ✅ Complete
+
+Date: 2026-07-06
+
+**Changed:**
+- `lib/compare-term-sheets.ts` — new pure comparison calculator: deal + Term Sheets + role + scenario → one decision-core KPI row per sheet, running the frozen engine per candidate with the other role held at its selected sheet
+- `tests/compare-term-sheets.test.ts` — rows match direct engine calls, selected sheet uses live flat fields, non-compared role held at selection, scenario switches the KPI set
+- `components/cgm/TermSheetSection.tsx` — Phase 1's plain list replaced by the comparison table (BRRRR: total cash in, money in deal, cashflow/mo, CoC, DSCR, score; Flip HML: total cash in, net profit, ROI); row click selects, delete preserved
+- `components/DealCalculator.tsx` — computes comparison rows per active scenario tab (Flip Cash tab shows the BRRRR comparison — a cash flip has no HML)
+- `app/globals.css` — `ts-list` styles replaced by `ts-table` styles
+
+**Verified:** Gates green — `npm test` 50 passing, `npx tsc --noEmit` zero errors, `npm run build` succeeds. Browser-verified: add/select/delete on the table, tab switch swaps columns, live input edits recompute rows, selecting a winner swaps terms into the form and updates all outputs.
+
+---
+
 ## How to Update This File
 
 After completing each phase or significant change, add an entry here:

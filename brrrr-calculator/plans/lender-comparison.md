@@ -46,11 +46,11 @@ The comparison calculator as a pure function — deal + Term Sheets + role + act
 
 ### Acceptance criteria
 
-- [ ] Comparison calculator unit tests pass: rows match direct engine calls per candidate, the non-compared role is held at its selected sheet, scenario switch changes the KPI set
-- [ ] The HML section shows one row per Term Sheet with the decision-core columns for the active scenario tab, and switching tabs (BRRRR ↔ Flip HML) switches the columns
-- [ ] Editing any deal input updates the comparison rows immediately
-- [ ] Selecting a winner from the table swaps its terms into the input form and updates all deal outputs
-- [ ] Gates pass: goldens untouched, tsc clean, production build succeeds
+- [x] Comparison calculator unit tests pass: rows match direct engine calls per candidate, the non-compared role is held at its selected sheet, scenario switch changes the KPI set
+- [x] The HML section shows one row per Term Sheet with the decision-core columns for the active scenario tab, and switching tabs (BRRRR ↔ Flip HML) switches the columns
+- [x] Editing any deal input updates the comparison rows immediately
+- [x] Selecting a winner from the table swaps its terms into the input form and updates all deal outputs
+- [x] Gates pass: goldens untouched, tsc clean, production build succeeds
 
 ---
 
