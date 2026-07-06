@@ -6,7 +6,7 @@ import {
 } from '@/lib/deal-model'
 import { ModalContext } from '@/lib/modalContext'
 import {
-  initialTermSheetState, isTermSheetState, syncSelected, serializeSettings,
+  initialTermSheetState, isTermSheetState, syncSelected, settingsJsonForSave,
   addTermSheet, selectTermSheet, deleteTermSheet,
   type TermSheetState, type LenderRole,
 } from '@/lib/term-sheets'
@@ -56,9 +56,11 @@ interface Props {
   initialDeal?: Deal
   initialDealId?: string
   initialTermSheets?: TermSheetState
+  /** Raw settings-column value that couldn't be parsed — saves write it back unchanged (ADR-0003). */
+  unreadableSettings?: string
 }
 
-export default function DealCalculator({ initialDeal, initialDealId, initialTermSheets }: Props) {
+export default function DealCalculator({ initialDeal, initialDealId, initialTermSheets, unreadableSettings }: Props) {
   const [deal, setDeal] = useState<Deal>(() => initialDeal ?? DEFAULT_DEAL)
   const [termSheets, setTermSheets] = useState<TermSheetState>(() =>
     initialDeal ? (initialTermSheets ?? initialTermSheetState(initialDeal)) : initialTermSheetState(DEFAULT_DEAL))
@@ -199,7 +201,7 @@ export default function DealCalculator({ initialDeal, initialDealId, initialTerm
         moneyInDeal: brrrr.moneyInDeal,
         monthlyNOI: brrrr.noi,
         inputsJson: JSON.stringify(deal),
-        settingsJson: serializeSettings(synced),
+        settingsJson: settingsJsonForSave(synced, unreadableSettings),
       }
       const url = dealId ? `/api/deals/${dealId}` : '/api/deals'
       const method = dealId ? 'PUT' : 'POST'
@@ -266,6 +268,7 @@ export default function DealCalculator({ initialDeal, initialDealId, initialTerm
                   onAdd={() => handleAddSheet('hml')}
                   onSelect={(id) => handleSelectSheet('hml', id)}
                   onDelete={(id) => handleDeleteSheet('hml', id)}
+                  unreadable={unreadableSettings !== undefined}
                 />
                 <TermSheetSection
                   title="Refi Term Sheets"
@@ -273,6 +276,7 @@ export default function DealCalculator({ initialDeal, initialDealId, initialTerm
                   onAdd={() => handleAddSheet('refi')}
                   onSelect={(id) => handleSelectSheet('refi', id)}
                   onDelete={(id) => handleDeleteSheet('refi', id)}
+                  unreadable={unreadableSettings !== undefined}
                 />
               </>
             }

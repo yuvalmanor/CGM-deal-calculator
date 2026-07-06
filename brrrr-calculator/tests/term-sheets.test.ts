@@ -10,7 +10,7 @@ import { DEFAULT_DEAL, type Deal } from '../lib/deal-model'
 import {
   extractTerms, applyTerms, initialTermSheetState, syncSelected,
   addTermSheet, selectTermSheet, deleteTermSheet,
-  serializeSettings, parseSettings,
+  serializeSettings, parseSettings, settingsJsonForSave,
 } from '../lib/term-sheets'
 
 const deal: Deal = {
@@ -213,5 +213,35 @@ describe('settings blob codec', () => {
     const broken = { version: 1, termSheets: { ...state, hml: { ...state.hml, selectedId: 'ghost' } } }
     const raw = JSON.stringify(broken)
     expect(parseSettings(raw)).toEqual({ kind: 'unreadable', raw })
+  })
+})
+
+describe('settingsJsonForSave (preserve-on-save, ADR-0003)', () => {
+  it('serializes the Term Sheet state when the stored blob was readable', () => {
+    const state = syncSelected(addTermSheet(initialTermSheetState(deal), deal, 'hml'), deal)
+    expect(settingsJsonForSave(state)).toBe(serializeSettings(state))
+  })
+
+  it('writes an unreadable raw blob back byte-for-byte, ignoring the live state', () => {
+    const state = initialTermSheetState(deal)
+    const raws = [
+      'not json {',
+      '{"version":99,"termSheets":{}}',
+      '  {"trailing": "whitespace"}  \n',
+      '"v3"',
+      '{"unicode":"éא🏠"}',
+    ]
+    for (const raw of raws) {
+      expect(settingsJsonForSave(state, raw)).toBe(raw)
+    }
+  })
+
+  it('round-trips: what a save writes for an unreadable blob still parses as the same unreadable blob', () => {
+    const raw = 'garbage { not json'
+    const parsed = parseSettings(raw)
+    expect(parsed.kind).toBe('unreadable')
+    const written = settingsJsonForSave(initialTermSheetState(deal), (parsed as { raw: string }).raw)
+    expect(written).toBe(raw)
+    expect(parseSettings(written)).toEqual({ kind: 'unreadable', raw })
   })
 })

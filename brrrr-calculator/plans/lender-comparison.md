@@ -82,7 +82,7 @@ The failure path for an unreadable settings column: the deal opens normally (sel
 
 ### Acceptance criteria
 
-- [ ] A saved row with garbage in the settings column opens as a working deal with the explicit notice in the comparison sections
-- [ ] Saving that deal leaves the settings column byte-for-byte unchanged, and the deal's other columns update normally
-- [ ] Unit tests cover the preserve-on-save behavior
-- [ ] Gates pass: goldens untouched, tsc clean, production build succeeds
+- [x] A saved row with garbage in the settings column opens as a working deal with the explicit notice in the comparison sections
+- [x] Saving that deal leaves the settings column byte-for-byte unchanged, and the deal's other columns update normally
+- [x] Unit tests cover the preserve-on-save behavior
+- [x] Gates pass: goldens untouched, tsc clean, production build succeeds

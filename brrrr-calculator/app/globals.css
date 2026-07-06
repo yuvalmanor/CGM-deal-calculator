@@ -519,6 +519,21 @@ input, textarea { font-family: inherit; color: inherit; }
   margin-bottom: var(--s-2);
 }
 .ts-add:hover { border-color: var(--accent); background: var(--accent-soft); }
+.ts-notice {
+  background: var(--bg-card);
+  border: 1px solid var(--warn);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.5;
+  padding: var(--s-3) var(--s-4);
+}
+.ts-notice code {
+  background: var(--bg-card-2);
+  border-radius: 3px;
+  font-size: 12px;
+  padding: 1px 4px;
+}
 .ts-table-wrap {
   background: var(--bg-card);
   border: 1px solid var(--line);

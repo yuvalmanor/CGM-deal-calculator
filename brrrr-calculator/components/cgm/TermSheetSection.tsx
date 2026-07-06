@@ -14,6 +14,8 @@ interface Props {
   onAdd: () => void
   onSelect: (id: string) => void
   onDelete: (id: string) => void
+  /** The deal's stored Term Sheets couldn't be read — show a notice instead of alternates (ADR-0003). */
+  unreadable?: boolean
 }
 
 const KPI_HEADERS: Record<ComparisonKpis['scenario'], string[]> = {
@@ -35,8 +37,25 @@ function kpiCells(kpis: ComparisonKpis): string[] {
   ]
 }
 
-export function TermSheetSection({ title, rows, onAdd, onSelect, onDelete }: Props) {
+export function TermSheetSection({ title, rows, onAdd, onSelect, onDelete, unreadable }: Props) {
   const scenario = rows[0]?.kpis.scenario ?? 'brrrr'
+  if (unreadable) {
+    // The deal itself works (its selected terms live in the inputs column);
+    // only the alternates are unreadable. Saving writes the stored value back
+    // unchanged, so managing sheets here would be lost work — don't offer it.
+    return (
+      <section className="ts-section">
+        <div className="ts-header">
+          <div className="out-group-title">{title}</div>
+        </div>
+        <div className="ts-notice" role="alert">
+          This deal&apos;s saved Term Sheets could not be read, so they aren&apos;t shown. The deal
+          itself is intact and uses its saved lender terms. Saving will leave the stored Term
+          Sheet data untouched — inspect the <code>settingsJson</code> column in Google Sheets.
+        </div>
+      </section>
+    )
+  }
   return (
     <section className="ts-section">
       <div className="ts-header">

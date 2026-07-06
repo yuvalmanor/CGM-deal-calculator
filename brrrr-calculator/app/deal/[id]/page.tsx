@@ -41,10 +41,19 @@ export default async function DealPage({ params }: Props) {
 
   // Legacy '"v2"'/empty settings → no Term Sheets: the calculator seeds one
   // selected sheet per role from the deal's flat fields (zero migration).
-  // Unreadable blobs get their explicit notice + preserve-on-save in a later
-  // phase; until then they also fall back to seeding from the flat fields.
+  // An unreadable blob also seeds from the flat fields (the deal itself is
+  // intact), but the comparison sections show a notice and saves write the
+  // raw column value back unchanged (ADR-0003).
   const parsedSettings = parseSettings(rawSettings)
   const initialTermSheets = parsedSettings.kind === 'sheets' ? parsedSettings.state : undefined
+  const unreadableSettings = parsedSettings.kind === 'unreadable' ? parsedSettings.raw : undefined
 
-  return <DealCalculator initialDeal={deal} initialDealId={params.id} initialTermSheets={initialTermSheets} />
+  return (
+    <DealCalculator
+      initialDeal={deal}
+      initialDealId={params.id}
+      initialTermSheets={initialTermSheets}
+      unreadableSettings={unreadableSettings}
+    />
+  )
 }

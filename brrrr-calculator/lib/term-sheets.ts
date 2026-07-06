@@ -140,6 +140,15 @@ export function serializeSettings(state: TermSheetState): string {
   return JSON.stringify({ version: BLOB_VERSION, termSheets: state })
 }
 
+/**
+ * The settings-column value a save must write. When the stored blob was
+ * unreadable at load time, its raw string is written back byte-for-byte —
+ * a save must never destroy what couldn't be parsed (ADR-0003).
+ */
+export function settingsJsonForSave(state: TermSheetState, unreadableRaw?: string): string {
+  return unreadableRaw !== undefined ? unreadableRaw : serializeSettings(state)
+}
+
 function isRoleState(v: unknown): v is RoleState {
   if (typeof v !== 'object' || v === null) return false
   const r = v as Record<string, unknown>
