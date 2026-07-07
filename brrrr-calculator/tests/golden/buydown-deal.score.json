@@ -1,0 +1,48 @@
+{
+  "score": 3,
+  "components": [
+    {
+      "key": "coc",
+      "label": "Cash-on-Cash",
+      "weight": 0.333333,
+      "score": 0,
+      "value": "-4.5%",
+      "target": "≥10%"
+    },
+    {
+      "key": "equity",
+      "label": "Equity %",
+      "weight": 0.333333,
+      "score": 0,
+      "value": "16.6%",
+      "target": "≥20%"
+    },
+    {
+      "key": "location",
+      "label": "Location",
+      "weight": 0.333333,
+      "score": 9,
+      "value": "9/10",
+      "target": "≥7"
+    }
+  ],
+  "weakest": [
+    {
+      "key": "coc",
+      "label": "Cash-on-Cash",
+      "weight": 0.333333,
+      "score": 0,
+      "value": "-4.5%",
+      "target": "≥10%"
+    },
+    {
+      "key": "equity",
+      "label": "Equity %",
+      "weight": 0.333333,
+      "score": 0,
+      "value": "16.6%",
+      "target": "≥20%"
+    }
+  ],
+  "verdict": "NO-GO"
+}

@@ -110,6 +110,8 @@ const BRANCH_DEAL: Deal = {
   refiName: 'Test Bank',
   refiRate: 6.5,
   refiPoints: 1.0,
+  refiBuydownPoints: 0,
+  refiPppSchedule: [],
   refiTermYears: 30,
   refiAppraisal: 650,
   refiUnderwriting: 995,
@@ -136,9 +138,19 @@ const BRANCH_DEAL: Deal = {
   minEquityPct: 20,
 }
 
+// Nonzero rate-buydown points (ADR-0004): buydown dollars join totalRefiClosing.
+// The nonzero PPP schedule pins that the engine ignores it (engine-inert field).
+const BUYDOWN_DEAL: Deal = {
+  ...BRANCH_DEAL,
+  address: '742 Evergreen Terrace, Springfield TX (2pt buydown)',
+  refiBuydownPoints: 2,
+  refiPppSchedule: [5, 5, 5],
+}
+
 const FIXTURES: Array<{ name: string; deal: Deal }> = [
   { name: 'default-deal', deal: DEFAULT_DEAL },
   { name: 'branch-deal', deal: BRANCH_DEAL },
+  { name: 'buydown-deal', deal: BUYDOWN_DEAL },
 ]
 
 describe.each(FIXTURES)('golden: $name', ({ name, deal }) => {

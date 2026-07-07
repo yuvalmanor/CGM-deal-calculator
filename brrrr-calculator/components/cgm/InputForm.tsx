@@ -3,7 +3,7 @@ import type { Deal } from '@/lib/deal-model'
 import { newUid } from '@/lib/deal-model'
 import {
   NumberField, TextField, SelectField, SegToggle,
-  Section, Repeater, MonthlyRepeater, FundedRepeater,
+  Section, Repeater, MonthlyRepeater, FundedRepeater, PppScheduleField,
 } from './FormControls'
 import { mapLocationScore } from '@/lib/deal-model'
 
@@ -169,6 +169,10 @@ export function InputForm({ deal, update }: Props) {
         <TextField label="Lender Name" value={deal.refiName} onChange={set('refiName')} wide />
         <NumberField label="Annual Interest Rate" value={deal.refiRate} onChange={set('refiRate')} suffix="%" helper={`${deal.refiTermYears}-yr fixed`} />
         <NumberField label="Points %" value={deal.refiPoints} onChange={set('refiPoints')} suffix="%" helper="origination" />
+        <NumberField label="Buydown Points %" value={deal.refiBuydownPoints} onChange={set('refiBuydownPoints')} suffix="%"
+          helper="Rate buydown — % of refi loan, added to closing" />
+        <PppScheduleField label="Prepayment Penalty (PPP)" value={deal.refiPppSchedule} onChange={set('refiPppSchedule')}
+          helper="Yearly % of remaining balance — empty = none" />
         <NumberField label="Term" value={deal.refiTermYears} onChange={set('refiTermYears')} suffix="yr" />
         <NumberField label="Appraisal / BPO" value={deal.refiAppraisal} onChange={set('refiAppraisal')} prefix="$" />
         <NumberField label="Underwriting Fees" value={deal.refiUnderwriting} onChange={set('refiUnderwriting')} prefix="$" />

@@ -22,9 +22,9 @@ export const HML_TERM_FIELDS = [
 ] as const
 
 export const REFI_TERM_FIELDS = [
-  'refiName', 'refiRate', 'refiPoints', 'refiTermYears', 'refiAppraisal',
-  'refiUnderwriting', 'refiOtherMisc', 'refiSeasoningMonths', 'refiLtv',
-  'refiTitleEscrow', 'refiExtraFees',
+  'refiName', 'refiRate', 'refiPoints', 'refiBuydownPoints', 'refiPppSchedule',
+  'refiTermYears', 'refiAppraisal', 'refiUnderwriting', 'refiOtherMisc',
+  'refiSeasoningMonths', 'refiLtv', 'refiTitleEscrow', 'refiExtraFees',
 ] as const
 
 export type LenderTerms = Partial<Deal>  // exactly one role's term fields

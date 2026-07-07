@@ -196,6 +196,23 @@ Date: 2026-07-06
 
 ---
 
+## Payoff Horizon — Phase 1: Buydown + PPP fields ✅ Complete
+
+Date: 2026-07-07
+
+**Changed:**
+- `lib/deal-model.ts` — the one deliberate, user-approved engine change (ADR-0004): new `Deal` fields `refiBuydownPoints` (default 0) and `refiPppSchedule` (default `[]`, engine-inert); `calcRefi()` folds buydown dollars (`refiLoan × pts/100`) into `totalRefiClosing`
+- `docs/adr/0004-buydown-points-in-refi-closing.md` — records the change and the zero-default proof
+- `tests/deal-model.golden.test.ts` + `tests/golden/buydown-deal.*` — existing goldens passed byte-identical before capture; new `buydown-deal` fixture pins nonzero buydown (and that a nonzero PPP schedule is ignored by the engine)
+- `lib/term-sheets.ts` — both fields join `REFI_TERM_FIELDS`, so Term Sheet extract/apply/sync/persist handles them for free
+- `lib/ppp-schedule.ts` + `tests/ppp-schedule.test.ts` — PPP text codec: `5,5,5` / `5/4/3` ↔ `number[]`, garbage → null
+- `components/cgm/FormControls.tsx` — `PppScheduleField` (blur-to-commit; invalid input shows a hint and does not commit)
+- `components/cgm/InputForm.tsx` — Buydown Points % and Prepayment Penalty (PPP) inputs in the Refinance section
+
+**Verified:** Gates green — `npm test` 69 passing, `npx tsc --noEmit` zero errors, `npm run build` succeeds. Browser-verified: buydown 2% moves money-in-deal by exactly $3,900 on the default deal; PPP round-trips both separators and rejects garbage without committing; Term Sheet swaps are lossless both ways; draft reload restores per-sheet values; a pre-feature draft opens with 0 / no PPP; full API save/load/delete round-trip carries both fields in `inputsJson` and the column-I blob.
+
+---
+
 ## How to Update This File
 
 After completing each phase or significant change, add an entry here:

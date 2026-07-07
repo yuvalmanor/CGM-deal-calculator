@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import type { Deal, ExtraFee, MonthlyLine, RehabAdditionalCost } from '@/lib/deal-model'
 import { newUid } from '@/lib/deal-model'
+import { formatPppSchedule, parsePppSchedule } from '@/lib/ppp-schedule'
 
 // ---- FieldLabel ----
 interface FieldLabelProps {
@@ -56,6 +57,51 @@ export function NumberField({ label, value, onChange, prefix, suffix, hint, labe
         {suffix && <span className="affix suffix">{suffix}</span>}
       </div>
       {helper && <div className="field-helper">{helper}</div>}
+    </label>
+  )
+}
+
+// ---- PppScheduleField ----
+// Yearly prepayment-penalty percentages as one text field: "5,5,5" or "5/4/3".
+// Blur-to-commit like NumberField; unparseable input shows a hint and does not commit.
+
+interface PppScheduleFieldProps {
+  label: string
+  value: number[]
+  onChange: (v: number[]) => void
+  hint?: string
+  helper?: string
+}
+export function PppScheduleField({ label, value, onChange, hint, helper }: PppScheduleFieldProps) {
+  const [local, setLocal] = useState(formatPppSchedule(value))
+  const [invalid, setInvalid] = useState(false)
+  useEffect(() => { setLocal(formatPppSchedule(value)); setInvalid(false) }, [value])
+
+  const commit = (raw: string) => {
+    const parsed = parsePppSchedule(raw)
+    if (parsed === null) { setInvalid(true); return }
+    setInvalid(false)
+    onChange(parsed)
+    setLocal(formatPppSchedule(parsed))
+  }
+
+  return (
+    <label className="field">
+      <FieldLabel label={label} hint={hint} />
+      <div className="input-shell">
+        <input
+          type="text"
+          inputMode="decimal"
+          value={local}
+          placeholder="e.g. 5, 5, 5"
+          onChange={(e) => setLocal(e.target.value)}
+          onBlur={(e) => commit(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur() }}
+        />
+      </div>
+      {invalid
+        ? <div className="field-helper" style={{ color: 'var(--bad, #b4382a)' }}>Use yearly percents like 5, 5, 5 or 5/4/3 — not saved</div>
+        : helper && <div className="field-helper">{helper}</div>}
     </label>
   )
 }

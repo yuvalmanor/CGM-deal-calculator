@@ -75,6 +75,8 @@ export interface Deal {
   refiName: string
   refiRate: number
   refiPoints: number
+  refiBuydownPoints: number   // rate-buydown points, whole-number % of refi loan (ADR-0004); 0 = none
+  refiPppSchedule: number[]   // prepayment-penalty % per year, e.g. [5,5,5]; engine-inert — read only by payoff-horizon analysis
   refiTermYears: number
   refiAppraisal: number
   refiUnderwriting: number
@@ -150,6 +152,8 @@ export const DEFAULT_DEAL: Deal = {
   refiName: 'ABC bank',
   refiRate: 7.0,
   refiPoints: 1.5,
+  refiBuydownPoints: 0,
+  refiPppSchedule: [],
   refiTermYears: 30,
   refiAppraisal: 750,
   refiUnderwriting: 1,
@@ -327,9 +331,11 @@ interface RefiCalc {
 function calcRefi(d: Deal): RefiCalc {
   const refiLoan = d.arv * (d.refiLtv / 100)
   const points = refiLoan * (d.refiPoints / 100)
+  // Rate-buydown points are a closing cost like origination points (ADR-0004)
+  const buydown = refiLoan * ((d.refiBuydownPoints || 0) / 100)
   const titleEscrow = d.refiTitleEscrow > 0 ? d.refiTitleEscrow : d.arv * 0.02 + 500
   const extraFees = (d.refiExtraFees || []).reduce((s, f) => s + (f.amount || 0), 0)
-  const totalRefiClosing = points + titleEscrow + d.refiAppraisal + d.refiUnderwriting + d.refiOtherMisc + extraFees
+  const totalRefiClosing = points + buydown + titleEscrow + d.refiAppraisal + d.refiUnderwriting + d.refiOtherMisc + extraFees
   const r = d.refiRate / 100 / 12
   const n = d.refiTermYears * 12
   const pi = r === 0 ? refiLoan / n : (refiLoan * r) / (1 - Math.pow(1 + r, -n))
