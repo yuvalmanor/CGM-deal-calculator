@@ -10,11 +10,12 @@ import {
   addTermSheet, selectTermSheet, deleteTermSheet,
   type TermSheetState, type LenderRole,
 } from '@/lib/term-sheets'
-import { compareTermSheets } from '@/lib/compare-term-sheets'
+import { compareTermSheets, comparePayoffHorizons } from '@/lib/compare-term-sheets'
 import { DashboardBar } from './cgm/DashboardBar'
 import { ScenarioPanel } from './cgm/ScenarioPanel'
 import { SectionNav, InputForm, SECTIONS } from './cgm/InputForm'
 import { TermSheetSection } from './cgm/TermSheetSection'
+import { PayoffHorizonMatrix } from './cgm/PayoffHorizonMatrix'
 import FormulaModal from './ui/FormulaModal'
 
 // The 'v2' in this key is a persisted artifact — changing it would silently
@@ -175,6 +176,10 @@ export default function DealCalculator({ initialDeal, initialDealId, initialTerm
     () => compareTermSheets(deal, termSheets, 'refi', 'brrrr'),
     [deal, termSheets],
   )
+  const payoffColumns = useMemo(
+    () => comparePayoffHorizons(deal, termSheets),
+    [deal, termSheets],
+  )
 
   const brrrr   = useMemo(() => calcBRRRR(deal),   [deal])
   const flipCash = useMemo(() => calcFlipCash(deal), [deal])
@@ -277,7 +282,9 @@ export default function DealCalculator({ initialDeal, initialDealId, initialTerm
                   onSelect={(id) => handleSelectSheet('refi', id)}
                   onDelete={(id) => handleDeleteSheet('refi', id)}
                   unreadable={unreadableSettings !== undefined}
-                />
+                >
+                  <PayoffHorizonMatrix columns={payoffColumns} />
+                </TermSheetSection>
               </>
             }
           />

@@ -604,6 +604,42 @@ input, textarea { font-family: inherit; color: inherit; }
 }
 .ts-delete:hover { color: var(--bad); }
 
+/* Payoff Horizon matrix (inside the Refi Term Sheets section) */
+.ph-block { margin-top: var(--s-3); }
+.ph-title {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  margin-bottom: var(--s-2);
+}
+.ph-warning {
+  font-size: 12px;
+  color: var(--warn);
+  margin-bottom: var(--s-2);
+}
+.ph-table tbody tr { cursor: default; }
+.ph-table tbody tr:hover { background: transparent; }
+.ph-table th { vertical-align: top; }
+.ph-col-name { font-size: 11px; letter-spacing: 0.02em; }
+.ph-col-sub {
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--text-dim);
+  font-size: 11px;
+  margin-top: 2px;
+}
+.ph-win { background: var(--good-bg); color: var(--good-strong); font-weight: 600; }
+.ph-pen {
+  display: block;
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--warn);
+  cursor: help;
+}
+
 /* MAO detail */
 .mao-detail {
   margin: 0 var(--s-5) var(--s-5);

@@ -16,6 +16,8 @@ interface Props {
   onDelete: (id: string) => void
   /** The deal's stored Term Sheets couldn't be read — show a notice instead of alternates (ADR-0003). */
   unreadable?: boolean
+  /** Extra content rendered inside the section, after the comparison table (e.g. the Payoff Horizon matrix). */
+  children?: React.ReactNode
 }
 
 const KPI_HEADERS: Record<ComparisonKpis['scenario'], string[]> = {
@@ -37,7 +39,7 @@ function kpiCells(kpis: ComparisonKpis): string[] {
   ]
 }
 
-export function TermSheetSection({ title, rows, onAdd, onSelect, onDelete, unreadable }: Props) {
+export function TermSheetSection({ title, rows, onAdd, onSelect, onDelete, unreadable, children }: Props) {
   const scenario = rows[0]?.kpis.scenario ?? 'brrrr'
   if (unreadable) {
     // The deal itself works (its selected terms live in the inputs column);
@@ -104,6 +106,7 @@ export function TermSheetSection({ title, rows, onAdd, onSelect, onDelete, unrea
           </tbody>
         </table>
       </div>
+      {children}
     </section>
   )
 }

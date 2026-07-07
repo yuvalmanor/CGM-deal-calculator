@@ -213,6 +213,24 @@ Date: 2026-07-07
 
 ---
 
+## Payoff Horizon — Phase 2: Payoff Horizon matrix ✅ Complete
+
+Date: 2026-07-07
+
+**Changed:**
+- `lib/payoff-horizon.ts` — new pure module (no React, no I/O, no engine imports): amortization walk, cumulative interest, remaining balance, step-down prepayment penalty with the boundary convention (payoff at exactly the end of the final PPP year is penalty-free), nominal total per cell; fixed horizons `[3, 5, 7, 10, 15, 20]` years; `upfrontCost` is supplied by the caller from the engine's own `totalRefiClosing` — never re-derived
+- `tests/payoff-horizon.test.ts` — 14 tests pinning the independently verified fixtures from `plans/payoff-horizon.md` (±$1), P&I to the cent, the penalty boundary and step-down selection, empty schedule, horizon ≥ term, and the `scheduledPrincipalPaid + balance = L` comparability identity across 30-yr vs 40-yr terms
+- `lib/compare-term-sheets.ts` — `comparePayoffHorizons()`: one matrix column per Refi Term Sheet, engine run per candidate (selected sheet = live flat fields), carrying the engine's P&I, loan amount, and closing costs
+- `tests/compare-term-sheets.test.ts` — cell totals equal the engine's `totalRefiClosing` (incl. buydown) + cumInterest + penalty per candidate
+- `components/cgm/PayoffHorizonMatrix.tsx` — the matrix: one row per horizon, one column per Refi Term Sheet, cheapest-per-row highlighted, penalty cells show `incl. $X PPP` with a tooltip, headers show P&I (and loan amounts + a not-directly-comparable warning line only when amounts differ)
+- `components/cgm/TermSheetSection.tsx` — accepts `children` after the comparison table so the matrix lives inside the Refi section
+- `components/DealCalculator.tsx` — computes payoff columns per deal/Term Sheet change and renders the matrix in the Refi Term Sheets section
+- `app/globals.css` — `ph-*` styles (title, warning line, winner cell, penalty note, non-clickable rows)
+
+**Verified:** Gates green — `npm test` 84 passing, `npx tsc --noEmit` zero errors, `npm run build` succeeds. Browser-verified: matrix renders under the Refi comparison table and recomputes live on rate/PPP/LTV edits and sheet add/select; a 7.5% + PPP [5,5,5,5,5] sheet shows `incl. $9,459 PPP` at 3 yr and no penalty at 5 yr (boundary); cheapest column wins each row; differing LTVs surface loan amounts per column plus the warning line, which disappears when amounts are equal again; select-swap keeps each sheet's terms lossless.
+
+---
+
 ## How to Update This File
 
 After completing each phase or significant change, add an entry here:

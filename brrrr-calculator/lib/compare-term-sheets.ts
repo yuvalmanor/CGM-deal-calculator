@@ -12,6 +12,7 @@
 
 import { calcBRRRR, calcFlipHML, calcMAO, calcDealScore, type Deal } from './deal-model'
 import { applyTerms, type TermSheetState, type LenderRole } from './term-sheets'
+import { payoffHorizonColumn, PAYOFF_HORIZONS_YEARS, type PayoffCell } from './payoff-horizon'
 
 export type ComparisonScenario = 'brrrr' | 'flipHml'
 
@@ -75,6 +76,45 @@ export function compareTermSheets(
       name: String(candidate[nameField] ?? ''),
       selected,
       kpis: kpisFor(candidate, scenario),
+    }
+  })
+}
+
+// ---- Payoff Horizon matrix (refi role only — HMLs are short-term, no PPP) ----
+
+export interface PayoffColumn {
+  id: string
+  name: string
+  selected: boolean
+  pi: number          // the engine's monthly P&I for this candidate
+  loanAmount: number  // the engine's refi loan for this candidate
+  cells: PayoffCell[] // one per PAYOFF_HORIZONS_YEARS entry, in order
+}
+
+/**
+ * One matrix column per Refi Term Sheet: the frozen engine runs per candidate
+ * (selected sheet = the deal's live flat fields) and supplies `upfrontCost`
+ * from its own `totalRefiClosing` — the payoff module never re-derives it.
+ */
+export function comparePayoffHorizons(deal: Deal, state: TermSheetState): PayoffColumn[] {
+  const { sheets, selectedId } = state.refi
+  return sheets.map((sheet) => {
+    const selected = sheet.id === selectedId
+    const candidate = selected ? deal : applyTerms(deal, sheet.terms)
+    const brrrr = calcBRRRR(candidate)
+    return {
+      id: sheet.id,
+      name: String(candidate.refiName ?? ''),
+      selected,
+      pi: brrrr.refiPI,
+      loanAmount: brrrr.refiLoan,
+      cells: payoffHorizonColumn({
+        loanAmount: brrrr.refiLoan,
+        annualRatePct: candidate.refiRate,
+        termYears: candidate.refiTermYears,
+        pppSchedule: candidate.refiPppSchedule ?? [],
+        upfrontCost: brrrr.refiTotalClosing,
+      }, PAYOFF_HORIZONS_YEARS),
     }
   })
 }

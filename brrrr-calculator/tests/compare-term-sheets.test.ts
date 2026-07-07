@@ -11,7 +11,8 @@ import {
   initialTermSheetState, addTermSheet, applyTerms, extractTerms,
   type TermSheetState,
 } from '../lib/term-sheets'
-import { compareTermSheets } from '../lib/compare-term-sheets'
+import { compareTermSheets, comparePayoffHorizons } from '../lib/compare-term-sheets'
+import { PAYOFF_HORIZONS_YEARS } from '../lib/payoff-horizon'
 
 const deal: Deal = { ...DEFAULT_DEAL, hmlName: 'Lender A', hmlRate: 11, hmlPoints: 2 }
 
@@ -149,6 +150,39 @@ describe('compareTermSheets — refi role', () => {
       dscr: calcBRRRR(candidateA).dscr,
     })
     expect(rows).toEqual(compareTermSheets(dealB, state, 'refi', 'brrrr'))
+  })
+})
+
+describe('comparePayoffHorizons', () => {
+  function twoRefiSheetSetup(): { state: TermSheetState; dealB: Deal; idA: string; idB: string } {
+    const base: Deal = { ...deal, refiName: 'Bank A', refiRate: 6.75, refiPppSchedule: [5, 5, 5] }
+    const s0 = initialTermSheetState(base)
+    const s1 = addTermSheet(s0, base, 'refi')
+    const dealB: Deal = { ...base, refiName: 'Bank B', refiRate: 7.5, refiBuydownPoints: 1, refiPppSchedule: [] }
+    return { state: s1, dealB, idA: s0.refi.selectedId, idB: s1.refi.selectedId }
+  }
+
+  it('one column per refi sheet, cells totalling the ENGINE\'s closing costs + interest + penalty', () => {
+    const { state, dealB, idA, idB } = twoRefiSheetSetup()
+    const cols = comparePayoffHorizons(dealB, state)
+    expect(cols.map((c) => c.id)).toEqual([idA, idB])
+
+    // Column A: stored terms applied; column B (selected): the live flat fields
+    const candidates: Record<string, Deal> = {
+      [idA]: applyTerms(dealB, state.refi.sheets.find((s) => s.id === idA)!.terms),
+      [idB]: dealB,
+    }
+    for (const col of cols) {
+      const brrrr = calcBRRRR(candidates[col.id])
+      expect(col.pi).toBe(brrrr.refiPI)
+      expect(col.loanAmount).toBe(brrrr.refiLoan)
+      expect(col.cells.map((c) => c.horizonYears)).toEqual([...PAYOFF_HORIZONS_YEARS])
+      for (const cell of col.cells) {
+        // upfrontCost is the engine's own totalRefiClosing (incl. buydown), never re-derived
+        expect(cell.total).toBeCloseTo(brrrr.refiTotalClosing + cell.cumInterest + cell.penalty, 6)
+      }
+    }
+    expect(cols.find((c) => c.id === idB)!.selected).toBe(true)
   })
 })
 

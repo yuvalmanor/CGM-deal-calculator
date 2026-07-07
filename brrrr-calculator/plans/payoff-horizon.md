@@ -119,13 +119,13 @@ cumInterest = total loan interest; differing terms (30-yr vs 40-yr, same L) → 
 
 ### Acceptance criteria
 
-- [ ] `payoff-horizon` unit tests pin all fixtures and edge cases above
-- [ ] Matrix renders in the Refi comparison section with winner-per-row highlighting and
+- [x] `payoff-horizon` unit tests pin all fixtures and edge cases above
+- [x] Matrix renders in the Refi comparison section with winner-per-row highlighting and
       penalty indicators showing the penalty amount
-- [ ] Column headers show each sheet's monthly P&I; with differing loan amounts the headers
+- [x] Column headers show each sheet's monthly P&I; with differing loan amounts the headers
       show loan amounts and the warning line appears; with equal amounts it doesn't
-- [ ] Editing any deal input or Term Sheet updates the matrix immediately, consistent with the
+- [x] Editing any deal input or Term Sheet updates the matrix immediately, consistent with the
       existing comparison table
-- [ ] Cell totals equal `totalRefiClosing + cumInterest + penalty` using the engine's own
+- [x] Cell totals equal `totalRefiClosing + cumInterest + penalty` using the engine's own
       closing-cost figure per candidate sheet
-- [ ] Gates pass: goldens green, tsc clean, production build succeeds
+- [x] Gates pass: goldens green, tsc clean, production build succeeds
