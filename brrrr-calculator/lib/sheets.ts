@@ -12,6 +12,13 @@ export interface DealSummary {
   arv: number
   moneyInDeal: number
   monthlyNOI: number
+  /**
+   * Whether the summary columns were written by the calculator.
+   * Every calculator save fills D–G; CGM-DealDesk triage rows leave them blank
+   * (only E/arv is set). A blank score column therefore means "never opened and
+   * saved here" — the dashboard renders those neutrally instead of as 0.0/NO-GO.
+   */
+  analyzed: boolean
 }
 
 type SheetClient = Awaited<ReturnType<typeof getClient>>
@@ -79,6 +86,7 @@ export async function listDeals(): Promise<DealSummary[]> {
     arv:         parseFloat(r[4]) || 0,
     moneyInDeal: parseFloat(r[5]) || 0,
     monthlyNOI:  parseFloat(r[6]) || 0,
+    analyzed:    String(r[3] ?? '').trim() !== '',
   }))
 }
 

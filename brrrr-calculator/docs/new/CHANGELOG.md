@@ -231,6 +231,36 @@ Date: 2026-07-07
 
 ---
 
+## Deal Desk folder — triage deals off the dashboard ✅ Complete
+
+Date: 2026-07-29
+
+The CGM-DealDesk triage tool writes rows straight into `DEALS_APP` with its own
+`dd-<hex>-<n>` id scheme; 24 of the sheet's 27 rows were triage rows, so they buried the
+3 real deals on the dashboard. They now live in their own folder. The `dd-` id prefix is
+the source marker — permanent by design (`updateDeal()` keeps the row id), so a triage
+deal stays in the folder however much it is edited; the folder answers "where did this
+come from", not "have I dealt with it yet".
+
+**Changed:**
+- `lib/deal-source.ts` — new: `isDealDeskDeal()` (prefix-anchored) + `splitBySource()`; no new sheet column, nothing to backfill
+- `tests/deal-source.test.ts` — 5 tests: real `dd-` ids vs real UUIDs, prefix-anchored not substring, partition order, all-one-source and empty lists
+- `lib/cached-deals.ts` — new: `getDeals()` lifts the `unstable_cache` wrapper out of `app/page.tsx` so dashboard and folder share one cache entry (same `deals` tag, 60s TTL)
+- `lib/sheets.ts` — `DealSummary.analyzed`: whether column D was written by a calculator save. Triage rows leave D–G blank, so without this every triage card read `0.0/10 · NO-GO · $0` — a verdict on the deal rather than "not run yet"
+- `components/DealCard.tsx` — unanalyzed rows show a neutral amber `NEW` badge, `Not analyzed yet`, and `—` for the figures the sheet does not carry (ARV still shows when triage supplied it)
+- `components/DealDeskFolder.tsx` — new: folder tile with deal count, unanalyzed count and latest date; renders nothing when there are no triage rows
+- `components/SiteHeader.tsx` — new: header extracted from `app/page.tsx`, shared with the folder page
+- `app/page.tsx` — lists `own` deals only; folder tile above the grid; empty state keyed on `own.length`
+- `app/deal-desk/page.tsx` — new route: the folder, reusing `DealFilters` (search + jump-to) scoped to triage deals
+
+**Verified:** Gates green — `npm test` 89 passing, `npx tsc --noEmit` zero errors, `npm run build` succeeds (`/deal-desk` registered). Browser-verified against the live sheet: dashboard shows the 3 real deals plus a `Deal Desk · 24 deals · 24 not analyzed` tile, and its jump-to dropdown no longer lists triage deals; the tile navigates to `/deal-desk`, which lists all 24 with `NEW` / `—` and blank addresses as `Untitled Deal`; opening `dd-19f61d76a4136269-0` still loads normally; no console errors.
+
+**Known, out of scope:** triage rows still write a partial `inputsJson` (5–7 keys), so opening
+one fills the missing fields from the Anna TX `DEFAULT_DEAL` example (rehab $14,080, taxes
+$470/mo…). That is a triage-side fix — see `deal-triage-DEALS_APP-format-guide.md` §2.
+
+---
+
 ## How to Update This File
 
 After completing each phase or significant change, add an entry here:

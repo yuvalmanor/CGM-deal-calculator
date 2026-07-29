@@ -1,37 +1,16 @@
-import { unstable_cache } from 'next/cache'
-import { listDeals } from '@/lib/sheets'
+import { getDeals } from '@/lib/cached-deals'
+import { splitBySource } from '@/lib/deal-source'
 import DealFilters from '@/components/DealFilters'
-import type { DealSummary } from '@/lib/sheets'
-
-const getCachedDeals = unstable_cache(
-  () => listDeals(),
-  ['deals-list'],
-  { revalidate: 60, tags: ['deals'] },
-)
+import DealDeskFolder from '@/components/DealDeskFolder'
+import SiteHeader from '@/components/SiteHeader'
 
 export default async function DashboardPage() {
-  let deals: DealSummary[] = []
-  try {
-    deals = await getCachedDeals()
-  } catch {
-    // Sheets API not configured or unreachable — show empty state
-  }
+  // Deal Desk (triage) deals live in their own folder at /deal-desk, not here.
+  const { own, dealDesk } = splitBySource(await getDeals())
 
   return (
     <div className="min-h-full bg-gray-50">
-      <header className="sticky top-0 z-30 border-b border-gray-200 bg-white/90 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-green-600 text-xs font-bold text-white">CG</div>
-            <span className="font-semibold text-gray-900">CGM Ventures</span>
-            <span className="hidden text-gray-400 sm:inline">· Deal Calculator</span>
-          </div>
-          <nav className="flex items-center gap-4 text-sm">
-            <a href="/" className="text-gray-500 hover:text-gray-900 transition">Deals</a>
-            <a href="/deal/new" className="rounded-lg bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700 transition">+ New Deal</a>
-          </nav>
-        </div>
-      </header>
+      <SiteHeader />
       <main className="mx-auto max-w-5xl px-4 py-6">
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -47,7 +26,9 @@ export default async function DashboardPage() {
         </a>
       </div>
 
-      {deals.length === 0 ? (
+      <DealDeskFolder deals={dealDesk} />
+
+      {own.length === 0 ? (
         <div className="rounded-xl border-2 border-dashed border-gray-200 bg-white px-6 py-16 text-center">
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">
             <svg className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -67,7 +48,7 @@ export default async function DashboardPage() {
           </a>
         </div>
       ) : (
-        <DealFilters deals={deals} />
+        <DealFilters deals={own} />
       )}
     </div>
       </main>
