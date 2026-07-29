@@ -6,7 +6,18 @@ function fmt(n: number) {
   return n.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })
 }
 
-export default function DealCard({ deal }: { deal: DealSummary }) {
+export default function DealCard({
+  deal,
+  selectable = false,
+  selected = false,
+  onToggleSelect,
+}: {
+  deal: DealSummary
+  /** In select mode the card toggles selection instead of opening the deal. */
+  selectable?: boolean
+  selected?: boolean
+  onToggleSelect?: (id: string) => void
+}) {
   const router = useRouter()
   const isGo = deal.score >= 7.0
   const date = new Date(deal.savedAt).toLocaleDateString('en-US', {
@@ -27,11 +38,23 @@ export default function DealCard({ deal }: { deal: DealSummary }) {
 
   return (
     <div
-      onClick={() => router.push(`/deal/${deal.id}`)}
-      className="cursor-pointer rounded-xl border border-gray-200 bg-white p-4 shadow-sm hover:shadow-md transition-shadow"
+      onClick={() => (selectable ? onToggleSelect?.(deal.id) : router.push(`/deal/${deal.id}`))}
+      className={`cursor-pointer rounded-xl border bg-white p-4 shadow-sm hover:shadow-md transition-shadow ${
+        selected ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200'
+      }`}
     >
       <div className="flex items-start justify-between gap-2 mb-1">
-        <h3 className="font-semibold text-gray-900 leading-snug line-clamp-2">
+        {selectable && (
+          <input
+            type="checkbox"
+            checked={selected}
+            onChange={() => onToggleSelect?.(deal.id)}
+            onClick={e => e.stopPropagation()}
+            aria-label={`Select ${deal.address || 'Untitled Deal'}`}
+            className="mt-1 h-4 w-4 flex-shrink-0 cursor-pointer accent-blue-600"
+          />
+        )}
+        <h3 className="min-w-0 flex-1 font-semibold text-gray-900 leading-snug line-clamp-2">
           {deal.address || 'Untitled Deal'}
         </h3>
         {deal.analyzed ? (
@@ -70,13 +93,17 @@ export default function DealCard({ deal }: { deal: DealSummary }) {
 
       <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
         <span className="text-xs text-gray-400">{date}</span>
-        <button
-          type="button"
-          onClick={handleDelete}
-          className="text-xs text-gray-400 hover:text-red-500 transition-colors"
-        >
-          Delete
-        </button>
+        {/* In select mode the toolbar's bulk delete owns deleting — a second,
+            single-deal Delete here only invites a mis-click. */}
+        {!selectable && (
+          <button
+            type="button"
+            onClick={handleDelete}
+            className="text-xs text-gray-400 hover:text-red-500 transition-colors"
+          >
+            Delete
+          </button>
+        )}
       </div>
     </div>
   )

@@ -1,5 +1,6 @@
 // server-side only — never import from a client component
 import { google } from 'googleapis'
+import { rowsToDelete, missingIds } from './deal-rows'
 
 const TAB = 'DEALS_APP'
 const HEADERS = ['id', 'address', 'savedAt', 'score', 'arv', 'moneyInDeal', 'monthlyNOI', 'inputsJson', 'settingsJson']
@@ -157,18 +158,22 @@ export async function updateDeal(id: string, payload: DealPayload): Promise<void
   })
 }
 
-export async function deleteDeal(id: string): Promise<void> {
-  const client = await getClient()
+async function getTabGid(client: SheetClient): Promise<number> {
   const { sheets, sheetId } = client
-  const rowNum = await findRowById(client, id)
-  if (!rowNum) throw new Error('NOT_FOUND')
   const meta = await sheets.spreadsheets.get({ spreadsheetId: sheetId })
   const sheet = meta.data.sheets?.find(s => s.properties?.title === TAB)
-  const sheetGid = sheet?.properties?.sheetId ?? 0
+  return sheet?.properties?.sheetId ?? 0
+}
+
+// One request per row. Google applies them in order, so the caller must pass
+// rows descending — see rowsToDelete() in lib/deal-rows.ts.
+async function deleteRows(client: SheetClient, rows: number[]): Promise<void> {
+  const { sheets, sheetId } = client
+  const sheetGid = await getTabGid(client)
   await sheets.spreadsheets.batchUpdate({
     spreadsheetId: sheetId,
     requestBody: {
-      requests: [{
+      requests: rows.map(rowNum => ({
         deleteDimension: {
           range: {
             sheetId: sheetGid,
@@ -177,7 +182,36 @@ export async function deleteDeal(id: string): Promise<void> {
             endIndex: rowNum,       // 0-based exclusive
           },
         },
-      }],
+      })),
     },
   })
+}
+
+export async function deleteDeal(id: string): Promise<void> {
+  const client = await getClient()
+  const rowNum = await findRowById(client, id)
+  if (!rowNum) throw new Error('NOT_FOUND')
+  await deleteRows(client, [rowNum])
+}
+
+/**
+ * Delete several deals in one pass.
+ *
+ * Row numbers are resolved from a single read of column A and removed in one
+ * batch, bottom-up — deleting them one call at a time would re-read a sheet that
+ * has already shifted under it. Ids with no row are reported back rather than
+ * failing the whole request, so a stale dashboard tab can't block the delete.
+ */
+export async function deleteDeals(ids: string[]): Promise<{ deleted: number; missing: string[] }> {
+  const client = await getClient()
+  const { sheets, sheetId } = client
+  const res = await sheets.spreadsheets.values.get({
+    spreadsheetId: sheetId,
+    range: `${TAB}!A:A`,
+  })
+  const idColumn = (res.data.values ?? []) as string[][]
+  const rows = rowsToDelete(idColumn, ids)
+  const missing = missingIds(idColumn, ids)
+  if (rows.length > 0) await deleteRows(client, rows)
+  return { deleted: rows.length, missing }
 }
