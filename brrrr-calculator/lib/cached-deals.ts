@@ -8,10 +8,11 @@ import type { DealSummary } from '@/lib/sheets'
 // gains or loses a field. Vercel's Data Cache outlives a deployment: a new build
 // prerenders against whatever the old build left under this key, so adding a
 // field without bumping ships a dashboard rendering deals that are missing it
-// until something calls revalidateTag('deals'). v2 = purchasePrice + yearBuilt.
+// until something calls revalidateTag('deals'). v2 = purchasePrice + yearBuilt,
+// v3 = sqft (and arv now read from inputsJson rather than column E).
 const getCachedDeals = unstable_cache(
   () => listDeals(),
-  ['deals-list-v2'],
+  ['deals-list-v3'],
   { revalidate: 60, tags: ['deals'] },
 )
 

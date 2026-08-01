@@ -18,6 +18,8 @@ export interface DealSummary {
    * Read out of inputsJson rather than a summary column of its own; 0 = unknown.
    */
   purchasePrice: number
+  /** Livable square footage, read out of inputsJson; 0 = unknown. */
+  sqft: number
   /** Year built, read out of inputsJson; 0 = unknown. */
   yearBuilt: number
   /**
@@ -81,9 +83,10 @@ export async function listDeals(): Promise<DealSummary[]> {
   const meta = await sheets.spreadsheets.get({ spreadsheetId: sheetId })
   const exists = meta.data.sheets?.some(s => s.properties?.title === TAB)
   if (!exists) return []
-  // A:H, not A:G — purchase price and year built have no summary column, so the
-  // list pulls them out of inputsJson (H). Only the two extracted numbers reach
-  // the client; the blobs stay here.
+  // A:H, not A:G — the card's property facts (purchase price, sqft, year built)
+  // have no summary column, so the list pulls them out of inputsJson (H), which
+  // is the deal as last saved. Only the extracted numbers reach the client; the
+  // blobs stay here.
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: sheetId,
     range: `${TAB}!A:H`,
@@ -96,10 +99,14 @@ export async function listDeals(): Promise<DealSummary[]> {
       address:       String(r[1] ?? ''),
       savedAt:       String(r[2] ?? ''),
       score:         parseFloat(r[3]) || 0,
-      arv:           parseFloat(r[4]) || 0,
+      // The deal's own arv (H) wins over the denormalised column E, which is only
+      // a mirror written at save time — column E is the fallback for a blob that
+      // could not be read at all.
+      arv:           facts.arv || parseFloat(r[4]) || 0,
       moneyInDeal:   parseFloat(r[5]) || 0,
       monthlyNOI:    parseFloat(r[6]) || 0,
       purchasePrice: facts.purchasePrice,
+      sqft:          facts.sqft,
       yearBuilt:     facts.yearBuilt,
       analyzed:      String(r[3] ?? '').trim() !== '',
     }

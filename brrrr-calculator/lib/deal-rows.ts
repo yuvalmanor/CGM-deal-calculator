@@ -28,26 +28,33 @@ export function missingIds(idColumn: string[][], ids: string[]): string[] {
   return ids.filter(id => !present.has(id))
 }
 
-/** The listing facts the deal lists sort on, lifted out of a row's inputsJson. */
+/** The deal's own numbers the deal lists sort on and the cards show, lifted out of a row's inputsJson. */
 export interface ListingFacts {
   purchasePrice: number
+  arv: number
+  sqft: number
   yearBuilt: number
 }
 
-const NO_FACTS: ListingFacts = { purchasePrice: 0, yearBuilt: 0 }
+const NO_FACTS: ListingFacts = { purchasePrice: 0, arv: 0, sqft: 0, yearBuilt: 0 }
 
 function finiteNumber(value: unknown): number {
   return typeof value === 'number' && Number.isFinite(value) ? value : 0
 }
 
 /**
- * Read purchase price and year built out of a row's `inputsJson` (column H).
+ * Read the deal's own numbers out of a row's `inputsJson` (column H).
  *
- * Neither is denormalised into its own summary column, so the list has to reach
- * into the blob for them. The parse is deliberately forgiving: a triage row can
- * hold a partial Deal, and one malformed blob must never take the whole list
- * down (same principle as the Term Sheet codec, ADR-0003). Missing or
- * non-numeric values read as 0 — "unknown", which sortDeals() sinks to the end.
+ * The blob is the saved deal itself, so it is the source of truth for every
+ * figure that is an *input* — edit one in the calculator, save, and the card
+ * reads the new value here. Only purchase price, sqft and year built have no
+ * summary column at all; `arv` is also read here rather than from column E so
+ * the card can never show an ARV the deal no longer holds.
+ *
+ * The parse is deliberately forgiving: a triage row can hold a partial Deal, and
+ * one malformed blob must never take the whole list down (same principle as the
+ * Term Sheet codec, ADR-0003). Missing or non-numeric values read as 0 —
+ * "unknown", which sortDeals() sinks to the end and the card renders as a dash.
  */
 export function listingFacts(inputsJson: string): ListingFacts {
   try {
@@ -56,6 +63,8 @@ export function listingFacts(inputsJson: string): ListingFacts {
     const deal = parsed as Record<string, unknown>
     return {
       purchasePrice: finiteNumber(deal.purchasePrice),
+      arv:           finiteNumber(deal.arv),
+      sqft:          finiteNumber(deal.sqft),
       yearBuilt:     finiteNumber(deal.yearBuilt),
     }
   } catch {
