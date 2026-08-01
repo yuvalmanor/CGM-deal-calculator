@@ -5,7 +5,7 @@
 // one, silently taking out a neighbouring deal.
 
 import { describe, it, expect } from 'vitest'
-import { rowsToDelete, missingIds } from '../lib/deal-rows'
+import { rowsToDelete, missingIds, listingFacts } from '../lib/deal-rows'
 
 // DEALS_APP column A: header + one row per deal.
 const idColumn = [
@@ -55,5 +55,38 @@ describe('missingIds', () => {
 
   it('reports nothing when every id is present', () => {
     expect(missingIds(idColumn, ['aaa', 'ddd'])).toEqual([])
+  })
+})
+
+describe('listingFacts', () => {
+  it('reads purchase price and year built out of a full Deal blob', () => {
+    const json = JSON.stringify({ address: '1805 Cedar Wood', purchasePrice: 230000, yearBuilt: 2013, arv: 300000 })
+    expect(listingFacts(json)).toEqual({ purchasePrice: 230000, yearBuilt: 2013 })
+  })
+
+  it('reads them out of a partial triage blob', () => {
+    const json = '{"address":"7134 Kings Dr","arv":0,"hmlLevPP":69.565,"monthlyRent":0,"purchasePrice":125000,"refiLtv":65.0,"yearBuilt":1974}'
+    expect(listingFacts(json)).toEqual({ purchasePrice: 125000, yearBuilt: 1974 })
+  })
+
+  it('reports 0 for absent keys', () => {
+    expect(listingFacts('{"address":"No numbers here"}')).toEqual({ purchasePrice: 0, yearBuilt: 0 })
+  })
+
+  // One unreadable blob must not take the whole dashboard list down with it.
+  it('survives a malformed, empty, or non-object blob', () => {
+    const none = { purchasePrice: 0, yearBuilt: 0 }
+    expect(listingFacts('')).toEqual(none)
+    expect(listingFacts('{not json')).toEqual(none)
+    expect(listingFacts('null')).toEqual(none)
+    expect(listingFacts('42')).toEqual(none)
+    expect(listingFacts('"a string"')).toEqual(none)
+    expect(listingFacts('[1,2,3]')).toEqual(none)
+  })
+
+  it('ignores non-numeric and non-finite values', () => {
+    expect(listingFacts('{"purchasePrice":"125000","yearBuilt":null}')).toEqual({ purchasePrice: 0, yearBuilt: 0 })
+    // JSON has no Infinity/NaN literal, so this is the only way one arrives
+    expect(listingFacts('{"purchasePrice":1e999,"yearBuilt":1974}')).toEqual({ purchasePrice: 0, yearBuilt: 1974 })
   })
 })

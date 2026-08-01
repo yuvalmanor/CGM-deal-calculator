@@ -1,6 +1,6 @@
 // server-side only — never import from a client component
 import { google } from 'googleapis'
-import { rowsToDelete, missingIds } from './deal-rows'
+import { rowsToDelete, missingIds, listingFacts } from './deal-rows'
 
 const TAB = 'DEALS_APP'
 const HEADERS = ['id', 'address', 'savedAt', 'score', 'arv', 'moneyInDeal', 'monthlyNOI', 'inputsJson', 'settingsJson']
@@ -13,6 +13,13 @@ export interface DealSummary {
   arv: number
   moneyInDeal: number
   monthlyNOI: number
+  /**
+   * Purchase price — the listing's asking price, which is where triage puts it.
+   * Read out of inputsJson rather than a summary column of its own; 0 = unknown.
+   */
+  purchasePrice: number
+  /** Year built, read out of inputsJson; 0 = unknown. */
+  yearBuilt: number
   /**
    * Whether the summary columns were written by the calculator.
    * Every calculator save fills D–G; CGM-DealDesk triage rows leave them blank
@@ -74,21 +81,29 @@ export async function listDeals(): Promise<DealSummary[]> {
   const meta = await sheets.spreadsheets.get({ spreadsheetId: sheetId })
   const exists = meta.data.sheets?.some(s => s.properties?.title === TAB)
   if (!exists) return []
+  // A:H, not A:G — purchase price and year built have no summary column, so the
+  // list pulls them out of inputsJson (H). Only the two extracted numbers reach
+  // the client; the blobs stay here.
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: sheetId,
-    range: `${TAB}!A:G`,
+    range: `${TAB}!A:H`,
   })
   const rows = res.data.values ?? []
-  return rows.slice(1).filter(r => r[0]).map(r => ({
-    id:          String(r[0] ?? ''),
-    address:     String(r[1] ?? ''),
-    savedAt:     String(r[2] ?? ''),
-    score:       parseFloat(r[3]) || 0,
-    arv:         parseFloat(r[4]) || 0,
-    moneyInDeal: parseFloat(r[5]) || 0,
-    monthlyNOI:  parseFloat(r[6]) || 0,
-    analyzed:    String(r[3] ?? '').trim() !== '',
-  }))
+  return rows.slice(1).filter(r => r[0]).map(r => {
+    const facts = listingFacts(String(r[7] ?? ''))
+    return {
+      id:            String(r[0] ?? ''),
+      address:       String(r[1] ?? ''),
+      savedAt:       String(r[2] ?? ''),
+      score:         parseFloat(r[3]) || 0,
+      arv:           parseFloat(r[4]) || 0,
+      moneyInDeal:   parseFloat(r[5]) || 0,
+      monthlyNOI:    parseFloat(r[6]) || 0,
+      purchasePrice: facts.purchasePrice,
+      yearBuilt:     facts.yearBuilt,
+      analyzed:      String(r[3] ?? '').trim() !== '',
+    }
+  })
 }
 
 // inputs is the deal's inputsJson parsed as-is; callers validate the shape.

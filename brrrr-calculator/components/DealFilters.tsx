@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import DealCard from './DealCard'
+import { DEFAULT_SORT, SORT_OPTIONS, sortDeals, type SortKey } from '@/lib/deal-sort'
 import type { DealSummary } from '@/lib/sheets'
 
 /** Addresses listed in the confirm dialog before the rest are summarised. */
@@ -9,16 +10,19 @@ const CONFIRM_LIST_LIMIT = 10
 
 export default function DealFilters({ deals }: { deals: DealSummary[] }) {
   const [search, setSearch] = useState('')
+  const [sort, setSort] = useState<SortKey>(DEFAULT_SORT)
   const [selectMode, setSelectMode] = useState(false)
   const [selected, setSelected] = useState<string[]>([])
   const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
 
+  // Sort once and reuse: the cards and the "Jump to deal…" list stay in step.
+  const ordered = sortDeals(deals, sort)
   const q = search.trim().toLowerCase()
   const filtered = q
-    ? deals.filter(d => d.address.toLowerCase().includes(q))
-    : deals
+    ? ordered.filter(d => d.address.toLowerCase().includes(q))
+    : ordered
 
   // A selected deal that the search has since hidden stays selected — the confirm
   // dialog names every deal by address, so nothing gets deleted unseen.
@@ -92,12 +96,23 @@ export default function DealFilters({ deals }: { deals: DealSummary[] }) {
           className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <select
+          value={sort}
+          onChange={e => setSort(e.target.value as SortKey)}
+          aria-label="Sort deals"
+          className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:w-56"
+        >
+          {SORT_OPTIONS.map(o => (
+            <option key={o.value} value={o.value}>{o.label}</option>
+          ))}
+        </select>
+        <select
           defaultValue=""
           onChange={handleSelect}
-          className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:w-72"
+          aria-label="Jump to deal"
+          className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:w-60"
         >
           <option value="" disabled>Jump to deal…</option>
-          {deals.map(d => (
+          {ordered.map(d => (
             <option key={d.id} value={d.id}>
               {d.address || 'Untitled Deal'}
             </option>

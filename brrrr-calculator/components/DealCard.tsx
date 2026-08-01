@@ -24,6 +24,14 @@ export default function DealCard({
     month: 'short', day: 'numeric', year: 'numeric',
   })
 
+  // Sorting by price or year built is only legible if the card shows them.
+  // Either can be 0 on a triage row that never captured it — an unknown, so it
+  // is left off the line rather than shown as "Built 0" / "$0".
+  const facts = [
+    deal.yearBuilt > 0 ? `Built ${deal.yearBuilt}` : null,
+    deal.purchasePrice > 0 ? fmt(deal.purchasePrice) : null,
+  ].filter(Boolean)
+
   // A row the calculator has never saved (a raw CGM-DealDesk triage row) has no
   // score or NOI — showing 0.0/NO-GO/$0 would read as a verdict on the deal
   // rather than "not run yet", so those figures are withheld until it is analyzed.
@@ -69,7 +77,7 @@ export default function DealCard({
       </div>
 
       <p className="text-xs text-gray-400 mb-3">
-        {deal.analyzed ? `${deal.score.toFixed(1)}/10` : 'Not analyzed yet'}
+        {[deal.analyzed ? `${deal.score.toFixed(1)}/10` : 'Not analyzed yet', ...facts].join(' · ')}
       </p>
 
       <div className="grid grid-cols-3 gap-3">

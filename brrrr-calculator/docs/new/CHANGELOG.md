@@ -261,6 +261,45 @@ $470/mo…). That is a triage-side fix — see `deal-triage-DEALS_APP-format-gui
 
 ---
 
+## Sort deals — price, year built, date saved ✅ Complete
+
+Date: 2026-08-01
+
+Both deal lists (dashboard and Deal Desk) rendered in raw sheet-row order, which is
+append order — no way to line 42 triage deals up by price or vintage. They now carry a
+sort control, defaulting to newest saved first.
+
+Two decisions worth recording:
+
+- **"Asking price" sorts on `purchasePrice`.** No new field: the triage tool already maps
+  a listing's asking price onto `purchasePrice` (`deal-triage-DEALS_APP-format-guide.md`
+  §5), so every existing row sorts correctly with nothing to backfill. The trade-off is
+  that editing PP down to model an offer moves the deal in the sort.
+- **"New/old" sorts on the existing `savedAt` column**, i.e. last edited, not first added.
+  A separate `createdAt` column was considered and declined — re-saving an old deal
+  makes it read as new, which is the accepted cost of shipping without a schema change.
+
+**Changed:**
+- `lib/deal-sort.ts` — new: `SortKey`, `SORT_OPTIONS`, `DEFAULT_SORT`, and a pure `sortDeals()`. Unknown values (price/year `0`, blank or unparseable `savedAt`) sort to the **bottom in both directions** — a triage row that never captured a price is missing data, not the cheapest deal. Ties break on address A→Z so order never depends on sheet row order
+- `lib/deal-rows.ts` — new `listingFacts()`: pulls `purchasePrice`/`yearBuilt` out of a row's `inputsJson`. Neither has a summary column, so the list must reach into the blob. Parsed defensively — one malformed blob must not take the whole list down (same principle as ADR-0003)
+- `lib/sheets.ts` — `listDeals()` reads `A:H` instead of `A:G` and adds `DealSummary.purchasePrice` / `.yearBuilt`. Only the two extracted numbers reach the client; the blobs stay server-side
+- `components/DealFilters.tsx` — sort dropdown next to search; sorts once and reuses the result so the cards and the "Jump to deal…" list stay in step. Serves both pages
+- `components/DealCard.tsx` — the meta line now reads `5.3/10 · Built 2013 · $230,000`; either fact is omitted when the row never captured it, rather than showing `Built 0` / `$0`
+- `tests/deal-sort.test.ts` — new, 9 tests: all six orders, unknowns sinking in both directions, blank/unparseable dates, address tie-break, input array left untouched, empty/single lists, option list integrity
+- `tests/deal-rows.test.ts` — 5 tests for `listingFacts()`: full blob, real partial triage blob, absent keys, malformed/non-object input, non-numeric and non-finite values
+
+**Verified:** Gates green — `npm test` 112 passing, `npx tsc --noEmit` zero errors,
+`npm run build` succeeds. Browser-verified against the live sheet: dashboard defaults to
+newest-saved; price ascending across the Deal Desk's 42 rows runs $125,000 → $300,000;
+year ascending starts 1963/1974 with all 29 year-less rows last in **both** directions;
+the 2005 tie breaks on address; jump-to list follows the sort; no console errors.
+
+**Found, not fixed:** two Deal Desk rows carry a junk `yearBuilt` (`7611`, `7341` — zip
+fragments) and an email subject line as their address. Triage extraction failures, now
+visible because year-desc sorts them to the top. Fix belongs in the deal-triage repo.
+
+---
+
 ## How to Update This File
 
 After completing each phase or significant change, add an entry here:
