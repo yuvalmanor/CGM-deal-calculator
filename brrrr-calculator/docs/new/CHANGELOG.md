@@ -258,6 +258,7 @@ come from", not "have I dealt with it yet".
 **Known, out of scope:** triage rows still write a partial `inputsJson` (5–7 keys), so opening
 one fills the missing fields from the Anna TX `DEFAULT_DEAL` example (rehab $14,080, taxes
 $470/mo…). That is a triage-side fix — see `deal-triage-DEALS_APP-format-guide.md` §2.
+→ Fixed app-side on 2026-08-01, see *Blank deals stay blank*: omitted fields now load blank.
 
 ---
 
@@ -297,6 +298,59 @@ the 2005 tie breaks on address; jump-to list follows the sort; no console errors
 **Found, not fixed:** two Deal Desk rows carry a junk `yearBuilt` (`7611`, `7341` — zip
 fragments) and an email subject line as their address. Triage extraction failures, now
 visible because year-desc sorts them to the top. Fix belongs in the deal-triage repo.
+
+---
+
+## Blank deals stay blank ✅ Complete
+
+Date: 2026-08-01
+
+Any field a deal didn't supply was filled from `DEFAULT_DEAL` — the Anna TX worked
+example. A new deal opened wearing someone else's rehab, taxes and one-time costs, and
+a triage `dd-` row (5–7 keys) did the same, which is the known issue logged under
+*Deal Desk folder*. Numbers you never entered are indistinguishable from numbers you
+did, which is the worst way for a calculator to be wrong.
+
+Unfilled fields are now blank. `DEFAULT_DEAL` is untouched — it stays the Anna TX
+fixture the golden tests pin, and remains the single source for the settings that *are*
+kept.
+
+**What still carries defaults, and why** (user-decided):
+
+- **Lender terms** — the same lenders quote the same terms deal after deal. Exactly the
+  `HML_TERM_FIELDS` / `REFI_TERM_FIELDS` set, lender names included.
+- **Buy-box thresholds** (`minCashflow`, `minCoC`, `minDscr`, `minEquityPct`,
+  `maxMoneyInDeal`) — at 0 every metric colors green and MAO-1/MAO-2 stop constraining.
+- **Exit settings** (`sellingCostsPct`, `holdMonthsForFlip`) — flip assumptions, not
+  property facts; at 0 the flip scenarios lose selling costs and divide by zero.
+- **Mode / unit enums** — no blank state exists for them.
+
+**Changed:**
+- `lib/blank-deal.ts` — new: `BLANK_DEAL`, an explicit full `Deal` literal (so tsc forces
+  a blank-or-kept decision on every field added to the model later)
+- `lib/parse-saved-deal.ts` — backfills from `BLANK_DEAL`; a row's own data still wins
+- `components/DealCalculator.tsx` — `/deal/new`, Reset, and the draft-merge base all seed
+  from `BLANK_DEAL`; Reset's tooltip says what it now does
+- `components/cgm/FormControls.tsx` — `NumberField` renders 0 as an empty box with a `0`
+  placeholder. Blank and zero are the same number to the engine, so this is display only
+- `components/cgm/InputForm.tsx` — Property Type gains a leading blank option; without a
+  matching option the select would have displayed `SFR` while the value was `''`
+- `tests/blank-deal.test.ts` — new, 7 tests: every term field matches `DEFAULT_DEAL`,
+  thresholds/exit settings/enums kept, facts blank, lists empty, no shared array
+  references, `DEFAULT_DEAL` still the Anna TX example
+- `tests/parse-saved-deal.test.ts` — 2 new tests: an omitted deal fact loads blank, and
+  the real `7134 Kings Dr` triage row loads blank apart from cross-deal settings
+
+**Verified:** Gates green — `npm test` 121 passing, `npx tsc --noEmit` zero errors,
+`npm run build` succeeds. Browser-verified against the live sheet: `/deal/new` opens with
+every property/deal box empty and lender terms filled (69.565 / 11% / 2pts / $496, 7% /
+1.5pts / 30yr / 65% LTV); typing commits and clearing returns to blank; saved deal
+`1444 Mountain Air Trl` still loads its own 233,000 / 300,000 / 15,000 / 9.95%; triage row
+`7134 Kings Dr` now shows blank rehab and insurance (was $14,080 / $143) while keeping its
+own 125,000 / 1974; no console errors.
+
+**Resolves:** the "Known, out of scope" note under *Deal Desk folder* — from the app side.
+The triage tool may still write a partial `inputsJson`; it no longer matters what it omits.
 
 ---
 

@@ -31,9 +31,15 @@ interface NumberFieldProps {
   labelRight?: React.ReactNode
   helper?: string
 }
+// A field nobody has filled in holds 0, and shows as an empty box rather than
+// a literal "0" — blank and zero are the same number to the engine.
+function display(value: number): string {
+  return value === 0 ? '' : String(value ?? '')
+}
+
 export function NumberField({ label, value, onChange, prefix, suffix, hint, labelRight, helper }: NumberFieldProps) {
-  const [local, setLocal] = useState(String(value ?? ''))
-  useEffect(() => { setLocal(String(value ?? '')) }, [value])
+  const [local, setLocal] = useState(() => display(value))
+  useEffect(() => { setLocal(display(value)) }, [value])
 
   const commit = (v: string) => {
     const cleaned = v.replace(/,/g, '')
@@ -50,6 +56,7 @@ export function NumberField({ label, value, onChange, prefix, suffix, hint, labe
           type="text"
           inputMode="decimal"
           value={local}
+          placeholder="0"
           onChange={(e) => setLocal(e.target.value.replace(/[^0-9.\-]/g, ''))}
           onBlur={(e) => commit(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur() }}

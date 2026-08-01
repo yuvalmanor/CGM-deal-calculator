@@ -1,9 +1,10 @@
 'use client'
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
 import {
-  DEFAULT_DEAL, calcBRRRR, calcFlipCash, calcFlipHML, calcMAO, calcDealScore,
+  calcBRRRR, calcFlipCash, calcFlipHML, calcMAO, calcDealScore,
   type Deal,
 } from '@/lib/deal-model'
+import { BLANK_DEAL } from '@/lib/blank-deal'
 import { ModalContext } from '@/lib/modalContext'
 import {
   initialTermSheetState, isTermSheetState, syncSelected, settingsJsonForSave,
@@ -27,20 +28,20 @@ interface Draft { deal: Deal; termSheets: TermSheetState }
 // Draft value shape: `{ deal, termSheets }`. Older drafts stored the Deal
 // directly — they load as the zero-migration case (one sheet per role).
 function loadDraft(): Draft {
-  const fallback = () => ({ deal: DEFAULT_DEAL, termSheets: initialTermSheetState(DEFAULT_DEAL) })
+  const fallback = () => ({ deal: BLANK_DEAL, termSheets: initialTermSheetState(BLANK_DEAL) })
   if (typeof window === 'undefined') return fallback()
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return fallback()
     const parsed = JSON.parse(raw)
     if (parsed && typeof parsed === 'object' && 'deal' in parsed && 'termSheets' in parsed) {
-      const deal = { ...DEFAULT_DEAL, ...parsed.deal }
+      const deal = { ...BLANK_DEAL, ...parsed.deal }
       return {
         deal,
         termSheets: isTermSheetState(parsed.termSheets) ? parsed.termSheets : initialTermSheetState(deal),
       }
     }
-    const deal = { ...DEFAULT_DEAL, ...parsed }
+    const deal = { ...BLANK_DEAL, ...parsed }
     return { deal, termSheets: initialTermSheetState(deal) }
   } catch { return fallback() }
 }
@@ -62,9 +63,9 @@ interface Props {
 }
 
 export default function DealCalculator({ initialDeal, initialDealId, initialTermSheets, unreadableSettings }: Props) {
-  const [deal, setDeal] = useState<Deal>(() => initialDeal ?? DEFAULT_DEAL)
+  const [deal, setDeal] = useState<Deal>(() => initialDeal ?? BLANK_DEAL)
   const [termSheets, setTermSheets] = useState<TermSheetState>(() =>
-    initialDeal ? (initialTermSheets ?? initialTermSheetState(initialDeal)) : initialTermSheetState(DEFAULT_DEAL))
+    initialDeal ? (initialTermSheets ?? initialTermSheetState(initialDeal)) : initialTermSheetState(BLANK_DEAL))
   // Draft restore happens after mount (localStorage doesn't exist during SSR;
   // reading it in the initial render makes server and client HTML disagree).
   // Until then the persist effect must not run, or it would clobber the draft.
@@ -142,8 +143,8 @@ export default function DealCalculator({ initialDeal, initialDealId, initialTerm
 
   const update = useCallback((patch: Partial<Deal>) => setDeal((d) => ({ ...d, ...patch })), [])
   const reset  = useCallback(() => {
-    setDeal(DEFAULT_DEAL)
-    setTermSheets(initialTermSheetState(DEFAULT_DEAL))
+    setDeal(BLANK_DEAL)
+    setTermSheets(initialTermSheetState(BLANK_DEAL))
     setDealId(null)
     setSaveStatus('idle')
   }, [])
@@ -311,7 +312,7 @@ export default function DealCalculator({ initialDeal, initialDealId, initialTerm
                 disabled={saveStatus === 'saving'}
                 title={dealId ? 'Update saved deal' : 'Save deal to cloud'}
               >{saveLabel}</button>
-              <button className="drawer-reset" onClick={reset} title="Reset to sample">Reset</button>
+              <button className="drawer-reset" onClick={reset} title="Reset to a blank deal (lender terms kept)">Reset</button>
               <button className="drawer-close" onClick={() => setDrawerOpen(false)} aria-label="Close" title="Close (Esc)">×</button>
             </div>
           </header>

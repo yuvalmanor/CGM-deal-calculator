@@ -130,8 +130,17 @@ so the dashboard cache is purged immediately. Do not skip this on new mutation r
 ### Saved deals fail loudly, never silently
 `app/deal/[id]/page.tsx` validates stored JSON with `lib/parse-saved-deal.ts`.
 An unrecognized shape renders an explicit error page — never backfill a saved deal
-with `DEFAULT_DEAL` values. (Blank deals at `/deal/new` deliberately seed from the
-Anna TX `DEFAULT_DEAL` as a worked example.)
+with another property's values.
+
+### A field nobody filled in is blank, never a worked example
+`lib/blank-deal.ts` (`BLANK_DEAL`) is the seed for `/deal/new`, the Reset button, and
+the backfill base for saved rows that carry only some fields. Property facts and deal
+numbers start blank (`0` / `''` / `[]`, rendered as an empty input). Only cross-deal
+settings carry defaults: **lender terms** (the `HML_TERM_FIELDS` / `REFI_TERM_FIELDS`
+set in `lib/term-sheets.ts`), **buy-box thresholds**, **exit settings**, and the
+**mode/unit enums** — see the file's comment for why each group is kept.
+`DEFAULT_DEAL` in `lib/deal-model.ts` stays the Anna TX worked example and is now only
+a golden-test fixture and the source of those kept values — it never seeds a deal.
 
 ---
 

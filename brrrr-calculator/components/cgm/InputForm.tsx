@@ -61,8 +61,10 @@ export function InputForm({ deal, update }: Props) {
         <TextField label="Address" value={deal.address} onChange={set('address')}
           placeholder="1805 Cedar Wood, Anna TX, 75409" wide />
         <TextField label="Seller / Agent" value={deal.sellerAgent} onChange={set('sellerAgent')} />
+        {/* Leading blank option: an unfilled deal has no property type, and a
+            select whose value matches no option would display a type nobody chose. */}
         <SelectField label="Property Type" value={deal.propertyType} onChange={set('propertyType')}
-          options={['SFR', 'Duplex', 'Triplex', 'Fourplex', 'Townhome', 'Condo', 'Mobile/MFG', 'Land']} />
+          options={[{ value: '', label: '—' }, 'SFR', 'Duplex', 'Triplex', 'Fourplex', 'Townhome', 'Condo', 'Mobile/MFG', 'Land']} />
         <NumberField label="SqFt" value={deal.sqft} onChange={set('sqft')} />
         <NumberField label="Year Built" value={deal.yearBuilt} onChange={set('yearBuilt')} />
         <NumberField label="School Grade (total)" value={deal.schoolGrade} onChange={set('schoolGrade')}

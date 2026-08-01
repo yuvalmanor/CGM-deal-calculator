@@ -25,7 +25,7 @@ brrrr-calculator/
 │   ├── api/deals/route.ts            GET list + POST new deal
 │   ├── api/deals/[id]/route.ts       GET + PUT + DELETE by id
 │   └── deal/
-│       ├── new/page.tsx              Blank calculator (seeded from DEFAULT_DEAL)
+│       ├── new/page.tsx              Blank calculator (seeded from BLANK_DEAL)
 │       └── [id]/page.tsx             Server component — loads a saved deal
 │
 ├── components/
@@ -85,7 +85,7 @@ All outputs recompute on every committed input change — plain synchronous arit
 
 ## Core Calculation Engine
 
-`lib/deal-model.ts` is self-contained: the `Deal` interface, `DEFAULT_DEAL` (a pre-filled worked example — the Anna TX deal), formatting helpers, and five pure calc functions:
+`lib/deal-model.ts` is self-contained: the `Deal` interface, `DEFAULT_DEAL` (a pre-filled worked example — the Anna TX deal), formatting helpers, and five pure calc functions. `DEFAULT_DEAL` is a golden-test fixture and the source of the cross-deal settings `BLANK_DEAL` keeps (`lib/blank-deal.ts`) — it does not seed new deals.
 
 | Function | Returns | Answers |
 |---|---|---|
@@ -125,7 +125,9 @@ One flat row per deal in the `DEALS_APP` tab of the `Deal Calc CGM V2` spreadshe
 
 ### Load-path validation
 
-`app/deal/[id]/page.tsx` runs the stored `inputsJson` through `parseSavedDeal()` (`lib/parse-saved-deal.ts`), which checks for V2 marker keys. Unrecognized shapes render an explicit error page — saved deals are never silently backfilled with `DEFAULT_DEAL` values. (New blank deals at `/deal/new` deliberately seed from the Anna TX `DEFAULT_DEAL` as a worked example.)
+`app/deal/[id]/page.tsx` runs the stored `inputsJson` through `parseSavedDeal()` (`lib/parse-saved-deal.ts`), which checks for V2 marker keys. Unrecognized shapes render an explicit error page — saved deals are never silently backfilled with another property's values.
+
+A recognized row keeps every field it carries; whatever it omits comes from `BLANK_DEAL` (`lib/blank-deal.ts`), so a partial row — a triage `dd-` row carries only 5–7 keys — shows blanks for what it doesn't know. Only cross-deal settings fill in: lender terms, buy-box thresholds, exit settings, mode/unit enums. `/deal/new` and the Reset button seed from the same `BLANK_DEAL`.
 
 ### Caching
 

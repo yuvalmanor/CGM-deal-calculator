@@ -1,9 +1,9 @@
-import { DEFAULT_DEAL } from './deal-model'
+import { BLANK_DEAL } from './blank-deal'
 import type { Deal } from './deal-model'
 
 // Keys every save has written since the current engine shipped. A saved row
 // missing any of these is not a recognizable Deal (e.g. a row from the retired
-// V1 calculator) and must be rejected — never rendered as DEFAULT_DEAL with
+// V1 calculator) and must be rejected — never rendered as defaults with
 // the row's data silently lost.
 const DEAL_MARKER_KEYS = ['purchasePrice', 'arv', 'monthlyRent', 'hmlLevPP', 'refiLtv'] as const
 
@@ -23,8 +23,9 @@ export function parseSavedDeal(raw: unknown): Deal | null {
     obj.projectCostAdjustments = obj.otherAdjustmentsAtClose
   }
 
-  // Saved rows always hold the complete Deal at save time, so the defaults only
-  // fill fields added to the model after the row was saved; every field the
-  // row actually has wins over DEFAULT_DEAL.
-  return { ...DEFAULT_DEAL, ...(obj as Partial<Deal>) }
+  // Every field the row actually has wins. What the row is missing comes from
+  // BLANK_DEAL, so a partial row (e.g. a triage row carrying only 5–7 keys)
+  // shows blanks for what it doesn't know — never another property's numbers.
+  // Only cross-deal settings (lender terms, thresholds, exit settings) fill in.
+  return { ...BLANK_DEAL, ...(obj as Partial<Deal>) }
 }
