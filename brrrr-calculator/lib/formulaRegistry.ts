@@ -122,6 +122,16 @@ export const formulaRegistry: Record<string, FormulaEntry> = {
     note: 'Interest accrues monthly. Every extra month in rehab adds this cost.',
   },
 
+  cashflow_hml_phase: {
+    title: 'Monthly cashflow — HML phase',
+    formula: 'Gross Rent − Total Operating Expenses − HML Monthly Interest',
+    calcFn: (d, b) =>
+      `${fmtCurrency(d.monthlyRent)} − ${fmtCurrency(b.totalOpex)} − ${fmtCurrency(b.hmlMonthlyInterest)} = ${fmtCurrency(d.monthlyRent - b.totalOpex - b.hmlMonthlyInterest)}/mo`,
+    note: `The same calculation as Monthly cashflow, with the HML's interest-only payment as the debt service instead of the refi P&I — what the property carries while it is still on hard money.
+
+Assumes the stabilized rent is already coming in. During rehab it usually is not, so read this as the post-rehab, pre-refi picture (e.g. while waiting out seasoning), not the rehab months themselves.`,
+  },
+
   hml_carry: {
     title: 'HML interest carry',
     formula: 'Monthly Interest × max(Rehab Months, Seasoning Months)',

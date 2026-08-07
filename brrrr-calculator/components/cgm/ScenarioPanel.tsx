@@ -163,6 +163,19 @@ function BRRRRView({ deal, brrrr, onLabelClick }: { deal: Deal; brrrr: BRRRRResu
         <OutputRow label={`Interest carry (${brrrr.hmlCarryMonths} mo)`} value={fmtCurrency(brrrr.hmlCarryInterest)} metricId="hml_carry" onLabelClick={click} />
         <OutputRow label="Total HML cost (fees)"  value={fmtCurrency(brrrr.hmlTotalCost)} metricId="hml_total_cost" onLabelClick={click} accent />
         <OutputRow label="Total debt to HML"  value={fmtCurrency(brrrr.hmlTotalDebt)} />
+        {(() => {
+          // Same cashflow as post-refi, with the HML's interest-only payment as
+          // the debt service instead of the refi P&I. Derived here, not in the
+          // engine — same pattern as the interest-only block above.
+          const cashflowHml        = brrrr.cashflow        + brrrr.refiPI - brrrr.hmlMonthlyInterest
+          const cashflowHmlNoCapex = brrrr.cashflowNoCapex + brrrr.refiPI - brrrr.hmlMonthlyInterest
+          return (
+            <OutputRow label="Monthly cashflow — HML phase / w/o Capex"
+              value={fmtCurrency(cashflowHml) + ' / ' + fmtCurrency(cashflowHmlNoCapex)}
+              status={statusFor('cashflow', cashflowHml, deal)}
+              metricId="cashflow_hml_phase" onLabelClick={click} accent />
+          )
+        })()}
       </OutputGroup>
 
       <OutputGroup title="Refinance">
