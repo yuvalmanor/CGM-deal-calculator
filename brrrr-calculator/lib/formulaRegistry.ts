@@ -193,6 +193,14 @@ Assumes the stabilized rent is already coming in. During rehab it usually is not
     note: 'Conservative market rent. All expense ratios apply against this figure.',
   },
 
+  mortgage_pi: {
+    title: 'Mortgage P&I',
+    formula: 'PMT(Refi Rate ÷ 12, Refi Term × 12, Refi Loan)',
+    calcFn: (d, b) =>
+      `PMT(${d.refiRate}% ÷ 12, ${d.refiTermYears} yr × 12, ${fmtCurrency(b.refiLoan)}) = ${fmtCurrency(b.refiPI)}/mo`,
+    note: 'Principal + interest on the long-term refinance loan, fully amortising over the refi term. Excluded from NOI (which is unlevered) but subtracted in monthly cashflow, and it is the debt service in DSCR.',
+  },
+
   total_opex: {
     title: 'Total operating expenses',
     formula: 'Tax + Ins + HOA + State Tax + CapEx + Mgmt + Additional',
