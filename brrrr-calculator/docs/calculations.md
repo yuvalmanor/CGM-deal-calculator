@@ -226,7 +226,8 @@ Three equally weighted 0–10 components, averaged:
 cocScore = coc ≥ 10 → 10 | ≥ 9 → 9 | ≥ 8 → 8 | ≥ 7 → 7 | ≥ 6 → 6 | else → 0
            (infinite CoC — moneyInDeal ≤ 0 with positive cashflow — scores 10)
 
-eqScore  = equityMarginArv ≥ 35 → 10 | ≥ 30 → 9 | ≥ 25 → 8 | ≥ 20 → 7 | else → 0
+eqScore  = equityPct ≥ 35 → 10 | ≥ 30 → 9 | ≥ 25 → 8 | ≥ 20 → 7 | else → 0
+           (book equity post-Refi — Section 7 — not forced equity ROI)
 
 locScore = mapLocationScore(schoolGrade):
            ≥ 15 → 10 | ≥ 12 → 9 | ≥ 10 → 8 | ≥ 9 → 7 | ≥ 7 → 6 | else → 0

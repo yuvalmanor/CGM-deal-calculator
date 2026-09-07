@@ -449,13 +449,13 @@ Run across 3 scenarios: 2%, 3%, 4% annual appreciation`,
   },
 
   score_equity: {
-    title: 'Score: Equity % (forced)',
+    title: 'Score: Equity % (book, post-Refi)',
     formula: '≥35%→10, ≥30%→9, ≥25%→8, ≥20%→7, else→0',
     calcFn: (d, b, m, s) => {
       const c = s.components.find(c => c.key === 'equity')
-      return `${fmtPct(b.equityMarginArv)} → score ${c?.score.toFixed(0) ?? '—'}/10 (weight 33%)`
+      return `${fmtPct(b.equityPct)} → score ${c?.score.toFixed(0) ?? '—'}/10 (weight 33%)`
     },
-    note: 'Step-function scoring. Forced equity = (ARV − all-in) / all-in.',
+    note: 'Step-function scoring on book equity post-Refi — the same Equity % the dashboard shows: (Equity $ − Money in Deal) ÷ Money in Deal, where Equity $ = ARV − Refi Loan.',
   },
 
   score_moneyInDeal: {

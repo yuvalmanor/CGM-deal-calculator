@@ -133,6 +133,24 @@ input, textarea { font-family: inherit; color: inherit; }
   align-items: center;
   gap: var(--s-3);
 }
+.back-to-dashboard {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text-faint);
+  font-size: 15px;
+  line-height: 1;
+  text-decoration: none;
+  transition: color 0.15s, border-color 0.15s;
+}
+.back-to-dashboard:hover { color: var(--text); border-color: var(--accent); }
+
 .brand-logo {
   width: 56px;
   height: 56px;

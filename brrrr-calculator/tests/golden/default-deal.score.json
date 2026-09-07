@@ -1,5 +1,5 @@
 {
-  "score": 2.333333,
+  "score": 5.333333,
   "components": [
     {
       "key": "coc",
@@ -13,8 +13,8 @@
       "key": "equity",
       "label": "Equity %",
       "weight": 0.333333,
-      "score": 0,
-      "value": "18.3%",
+      "score": 9,
+      "value": "34.8%",
       "target": "≥20%"
     },
     {
@@ -36,12 +36,12 @@
       "target": "≥10%"
     },
     {
-      "key": "equity",
-      "label": "Equity %",
+      "key": "location",
+      "label": "Location",
       "weight": 0.333333,
-      "score": 0,
-      "value": "18.3%",
-      "target": "≥20%"
+      "score": 7,
+      "value": "7/10",
+      "target": "≥7"
     }
   ],
   "verdict": "NO-GO"

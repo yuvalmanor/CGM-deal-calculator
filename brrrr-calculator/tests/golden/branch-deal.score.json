@@ -1,5 +1,5 @@
 {
-  "score": 3,
+  "score": 5.666667,
   "components": [
     {
       "key": "coc",
@@ -13,8 +13,8 @@
       "key": "equity",
       "label": "Equity %",
       "weight": 0.333333,
-      "score": 0,
-      "value": "16.6%",
+      "score": 8,
+      "value": "25.8%",
       "target": "≥20%"
     },
     {
@@ -39,8 +39,8 @@
       "key": "equity",
       "label": "Equity %",
       "weight": 0.333333,
-      "score": 0,
-      "value": "16.6%",
+      "score": 8,
+      "value": "25.8%",
       "target": "≥20%"
     }
   ],

@@ -668,7 +668,9 @@ export function calcDealScore(d: Deal, brrrr: BRRRRResult, _mao: MAOResult): Dea
   const cocScore = coc >= 10 ? 10 : coc >= 9 ? 9 : coc >= 8 ? 8 : coc >= 7 ? 7 : coc >= 6 ? 6 : 0
 
   // Equity step: ≥35%→10, ≥30%→9, ≥25%→8, ≥20%→7, else→0
-  const eq = brrrr.equityMarginArv
+  // Scores book equity post-Refi (equityPct) — the same measure the dashboard's
+  // "Equity" KPI shows — not forced equity ROI (equityMarginArv).
+  const eq = brrrr.equityPct
   const eqScore = eq >= 35 ? 10 : eq >= 30 ? 9 : eq >= 25 ? 8 : eq >= 20 ? 7 : 0
 
   // Location: school grade mapped (15→10, 12→9, 10→8, 9→7, 7→6, else→0)
@@ -677,7 +679,7 @@ export function calcDealScore(d: Deal, brrrr: BRRRRResult, _mao: MAOResult): Dea
   const w = 1 / 3
   const components: ScoreComponent[] = [
     { key: 'coc',      label: 'Cash-on-Cash', weight: w, score: cocScore, value: Number.isFinite(brrrr.coc) ? fmtPct(brrrr.coc) : '∞', target: '≥10%' },
-    { key: 'equity',   label: 'Equity %',     weight: w, score: eqScore,  value: fmtPct(brrrr.equityMarginArv), target: '≥20%' },
+    { key: 'equity',   label: 'Equity %',     weight: w, score: eqScore,  value: fmtPct(brrrr.equityPct), target: '≥20%' },
     { key: 'location', label: 'Location',     weight: w, score: locScore, value: `${mapLocationScore(d.schoolGrade)}/10`, target: '≥7' },
   ]
   const total = (cocScore + eqScore + locScore) / 3

@@ -1,4 +1,5 @@
 'use client'
+import Link from 'next/link'
 import type { Deal, BRRRRResult, MAOResult, DealScore, Status } from '@/lib/deal-model'
 import { fmtCurrency, fmtPct, fmtNum, statusFor } from '@/lib/deal-model'
 
@@ -61,6 +62,9 @@ export function DashboardBar({ deal, brrrr, mao, score, onLabelClick }: Props) {
       {/* Left: brand + address + edit button */}
       <div className="dashboard-left">
         <div className="dashboard-brand">
+          <Link href="/" className="back-to-dashboard" title="Back to all deals" aria-label="Back to all deals">
+            <span aria-hidden="true">←</span>
+          </Link>
           <img src="/assets/cgm-logo.jpg" alt="CGM Ventures" className="brand-logo" />
           <div className="brand-meta">
             <div className="brand-name">CGM VENTURES</div>
