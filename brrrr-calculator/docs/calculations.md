@@ -214,7 +214,7 @@ mao = min(mao70, maoMoneyInDeal, maoEquity)
 deltaToOffer = mao − purchasePrice
 ```
 
-MAO-2 uses **leverage-aware equity** — equity relative to capital still deployed, not relative to cost. This is intentionally distinct from the dashboard's forced-equity KPI (`equityMarginArv`): MAO-2 enforces a leverage safety margin; the KPI measures value created vs. cost.
+MAO-2 uses **leverage-aware equity** — equity relative to capital still deployed, not relative to cost. It is the same ratio the dashboard's Equity % KPI and the score's equity component use (`equityPct`, Section 7), but on **liquidation** equity (`equityLiquidationDollar` — ARV net of selling costs − refiLoan) rather than **book** equity (`equityDollar` — ARV − refiLoan), which makes the MAO constraint the more conservative of the two. The cost-relative measure, `equityMarginArv` ("Forced Equity ROI"), is a separate KPI in Advanced Metrics and feeds neither MAO-2 nor the score.
 
 ---
 

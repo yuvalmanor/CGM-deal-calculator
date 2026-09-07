@@ -412,7 +412,7 @@ Run across 3 scenarios: 2%, 3%, 4% annual appreciation`,
         + `Money-in-deal cap: ${fmtCurrency(moneyInDealCap)} = post-Refi equity ÷ (1 + ${d.minEquityPct}%)\n`
         + `Max PP at that cap: ${fmtCurrency(m.maoEquity)}`
     },
-    note: 'Leverage-aware safety margin (Excel row 67 definition). Caps money-in-deal at post-Refi equity ÷ (1 + minEquityPct), then back-solves for PP. Note: this is a different metric than the dashboard\'s "Equity %" (which is forced equity = (ARV − all-in cost) ÷ all-in cost).',
+    note: 'Leverage-aware safety margin (Excel row 67 definition). Caps money-in-deal at post-Refi equity ÷ (1 + minEquityPct), then back-solves for PP. Uses the same ratio as the dashboard KPI labelled "Equity %" — (Equity $ − Money in Deal) ÷ Money in Deal — but on liquidation equity (ARV net of selling costs − refi loan) rather than book equity (ARV − refi loan), so this constraint is the more conservative of the two.',
   },
 
   // ── Score components ─────────────────────────────────────────────────────────
