@@ -1,6 +1,6 @@
 // server-side only — never import from a client component
 import { google } from 'googleapis'
-import { rowsToDelete, missingIds, listingFacts } from './deal-rows'
+import { rowsToDelete, missingIds, listingFacts, listingScore } from './deal-rows'
 
 const TAB = 'DEALS_APP'
 const HEADERS = ['id', 'address', 'savedAt', 'score', 'arv', 'moneyInDeal', 'monthlyNOI', 'inputsJson', 'settingsJson']
@@ -94,11 +94,15 @@ export async function listDeals(): Promise<DealSummary[]> {
   const rows = res.data.values ?? []
   return rows.slice(1).filter(r => r[0]).map(r => {
     const facts = listingFacts(String(r[7] ?? ''))
+    const liveScore = listingScore(String(r[7] ?? ''))
     return {
       id:            String(r[0] ?? ''),
       address:       String(r[1] ?? ''),
       savedAt:       String(r[2] ?? ''),
-      score:         parseFloat(r[3]) || 0,
+      // Recomputed from the deal's own inputs (H); column D is only the score as
+      // it stood at save time and goes stale whenever the engine's scoring
+      // changes. D is the fallback for a blob that could not be recomputed.
+      score:         liveScore ?? (parseFloat(r[3]) || 0),
       // The deal's own arv (H) wins over the denormalised column E, which is only
       // a mirror written at save time — column E is the fallback for a blob that
       // could not be read at all.

@@ -1,6 +1,9 @@
 // Row-number arithmetic for the DEALS_APP tab, kept pure so it can be tested
 // without the Sheets client.
 
+import { parseSavedDeal } from './parse-saved-deal'
+import { calcBRRRR, calcMAO, calcDealScore } from './deal-model'
+
 /**
  * Map deal ids to the 1-based sheet row numbers holding them, sorted DESCENDING.
  *
@@ -69,5 +72,30 @@ export function listingFacts(inputsJson: string): ListingFacts {
     }
   } catch {
     return NO_FACTS
+  }
+}
+
+/**
+ * The deal score recomputed from a row's `inputsJson`, or `null` when the blob
+ * is not a recognizable Deal.
+ *
+ * Column D holds the score as it stood when the row was last saved, so it goes
+ * stale the moment the engine's scoring changes — every row saved before a
+ * change keeps showing the old number until someone re-saves it. Recomputing
+ * from the blob keeps the dashboard agreeing with the calculator without
+ * rewriting the sheet, for the same reason `arv` is read from column H rather
+ * than its summary column E.
+ *
+ * `null` means "could not recompute" (unreadable blob, or a partial triage row
+ * that is not a full Deal), and the caller falls back to column D. It never
+ * means "scores 0" — a row with no score at all is what `analyzed` is for.
+ */
+export function listingScore(inputsJson: string): number | null {
+  try {
+    const deal = parseSavedDeal(JSON.parse(inputsJson))
+    if (!deal) return null
+    return calcDealScore(deal, calcBRRRR(deal), calcMAO(deal)).score
+  } catch {
+    return null
   }
 }

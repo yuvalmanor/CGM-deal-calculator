@@ -5,7 +5,8 @@
 // one, silently taking out a neighbouring deal.
 
 import { describe, it, expect } from 'vitest'
-import { rowsToDelete, missingIds, listingFacts } from '../lib/deal-rows'
+import { rowsToDelete, missingIds, listingFacts, listingScore } from '../lib/deal-rows'
+import { DEFAULT_DEAL, calcBRRRR, calcMAO, calcDealScore } from '../lib/deal-model'
 
 // DEALS_APP column A: header + one row per deal.
 const idColumn = [
@@ -93,5 +94,39 @@ describe('listingFacts', () => {
     // JSON has no Infinity/NaN literal, so this is the only way one arrives
     expect(listingFacts('{"purchasePrice":1e999,"yearBuilt":1974}'))
       .toEqual({ purchasePrice: 0, arv: 0, sqft: 0, yearBuilt: 1974 })
+  })
+})
+
+// listingScore exists so the dashboard stops showing the score a row was saved
+// with. Column D is a save-time snapshot: change how the engine scores and every
+// existing row keeps rendering the old number until someone re-saves it.
+describe('listingScore', () => {
+  it('recomputes the score from the inputs the row itself carries', () => {
+    const expected = calcDealScore(DEFAULT_DEAL, calcBRRRR(DEFAULT_DEAL), calcMAO(DEFAULT_DEAL)).score
+    expect(listingScore(JSON.stringify(DEFAULT_DEAL))).toBe(expected)
+  })
+
+  it('ignores whatever column D happened to hold — the blob is the only input', () => {
+    // Same deal, two rows: the score must not depend on anything outside the blob.
+    const json = JSON.stringify({ ...DEFAULT_DEAL, address: 'Somewhere else' })
+    expect(listingScore(json)).toBe(listingScore(JSON.stringify(DEFAULT_DEAL)))
+  })
+
+  it('returns null — not 0 — for a blob that is not a recognizable Deal', () => {
+    // A 0 here would render as a real NO-GO score on the dashboard.
+    expect(listingScore('')).toBeNull()
+    expect(listingScore('{not json')).toBeNull()
+    expect(listingScore('null')).toBeNull()
+    expect(listingScore('42')).toBeNull()
+    expect(listingScore('[1,2,3]')).toBeNull()
+    // A triage row carrying only listing facts is missing the marker keys.
+    expect(listingScore('{"purchasePrice":125000,"sqft":1621}')).toBeNull()
+  })
+
+  it('scores a row that has the marker keys but is otherwise sparse', () => {
+    const sparse = '{"purchasePrice":100000,"arv":200000,"monthlyRent":1500,"hmlLevPP":80,"refiLtv":75}'
+    const score = listingScore(sparse)
+    expect(score).not.toBeNull()
+    expect(Number.isFinite(score)).toBe(true)
   })
 })
