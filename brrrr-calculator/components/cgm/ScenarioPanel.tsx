@@ -88,7 +88,7 @@ function BRRRRView({ deal, brrrr, onLabelClick }: { deal: Deal; brrrr: BRRRRResu
         <OutputRow label="Additional rehab costs" value={fmtCurrency((deal.rehabAdditionalCosts || []).reduce((s, c) => s + (c.amount || 0), 0))} />
         <OutputRow label="Closing costs"           value={fmtCurrency(deal.closingCostsBuy)} metricId="closing_buy" onLabelClick={click} />
         <OutputRow label="One-time costs"          value={fmtCurrency((deal.oneTimeCosts || []).reduce((s, c) => s + (c.amount || 0), 0))} />
-        <OutputRow label="Holding costs"           value={fmtCurrency(brrrr.cashInHolding)} metricId="hml_carry" onLabelClick={click} />
+        <OutputRow label="Holding costs"           value={fmtCurrency(brrrr.cashInHolding)} metricId="holding_costs" onLabelClick={click} />
         <OutputRow label="Project cost adjustments" value={'−' + fmtCurrency(deal.projectCostAdjustments)} />
         <OutputRow label="Total project cost"      value={fmtCurrency(brrrr.totalProjectCost)} metricId="total_project_cost" onLabelClick={click} accent />
       </OutputGroup>

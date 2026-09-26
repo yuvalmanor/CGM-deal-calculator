@@ -1,4 +1,4 @@
-import { fmtCurrency, fmtPct, fmtNum, totalRehab, mapLocationScore } from './deal-model'
+import { fmtCurrency, fmtPct, fmtNum, totalRehab, mapLocationScore, monthlyOpExpenses } from './deal-model'
 import type { Deal, BRRRRResult, MAOResult, DealScore } from './deal-model'
 
 export interface FormulaEntry {
@@ -91,6 +91,16 @@ export const formulaRegistry: Record<string, FormulaEntry> = {
     formula: 'Input (or PP × 2% default)',
     calcFn: (d) => `${fmtCurrency(d.closingCostsBuy)}`,
     note: 'Covers title, escrow, and lender fees on the purchase side.',
+  },
+
+  holding_costs: {
+    title: 'Holding costs',
+    formula: 'Rehab Months × (Property Tax + Insurance + State Income Tax + HOA + $300 misc)',
+    calcFn: (d, b) => {
+      const op = monthlyOpExpenses(d)
+      return `${d.rehabMonths} mo × (${fmtCurrency(op.taxes)} + ${fmtCurrency(op.ins)} + ${fmtCurrency(op.sit)} + ${fmtCurrency(op.hoa)} + $300) = ${fmtCurrency(b.holdingCosts)}`
+    },
+    note: 'The property\'s own carrying costs while it is being rehabbed, counted over Rehab Months only. Included in Total project cost. HML interest is not part of this — it is shown separately as Interest carry under Hard money loan.',
   },
 
   total_project_cost: {
