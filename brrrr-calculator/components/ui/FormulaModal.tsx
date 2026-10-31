@@ -2,6 +2,7 @@
 import { useEffect } from 'react'
 import { formulaRegistry } from '@/lib/formulaRegistry'
 import type { Deal, BRRRRResult, MAOResult, DealScore } from '@/lib/deal-model'
+import type { BuyHoldResult } from '@/lib/buy-hold'
 
 interface Props {
   isOpen: boolean
@@ -11,9 +12,10 @@ interface Props {
   brrrr: BRRRRResult
   mao: MAOResult
   score: DealScore
+  bnh: BuyHoldResult
 }
 
-export default function FormulaModal({ isOpen, onClose, metricId, deal, brrrr, mao, score }: Props) {
+export default function FormulaModal({ isOpen, onClose, metricId, deal, brrrr, mao, score, bnh }: Props) {
   useEffect(() => {
     if (!isOpen) return
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
@@ -25,7 +27,7 @@ export default function FormulaModal({ isOpen, onClose, metricId, deal, brrrr, m
   const entry = formulaRegistry[metricId]
   if (!entry) return null
 
-  const liveCalc = entry.calcFn(deal, brrrr, mao, score)
+  const liveCalc = entry.calcFn(deal, brrrr, mao, score, bnh)
 
   return (
     <div

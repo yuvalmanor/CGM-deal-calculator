@@ -5,6 +5,7 @@ import {
   type Deal,
 } from '@/lib/deal-model'
 import { BLANK_DEAL } from '@/lib/blank-deal'
+import { calcBuyHold } from '@/lib/buy-hold'
 import { ModalContext } from '@/lib/modalContext'
 import {
   initialTermSheetState, isTermSheetState, syncSelected, settingsJsonForSave,
@@ -46,7 +47,7 @@ function loadDraft(): Draft {
   } catch { return fallback() }
 }
 
-type ScenarioKey = 'brrrr' | 'flipCash' | 'flipHml'
+type ScenarioKey = 'brrrr' | 'buyHold' | 'flipCash' | 'flipHml'
 type AccentKey = 'slate' | 'ember' | 'moss' | 'amber'
 type DensityKey = 'comfortable' | 'compact'
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error'
@@ -165,8 +166,8 @@ export default function DealCalculator({ initialDeal, initialDealId, initialTerm
     setDeal(r.deal)
   }
 
-  // HML compares under BRRRR or Flip HML; the Flip Cash tab (no HML in that
-  // exit) keeps showing the BRRRR comparison rather than an empty section.
+  // HML compares under BRRRR or Flip HML; the Flip Cash and Buy & Hold tabs (no
+  // HML in those exits) keep showing the BRRRR comparison rather than an empty section.
   const hmlCompareScenario = scenario === 'flipHml' ? 'flipHml' : 'brrrr'
   const hmlCompareRows = useMemo(
     () => compareTermSheets(deal, termSheets, 'hml', hmlCompareScenario),
@@ -183,6 +184,7 @@ export default function DealCalculator({ initialDeal, initialDealId, initialTerm
   )
 
   const brrrr   = useMemo(() => calcBRRRR(deal),   [deal])
+  const buyHold = useMemo(() => calcBuyHold(deal), [deal])
   const flipCash = useMemo(() => calcFlipCash(deal), [deal])
   const flipHml  = useMemo(() => calcFlipHML(deal),  [deal])
   const mao      = useMemo(() => calcMAO(deal),      [deal])
@@ -258,6 +260,7 @@ export default function DealCalculator({ initialDeal, initialDealId, initialTerm
           <ScenarioPanel
             deal={deal}
             brrrr={brrrr}
+            buyHold={buyHold}
             flipCash={flipCash}
             flipHml={flipHml}
             mao={mao}
@@ -376,6 +379,7 @@ export default function DealCalculator({ initialDeal, initialDealId, initialTerm
           brrrr={brrrr}
           mao={mao}
           score={score}
+          bnh={buyHold}
         />
       </div>
     </ModalContext.Provider>

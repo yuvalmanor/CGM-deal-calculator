@@ -25,6 +25,9 @@ export const REFI_TERM_FIELDS = [
   'refiName', 'refiRate', 'refiPoints', 'refiBuydownPoints', 'refiPppSchedule',
   'refiTermYears', 'refiAppraisal', 'refiUnderwriting', 'refiOtherMisc',
   'refiSeasoningMonths', 'refiLtv', 'refiTitleEscrow', 'refiExtraFees',
+  // The Refi lender also funds the Buy & Hold purchase loan. Sheets saved before
+  // this key existed lack it; applyTerms' spread then keeps the Deal's current value.
+  'bnhLoanPct',
 ] as const
 
 export type LenderTerms = Partial<Deal>  // exactly one role's term fields

@@ -167,7 +167,7 @@ export function InputForm({ deal, update }: Props) {
       </Section>
 
       {/* 06 · Refinance */}
-      <Section id="refi" eyebrow="06 · Refi" title="Refinance (Long-Term)" subtitle="Long-term debt that takes out the HML and stabilizes the BRRRR.">
+      <Section id="refi" eyebrow="06 · Refi" title="Refinance (Long-Term)" subtitle="Long-term debt that takes out the HML and stabilizes the BRRRR — and funds the Buy & Hold purchase loan.">
         <TextField label="Lender Name" value={deal.refiName} onChange={set('refiName')} wide />
         <NumberField label="Annual Interest Rate" value={deal.refiRate} onChange={set('refiRate')} suffix="%" helper={`${deal.refiTermYears}-yr fixed`} />
         <NumberField label="Points %" value={deal.refiPoints} onChange={set('refiPoints')} suffix="%" helper="origination" />
@@ -191,6 +191,11 @@ export function InputForm({ deal, update }: Props) {
             addLabel="Add Refi fee"
           />
         </div>
+        <div className="field-wide field-subhead">Buy &amp; Hold</div>
+        <NumberField label="B&H Loan % of PP" value={deal.bnhLoanPct} onChange={set('bnhLoanPct')} suffix="%"
+          helper="Purchase loan on these terms · 0 = all cash" />
+        <NumberField label="B&H Title Cost" value={deal.bnhTitleCost} onChange={set('bnhTitleCost')} prefix="$"
+          helper="Lender's title policy — per deal, not per lender" />
       </Section>
 
       {/* 07 · One-Time Costs */}

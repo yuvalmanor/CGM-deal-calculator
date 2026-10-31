@@ -33,6 +33,7 @@ describe('BLANK_DEAL', () => {
     const modes: (keyof Deal)[] = [
       'changeOrdersMode', 'capexVacancyMode', 'mgmtMode',
       'taxesUnit', 'insuranceUnit', 'hoaUnit', 'stateIncTaxUnit',
+      'bnhValueBasis', 'strategy',
     ]
     for (const field of modes) {
       expect(BLANK_DEAL[field], `${field} should be kept`).toBe(DEFAULT_DEAL[field])
@@ -63,6 +64,13 @@ describe('BLANK_DEAL', () => {
     expect(BLANK_DEAL.mgmtPct).toBe(0)
     expect(BLANK_DEAL.mgmtFixed).toBe(0)
     expect(BLANK_DEAL.projectCostAdjustments).toBe(0)
+    expect(BLANK_DEAL.bnhTitleCost).toBe(0)
+  })
+
+  it('starts Buy & Hold at an 80% loan on ARV, as a BRRRR strategy', () => {
+    expect(BLANK_DEAL.bnhLoanPct).toBe(80)
+    expect(BLANK_DEAL.bnhValueBasis).toBe('arv')
+    expect(BLANK_DEAL.strategy).toBe('brrrr')
   })
 
   it('starts every line-item list empty', () => {

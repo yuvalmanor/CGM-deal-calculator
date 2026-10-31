@@ -1037,6 +1037,7 @@ input, textarea { font-family: inherit; color: inherit; }
 
 /* Repeater */
 .repeater-block { margin-top: var(--s-3); }
+.field-subhead { margin-top: var(--s-3); padding-top: var(--s-3); border-top: 1px solid var(--line); font-size: 11px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.10em; }
 .repeater-title { font-size: 11px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.10em; margin-bottom: var(--s-2); }
 .repeater { display: flex; flex-direction: column; gap: 6px; }
 .repeater-row {

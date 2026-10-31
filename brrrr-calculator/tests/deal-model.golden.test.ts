@@ -123,6 +123,12 @@ const BRANCH_DEAL: Deal = {
     { id: 'ref1', label: 'Rate lock', amount: 350 },
   ],
 
+  // Engine-inert (ADR-0005) — present only because Deal requires them
+  bnhLoanPct: 80,
+  bnhTitleCost: 0,
+  bnhValueBasis: 'arv',
+  strategy: 'brrrr',
+
   oneTimeCosts: [
     { id: 'otc1', label: 'Inspection', amount: 500 },
   ],

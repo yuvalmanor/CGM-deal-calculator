@@ -86,6 +86,12 @@ export interface Deal {
   refiTitleEscrow: number
   refiExtraFees: ExtraFee[]
 
+  // Buy & Hold — engine-inert (ADR-0005): read only by lib/buy-hold.ts and the strategy picker
+  bnhLoanPct: number                    // B&H purchase loan, whole-number % of purchase price; 0 = all cash. A Refi lender term
+  bnhTitleCost: number                  // B&H lender's title policy, dollars — per Deal, not a lender term
+  bnhValueBasis: 'arv' | 'purchase'     // value B&H equity / cap rate / GRM / IRR are measured against
+  strategy: 'brrrr' | 'buyHold'         // the Deal's chosen lens for its dashboard score
+
   // One-time
   oneTimeCosts: ExtraFee[]
 
@@ -162,6 +168,11 @@ export const DEFAULT_DEAL: Deal = {
   refiLtv: 65,
   refiTitleEscrow: 0,
   refiExtraFees: [],
+
+  bnhLoanPct: 80,
+  bnhTitleCost: 0,
+  bnhValueBasis: 'arv',
+  strategy: 'brrrr',
 
   oneTimeCosts: [
     { id: uid(), label: 'Photographer', amount: 180 },

@@ -1,10 +1,11 @@
 import { fmtCurrency, fmtPct, fmtNum, totalRehab, mapLocationScore, monthlyOpExpenses } from './deal-model'
 import type { Deal, BRRRRResult, MAOResult, DealScore } from './deal-model'
+import type { BuyHoldResult } from './buy-hold'
 
 export interface FormulaEntry {
   title: string
   formula: string
-  calcFn: (deal: Deal, brrrr: BRRRRResult, mao: MAOResult, score: DealScore) => string
+  calcFn: (deal: Deal, brrrr: BRRRRResult, mao: MAOResult, score: DealScore, bnh: BuyHoldResult) => string
   note: string
 }
 
@@ -498,5 +499,141 @@ Run across 3 scenarios: 2%, 3%, 4% annual appreciation`,
       return `School grade ${d.schoolGrade} → location score ${ls}/10 → score ${c?.score.toFixed(0) ?? '—'}/10 (weight 33%)`
     },
     note: 'Total school district grade (e.g. from GreatSchools.org) mapped to a 0–10 location score.',
+  },
+
+  // ── Buy & Hold (lib/buy-hold.ts) ─────────────────────────────────────────────
+
+  bnh_loan: {
+    title: 'B&H loan',
+    formula: 'Purchase Price × B&H Loan %',
+    calcFn: (d, _b, _m, _s, h) =>
+      `${fmtCurrency(d.purchasePrice)} × ${d.bnhLoanPct}% = ${fmtCurrency(h.loan)}`,
+    note: 'One long-term loan at purchase, on the selected Refi Term Sheet. The loan % is a Refi lender term, so switching Refi Term Sheets switches it. 0% = an all-cash purchase.',
+  },
+
+  bnh_down_payment: {
+    title: 'B&H down payment',
+    formula: 'Purchase Price − B&H Loan',
+    calcFn: (d, _b, _m, _s, h) =>
+      `${fmtCurrency(d.purchasePrice)} − ${fmtCurrency(h.loan)} = ${fmtCurrency(h.downPayment)}`,
+    note: 'The part of the price paid in cash at closing.',
+  },
+
+  bnh_loan_costs: {
+    title: 'B&H loan costs',
+    formula: 'B&H Loan × (Points% + Buydown Points%) + Appraisal + Underwriting + Other Misc + Extra Refi Fees',
+    calcFn: (d, _b, _m, _s, h) => {
+      const extras = (d.refiExtraFees || []).reduce((s, f) => s + (f.amount || 0), 0)
+      return `${fmtCurrency(h.loan)} × (${d.refiPoints}% + ${d.refiBuydownPoints || 0}%) = ${fmtCurrency(h.loanPointsDollar + h.loanBuydownDollar)}\n`
+        + `+ ${fmtCurrency(d.refiAppraisal)} + ${fmtCurrency(d.refiUnderwriting)} + ${fmtCurrency(d.refiOtherMisc)} + ${fmtCurrency(extras)} = ${fmtCurrency(h.loanCosts)}`
+    },
+    note: 'The selected Refi Term Sheet\'s charges, with points and buydown points taken on the B&H loan — not the refi loan. Refi title/escrow, refi LTV and seasoning are BRRRR-only and not used. The lender\'s title policy is its own row.',
+  },
+
+  bnh_title: {
+    title: 'B&H title cost',
+    formula: 'Input — B&H title cost (Refinance section)',
+    calcFn: (d) => `${fmtCurrency(d.bnhTitleCost)}`,
+    note: 'The lender\'s title policy on the purchase loan. Kept per Deal, because it depends on the title company, not the lender. Escrow already counted in purchase closing costs should not be entered again here.',
+  },
+
+  bnh_cash_rehab: {
+    title: 'B&H rehab (all cash)',
+    formula: 'Rehab Estimate + Change Orders + All Additional Rehab Costs',
+    calcFn: (d, _b, _m, _s, h) => {
+      const addl = (d.rehabAdditionalCosts || []).reduce((s, c) => s + (c.amount || 0), 0)
+      const rehab = totalRehab(d)
+      return `${fmtCurrency(d.rehabEstimate)} + ${fmtCurrency(rehab - d.rehabEstimate)} + ${fmtCurrency(addl)} = ${fmtCurrency(h.cashRehab)}`
+    },
+    note: 'No hard-money lender on B&H, so every rehab dollar is cash — the HML-funded flag on additional rehab costs is ignored.',
+  },
+
+  bnh_one_time: {
+    title: 'One-time costs',
+    formula: 'Sum of One-Time Costs',
+    calcFn: (_d, _b, _m, _s, h) => `${fmtCurrency(h.oneTimeCosts)}`,
+    note: 'Inspections, surveys, utilities and anything else that hits the deal once.',
+  },
+
+  bnh_holding: {
+    title: 'B&H holding costs',
+    formula: 'Rehab Months × (Property Tax + Insurance + State Income Tax + HOA + $300 misc + Mortgage P&I)',
+    calcFn: (d, _b, _m, _s, h) => {
+      const op = monthlyOpExpenses(d)
+      return `${d.rehabMonths} mo × (${fmtCurrency(op.taxes)} + ${fmtCurrency(op.ins)} + ${fmtCurrency(op.sit)} + ${fmtCurrency(op.hoa)} + $300 + ${fmtCurrency(h.mortgagePI)}) = ${fmtCurrency(h.holdingCosts)}`
+    },
+    note: 'BRRRR\'s holding cost plus the mortgage: the loan starts at purchase, so every rehab month with no rent also carries a payment.',
+  },
+
+  bnh_credits: {
+    title: 'Credits at close',
+    formula: 'Input — Project Cost Adjustments',
+    calcFn: (d) => `−${fmtCurrency(d.projectCostAdjustments)}`,
+    note: 'Seller concessions, EM credits, etc. Subtracted from Cash In.',
+  },
+
+  bnh_cash_in: {
+    title: 'B&H Cash In',
+    formula: 'Down Payment + Closing Costs + Loan Costs + Title + Rehab (cash) + One-Time Costs + Holding − Credits at Close',
+    calcFn: (d, _b, _m, _s, h) =>
+      `${fmtCurrency(h.downPayment)} + ${fmtCurrency(d.closingCostsBuy)} + ${fmtCurrency(h.loanCosts)} + ${fmtCurrency(h.titleCost)} + ${fmtCurrency(h.cashRehab)} + ${fmtCurrency(h.oneTimeCosts)} + ${fmtCurrency(h.holdingCosts)} − ${fmtCurrency(d.projectCostAdjustments)} = ${fmtCurrency(h.cashIn)}`,
+    note: 'Everything you wire at closing and spend before the first rent. There is no refi on B&H, so none of it comes back — this is the B&H counterpart of BRRRR\'s Money in deal, judged against the same Max money in deal threshold.',
+  },
+
+  bnh_mortgage: {
+    title: 'B&H mortgage P&I',
+    formula: 'PMT(Refi Rate ÷ 12, Refi Term × 12, B&H Loan)',
+    calcFn: (d, _b, _m, _s, h) =>
+      `PMT(${d.refiRate}% ÷ 12, ${d.refiTermYears} yr × 12, ${fmtCurrency(h.loan)}) = ${fmtCurrency(h.mortgagePI)}/mo`,
+    note: 'Principal + interest on the B&H loan, fully amortising over the refi term. A zero rate divides the loan evenly; no loan means no payment.',
+  },
+
+  bnh_total_opex: {
+    title: 'B&H operating expenses',
+    formula: 'Tax + Ins + HOA + State Tax + Mgmt + CapEx + Additional (+ Mortgage P&I)',
+    calcFn: (d, _b, _m, _s, h) => {
+      const op = monthlyOpExpenses(d)
+      return `${fmtCurrency(op.taxes)} + ${fmtCurrency(op.ins)} + ${fmtCurrency(op.hoa)} + ${fmtCurrency(op.sit)} + ${fmtCurrency(op.mgmt)} + ${fmtCurrency(op.capV)} + ${fmtCurrency(op.extras)} = ${fmtCurrency(h.totalOpex)}/mo\n`
+        + `+ P&I ${fmtCurrency(h.mortgagePI)} = ${fmtCurrency(h.totalOpexWithPI)}/mo · w/o CapEx ${fmtCurrency(h.totalOpexNoCapexWithPI)}/mo`
+    },
+    note: 'The same operating expenses as BRRRR; only the mortgage differs.',
+  },
+
+  bnh_noi: {
+    title: 'B&H NOI',
+    formula: 'Gross Rent − Total Operating Expenses',
+    calcFn: (d, _b, _m, _s, h) =>
+      `${fmtCurrency(d.monthlyRent)} − ${fmtCurrency(h.totalOpex)} = ${fmtCurrency(h.noi)}/mo`,
+    note: 'Unlevered property income — the same as BRRRR\'s, since the rent and expenses are the same.',
+  },
+
+  bnh_cashflow: {
+    title: 'B&H monthly cashflow',
+    formula: 'NOI − B&H Mortgage P&I\nw/o CapEx: + CapEx/Vacancy reserve',
+    calcFn: (_d, _b, _m, _s, h) =>
+      `${fmtCurrency(h.noi)} − ${fmtCurrency(h.mortgagePI)} = ${fmtCurrency(h.cashflow)}/mo (${fmtCurrency(h.annualCashflow)}/yr)\n`
+      + `w/o CapEx: ${fmtCurrency(h.cashflow)} + ${fmtCurrency(h.capexVacancy)} = ${fmtCurrency(h.cashflowNoCapex)}/mo`,
+    note: 'Comparable with BRRRR cashflow: same rent and expenses, with the B&H mortgage as the debt service.',
+  },
+
+  bnh_coc: {
+    title: 'B&H Cash-on-Cash',
+    formula: '(Monthly Cashflow × 12) ÷ Cash In',
+    calcFn: (_d, _b, _m, _s, h) => {
+      if (!Number.isFinite(h.coc)) return `Cash In ≤ $0 → infinite return`
+      return `(${fmtCurrency(h.cashflow)} × 12) ÷ ${fmtCurrency(h.cashIn)} = ${fmtPct(h.coc)}\n`
+        + `w/o CapEx: (${fmtCurrency(h.cashflowNoCapex)} × 12) ÷ ${fmtCurrency(h.cashIn)} = ${fmtPct(h.cocNoCapex)}`
+    },
+    note: 'Yearly return on the cash the purchase took, with the same zero/infinite handling as BRRRR. Click the tile\'s value to toggle CapEx.',
+  },
+
+  bnh_dscr: {
+    title: 'B&H DSCR',
+    formula: 'Gross Rent ÷ (B&H Mortgage P&I + Tax + Insurance)',
+    calcFn: (d, _b, _m, _s, h) => {
+      const op = monthlyOpExpenses(d)
+      return `${fmtCurrency(h.monthlyRent)} ÷ (${fmtCurrency(h.mortgagePI)} + ${fmtCurrency(op.taxes)} + ${fmtCurrency(op.ins)}) = ${fmtNum(h.dscr)}`
+    },
+    note: 'Whether a DSCR lender would approve the purchase loan. Lenders want ≥ 1.25. All cash: no P&I in the denominator.',
   },
 }

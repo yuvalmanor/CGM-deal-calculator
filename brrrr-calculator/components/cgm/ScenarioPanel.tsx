@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import type { Deal, BRRRRResult, FlipCashResult, FlipHMLResult, MAOResult, DealScore, Status } from '@/lib/deal-model'
 import { fmtCurrency, fmtPct, fmtNum, statusFor, monthlyOpExpenses } from '@/lib/deal-model'
+import type { BuyHoldResult } from '@/lib/buy-hold'
 
 // ---- Primitives ----
 
@@ -184,6 +185,99 @@ function BRRRRView({ deal, brrrr, onLabelClick }: { deal: Deal; brrrr: BRRRRResu
         <OutputRow label="Cash returned at refi"               value={fmtCurrency(brrrr.cashReturnedAtRefi)} metricId="cash_returned" onLabelClick={click} accent />
         <OutputRow label="Money in deal"                       value={fmtCurrency(brrrr.moneyInDeal)}
           status={statusFor('moneyInDeal', brrrr.moneyInDeal, deal)} metricId="moneyInDeal" onLabelClick={click} accent />
+      </OutputGroup>
+    </div>
+  )
+}
+
+// ---- Buy & Hold view ----
+
+function BuyHoldView({ deal, bnh, onLabelClick }: { deal: Deal; bnh: BuyHoldResult; onLabelClick?: (id: string) => void }) {
+  const click = onLabelClick
+  const [cocNoCapexView, setCocNoCapexView] = useState(false)
+  const [opexExpanded, setOpexExpanded] = useState(true)
+  const op = monthlyOpExpenses(deal)
+  // Tile labels open the formula modal; a tile that toggles a view keeps that on its value
+  const tileLabel = (text: string, id: string) => (
+    <div className="cell-label am-label-clickable" onClick={(e) => { e.stopPropagation(); click?.(id) }} title={`Formula: ${text}`}>{text}</div>
+  )
+  return (
+    <div className="scenario-view">
+      <div className="scenario-summary">
+        <div className="summary-pri">
+          <div className="summary-eyebrow am-label-clickable" onClick={() => click?.('bnh_cashflow')} title="Formula: B&H cashflow">Annual cashflow</div>
+          <div className={`summary-value ${statusFor('cashflow', bnh.cashflow, deal)}`}>
+            {fmtCurrency(bnh.annualCashflow)}
+          </div>
+          <div className="summary-sub">{fmtCurrency(bnh.cashflow)} / month after the B&H mortgage</div>
+        </div>
+        <div className="summary-grid">
+          <div
+            className={`summary-cell ${statusFor('coc', cocNoCapexView ? bnh.cocNoCapex : bnh.coc, deal)}`}
+            onClick={() => setCocNoCapexView((v) => !v)}
+            style={{ cursor: 'pointer', userSelect: 'none' }}
+          >
+            {tileLabel(`Cash-on-Cash${cocNoCapexView ? ' (w/o CapEx)' : ''}`, 'bnh_coc')}
+            <div className="cell-value">{fmtPct(cocNoCapexView ? bnh.cocNoCapex : bnh.coc)}</div>
+          </div>
+          <div className={`summary-cell ${statusFor('dscr', bnh.dscr, deal)}`}>
+            {tileLabel('DSCR', 'bnh_dscr')}
+            <div className="cell-value">{fmtNum(bnh.dscr)}</div>
+          </div>
+          <div className="summary-cell neutral">
+            {tileLabel(`Loan (${deal.bnhLoanPct}%)`, 'bnh_loan')}
+            <div className="cell-value">{fmtCurrency(bnh.loan)}</div>
+          </div>
+          <div className={`summary-cell ${statusFor('moneyInDeal', bnh.cashIn, deal)}`}>
+            {tileLabel('Cash In', 'bnh_cash_in')}
+            <div className="cell-value">{fmtCurrency(bnh.cashIn)}</div>
+          </div>
+        </div>
+      </div>
+
+      <OutputGroup title="Purchase & cash in">
+        <OutputRow label="Purchase price"                       value={fmtCurrency(deal.purchasePrice)} metricId="pp" onLabelClick={click} />
+        <OutputRow label="Down payment"                         value={fmtCurrency(bnh.downPayment)} metricId="bnh_down_payment" onLabelClick={click} />
+        <OutputRow label={`Loan (${deal.bnhLoanPct}% of price)`} value={fmtCurrency(bnh.loan)} metricId="bnh_loan" onLabelClick={click} />
+        <OutputRow label="Loan costs (points + lender fees)"    value={fmtCurrency(bnh.loanCosts)} metricId="bnh_loan_costs" onLabelClick={click} />
+        <OutputRow label="Title"                                value={fmtCurrency(bnh.titleCost)} metricId="bnh_title" onLabelClick={click} />
+        <OutputRow label="Closing costs"                        value={fmtCurrency(deal.closingCostsBuy)} metricId="closing_buy" onLabelClick={click} />
+        <OutputRow label="Rehab (all cash)"                     value={fmtCurrency(bnh.cashRehab)} metricId="bnh_cash_rehab" onLabelClick={click} />
+        <OutputRow label="One-time costs"                       value={fmtCurrency(bnh.oneTimeCosts)} metricId="bnh_one_time" onLabelClick={click} />
+        <OutputRow label={`Holding costs (${deal.rehabMonths} mo, incl. mortgage)`} value={fmtCurrency(bnh.holdingCosts)} metricId="bnh_holding" onLabelClick={click} />
+        <OutputRow label="Credits at close"                     value={'−' + fmtCurrency(deal.projectCostAdjustments)} metricId="bnh_credits" onLabelClick={click} />
+        <OutputRow label="Cash In"                              value={fmtCurrency(bnh.cashIn)}
+          status={statusFor('moneyInDeal', bnh.cashIn, deal)} metricId="bnh_cash_in" onLabelClick={click} accent />
+      </OutputGroup>
+
+      <OutputGroup title="Monthly operating">
+        <OutputRow label="Gross rent" value={fmtCurrency(bnh.monthlyRent)} metricId="gross_rent" onLabelClick={click} />
+        <div
+          className="out-row out-label-clickable"
+          onClick={() => setOpexExpanded((v) => !v)}
+          style={{ cursor: 'pointer', userSelect: 'none' }}
+          title={opexExpanded ? 'Hide breakdown' : 'Show breakdown'}
+        >
+          <div className="out-label">{opexExpanded ? '▾' : '▸'} Expense breakdown</div>
+          <div className="out-value mono"></div>
+        </div>
+        {opexExpanded && (<>
+          <OutputRow label="Property Tax"             value={'−' + fmtCurrency(op.taxes)}  metricId="bnh_total_opex" onLabelClick={click} />
+          <OutputRow label="Insurance"                value={'−' + fmtCurrency(op.ins)}    metricId="bnh_total_opex" onLabelClick={click} />
+          <OutputRow label="HOA"                      value={'−' + fmtCurrency(op.hoa)}    metricId="bnh_total_opex" onLabelClick={click} />
+          <OutputRow label="State income tax"         value={'−' + fmtCurrency(op.sit)}    metricId="bnh_total_opex" onLabelClick={click} />
+          <OutputRow label="Property management"      value={'−' + fmtCurrency(op.mgmt)}   metricId="bnh_total_opex" onLabelClick={click} />
+          <OutputRow label="Capex / vacancy"          value={'−' + fmtCurrency(op.capV)}   metricId="bnh_total_opex" onLabelClick={click} />
+          <OutputRow label="Additional Monthly Costs" value={'−' + fmtCurrency(op.extras)} metricId="bnh_total_opex" onLabelClick={click} />
+          <OutputRow label="Mortgage P&I"             value={'−' + fmtCurrency(bnh.mortgagePI)} metricId="bnh_mortgage" onLabelClick={click} />
+        </>)}
+        <OutputRow label="Total Operating expenses (incl. P&I) / w/o Capex"
+          value={'−' + fmtCurrency(bnh.totalOpexWithPI) + ' / −' + fmtCurrency(bnh.totalOpexNoCapexWithPI)}
+          metricId="bnh_total_opex" onLabelClick={click} />
+        <OutputRow label="NOI" value={fmtCurrency(bnh.noi)} metricId="bnh_noi" onLabelClick={click} />
+        <OutputRow label="Monthly cashflow / w/o Capex"
+          value={fmtCurrency(bnh.cashflow) + ' / ' + fmtCurrency(bnh.cashflowNoCapex)}
+          status={statusFor('cashflow', bnh.cashflow, deal)} metricId="bnh_cashflow" onLabelClick={click} accent />
       </OutputGroup>
     </div>
   )
@@ -488,11 +582,12 @@ function AdvancedMetrics({ deal, brrrr, onLabelClick }: { deal: Deal; brrrr: BRR
 
 // ---- ScenarioPanel (exported) ----
 
-type ScenarioKey = 'brrrr' | 'flipCash' | 'flipHml'
+type ScenarioKey = 'brrrr' | 'buyHold' | 'flipCash' | 'flipHml'
 
 interface Props {
   deal: Deal
   brrrr: BRRRRResult
+  buyHold: BuyHoldResult
   flipCash: FlipCashResult
   flipHml: FlipHMLResult
   mao: MAOResult
@@ -504,9 +599,10 @@ interface Props {
   termSheetSections?: React.ReactNode  // per-role Term Sheet panels, owned by DealCalculator
 }
 
-export function ScenarioPanel({ deal, brrrr, flipCash, flipHml, mao, score, scenario, setScenario, onEdit, onLabelClick, termSheetSections }: Props) {
+export function ScenarioPanel({ deal, brrrr, buyHold, flipCash, flipHml, mao, score, scenario, setScenario, onEdit, onLabelClick, termSheetSections }: Props) {
   const tabs: { key: ScenarioKey; label: string; sub: string }[] = [
     { key: 'brrrr',    label: 'BRRRR',       sub: fmtCurrency(brrrr.cashflow) + '/mo' },
+    { key: 'buyHold',  label: 'Buy & Hold',  sub: fmtCurrency(buyHold.cashflow) + '/mo' },
     { key: 'flipCash', label: 'Flip · Cash',  sub: fmtCurrency(flipCash.profit) + ' profit' },
     { key: 'flipHml',  label: 'Flip · HML',   sub: fmtCurrency(flipHml.profit) + ' profit' },
   ]
@@ -535,6 +631,7 @@ export function ScenarioPanel({ deal, brrrr, flipCash, flipHml, mao, score, scen
 
       <div className="scenario-body">
         {scenario === 'brrrr'    && <BRRRRView    deal={deal} brrrr={brrrr} onLabelClick={onLabelClick} />}
+        {scenario === 'buyHold'  && <BuyHoldView  deal={deal} bnh={buyHold} onLabelClick={onLabelClick} />}
         {scenario === 'flipCash' && <FlipCashView deal={deal} flip={flipCash} onLabelClick={onLabelClick} />}
         {scenario === 'flipHml'  && <FlipHMLView  deal={deal} flip={flipHml} onLabelClick={onLabelClick} />}
       </div>

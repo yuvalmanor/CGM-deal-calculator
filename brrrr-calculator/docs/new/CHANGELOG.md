@@ -354,6 +354,44 @@ The triage tool may still write a partial `inputsJson`; it no longer matters wha
 
 ---
 
+## Buy & Hold phase 1 — B&H tab: Cash In and cashflow ✅ Complete
+Date: 2026-10-31 · Plan: `plans/buy-and-hold.md` · ADR-0005
+
+A fourth Scenario tab, **Buy & Hold**: one long-term loan at purchase (a % of the price,
+on the selected Refi Term Sheet's rate, term, points and fees), rehab paid in cash, and
+rehab months carrying the mortgage. Shows an auditable Cash In and monthly cashflow.
+
+**Changed:**
+- `lib/deal-model.ts` — four engine-inert `Deal` fields (`bnhLoanPct`, `bnhTitleCost`,
+  `bnhValueBasis`, `strategy`) on the interface and `DEFAULT_DEAL`. No formula line touched;
+  every golden file unchanged (ADR-0005, user-approved)
+- `lib/buy-hold.ts` — new: `calcBuyHold()` — loan, down payment, loan costs (points and
+  buydown on the B&H loan), title, mortgage, cash rehab, holding, Cash In, NOI, cashflow ±
+  CapEx, CoC, DSCR, lender ratio. Own amortization helper; ignores refi title/escrow, LTV,
+  seasoning
+- `lib/blank-deal.ts` — loan % 80 (Refi lender term), title blank, value basis/strategy kept
+- `lib/term-sheets.ts` — `bnhLoanPct` joins `REFI_TERM_FIELDS`; old sheets without it keep
+  the Deal's current value
+- `lib/formulaRegistry.ts`, `components/ui/FormulaModal.tsx` — `calcFn` receives the B&H
+  result; 15 new `bnh_*` entries
+- `components/cgm/ScenarioPanel.tsx` — `buyHold` tab: tiles (CoC, DSCR, Loan, Cash In vs Max
+  money in deal), Purchase & cash in rows, Monthly operating rows; every row/tile opens its
+  formula
+- `components/cgm/InputForm.tsx`, `app/globals.css` — "Buy & Hold" sub-heading in the Refi
+  section with loan % and title cost
+- `components/DealCalculator.tsx` — computes the B&H result; scenario key `buyHold`
+- Tests: new `tests/buy-hold.test.ts` (hand-worked fixture + 10 edge cases); term-sheet,
+  blank-deal and parse-saved-deal tests for the new fields
+
+**Verified:** Gates green — `npm test` 143 passing, `npx tsc --noEmit` zero errors,
+`npm run build` succeeds. Browser: the fixture deal renders exactly the hand-worked numbers
+(Cash In $65,619, cashflow $206/mo, CoC 3.8%, DSCR 1.47); all 28 rows/tiles open their
+formula with live values; loan % edit survives reload; switching Refi Term Sheets switches
+loan % (70 ↔ 75); Reset → 80% / blank; saved deal `1444 Mountain Air Trl` (pre-feature)
+opens with 80% / blank and unchanged BRRRR numbers; no console errors.
+
+---
+
 ## How to Update This File
 
 After completing each phase or significant change, add an entry here:

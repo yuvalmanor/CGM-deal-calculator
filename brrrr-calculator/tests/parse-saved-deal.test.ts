@@ -61,6 +61,18 @@ describe('parseSavedDeal', () => {
     expect(parsed!.address).toBe(savedDeal.address)  // saved data still wins
   })
 
+  it('loads a row saved before Buy & Hold with the B&H defaults', () => {
+    const { bnhLoanPct, bnhTitleCost, bnhValueBasis, strategy, ...preBnh } = savedDeal
+    void bnhLoanPct; void bnhTitleCost; void bnhValueBasis; void strategy
+    const loaded = parseSavedDeal(JSON.parse(JSON.stringify(preBnh)))!
+    expect(loaded).not.toBeNull()
+    expect(loaded.bnhLoanPct).toBe(80)
+    expect(loaded.bnhTitleCost).toBe(0)
+    expect(loaded.bnhValueBasis).toBe('arv')
+    expect(loaded.strategy).toBe('brrrr')
+    expect(loaded.purchasePrice).toBe(199000)
+  })
+
   it('leaves a deal fact blank when the row omits it — no worked-example numbers', () => {
     const { rehabEstimate: _dropped, ...olderRow } = savedDeal
     const parsed = parseSavedDeal(olderRow)

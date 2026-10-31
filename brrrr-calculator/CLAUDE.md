@@ -212,6 +212,7 @@ brrrr-calculator/
 │   └── page.tsx                      ← dashboard (server component, cached)
 ├── lib/
 │   ├── deal-model.ts                 ← Deal model + formula engine (do not modify)
+│   ├── buy-hold.ts                   ← Buy & Hold Scenario math (outside the engine, ADR-0005)
 │   ├── sheets.ts                     ← Sheets API wrapper (server-side only)
 │   ├── parse-saved-deal.ts           ← saved-row shape validation
 │   ├── formulaRegistry.ts            ← formula modal content

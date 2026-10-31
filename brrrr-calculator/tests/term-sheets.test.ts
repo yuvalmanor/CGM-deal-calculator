@@ -11,6 +11,7 @@ import {
   extractTerms, applyTerms, initialTermSheetState, syncSelected,
   addTermSheet, selectTermSheet, deleteTermSheet,
   serializeSettings, parseSettings, settingsJsonForSave,
+  HML_TERM_FIELDS, REFI_TERM_FIELDS, type TermSheetState,
 } from '../lib/term-sheets'
 
 const deal: Deal = {
@@ -36,8 +37,8 @@ describe('extractTerms / applyTerms', () => {
   })
 
   it('extracts only the role\'s fields', () => {
-    expect(Object.keys(extractTerms(deal, 'hml')).every(k => k.startsWith('hml'))).toBe(true)
-    expect(Object.keys(extractTerms(deal, 'refi')).every(k => k.startsWith('refi'))).toBe(true)
+    expect(Object.keys(extractTerms(deal, 'hml')).sort()).toEqual([...HML_TERM_FIELDS].sort())
+    expect(Object.keys(extractTerms(deal, 'refi')).sort()).toEqual([...REFI_TERM_FIELDS].sort())
   })
 
   it('never shares extra-fee arrays between a sheet and the deal', () => {
@@ -176,6 +177,30 @@ describe('refi role', () => {
     expect(r.state.refi.sheets).toHaveLength(1)
     expect(r.state.refi.selectedId).toBe(s0.refi.selectedId)
     expect(r.deal.refiName).toBe('Bank A')
+  })
+
+  it('the B&H loan % travels with each Refi Term Sheet', () => {
+    const s0 = initialTermSheetState(deal)
+    const idA = s0.refi.selectedId
+    const s1 = addTermSheet(s0, deal, 'refi')
+    const dealB: Deal = { ...deal, bnhLoanPct: 75 }
+    const r1 = selectTermSheet(s1, dealB, 'refi', idA)
+    expect(r1.deal.bnhLoanPct).toBe(80)
+    const r2 = selectTermSheet(r1.state, r1.deal, 'refi', s1.refi.selectedId)
+    expect(r2.deal.bnhLoanPct).toBe(75)
+  })
+
+  it('applying a Refi Term Sheet saved before B&H keeps the Deal\'s current loan %', () => {
+    const s0 = initialTermSheetState(deal)
+    const { bnhLoanPct, ...legacyTerms } = extractTerms({ ...deal, refiName: 'Old Bank' }, 'refi')
+    void bnhLoanPct
+    const legacy: TermSheetState = {
+      ...s0,
+      refi: { ...s0.refi, sheets: [...s0.refi.sheets, { id: 'old', terms: legacyTerms }] },
+    }
+    const r = selectTermSheet(legacy, { ...deal, bnhLoanPct: 70 }, 'refi', 'old')
+    expect(r.deal.refiName).toBe('Old Bank')
+    expect(r.deal.bnhLoanPct).toBe(70)
   })
 
   it('refuses to delete the last refi sheet', () => {
