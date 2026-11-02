@@ -18,8 +18,7 @@ export interface BuyHoldResult {
   downPayment: number
   loanPointsDollar: number    // origination points on the B&H loan
   loanBuydownDollar: number   // rate-buydown points on the B&H loan
-  loanCosts: number           // points + buydown + appraisal + underwriting + other misc + extra fees (title excluded)
-  titleCost: number
+  loanCosts: number           // points + buydown + appraisal + underwriting + other misc + extra fees (title goes in extra fees)
   mortgagePI: number
   // Cash In
   cashRehab: number           // total rehab + every additional rehab cost — no HML, so all cash
@@ -65,14 +64,13 @@ export function calcBuyHold(d: Deal): BuyHoldResult {
     ? d.refiAppraisal + d.refiUnderwriting + d.refiOtherMisc + sum(d.refiExtraFees)
     : 0
   const loanCosts = loanPointsDollar + loanBuydownDollar + lenderFlatFees
-  const titleCost = d.bnhTitleCost || 0
   const mortgagePI = monthlyPayment(loan, d.refiRate, d.refiTermYears)
 
   const op = monthlyOpExpenses(d)
   const cashRehab = totalRehab(d) + sum(d.rehabAdditionalCosts)
   const oneTimeCosts = sum(d.oneTimeCosts)
   const holdingCosts = d.rehabMonths * (op.taxes + op.ins + op.sit + op.hoa + 300 + mortgagePI)
-  const cashIn = downPayment + d.closingCostsBuy + loanCosts + titleCost
+  const cashIn = downPayment + d.closingCostsBuy + loanCosts
     + cashRehab + oneTimeCosts + holdingCosts - d.projectCostAdjustments
 
   const noi = d.monthlyRent - op.total
@@ -89,7 +87,7 @@ export function calcBuyHold(d: Deal): BuyHoldResult {
   const lenderDscr = lenderDscrDenom > 0 ? d.monthlyRent / lenderDscrDenom : 0
 
   return {
-    loan, downPayment, loanPointsDollar, loanBuydownDollar, loanCosts, titleCost, mortgagePI,
+    loan, downPayment, loanPointsDollar, loanBuydownDollar, loanCosts, mortgagePI,
     cashRehab, oneTimeCosts, holdingCosts, cashIn,
     monthlyRent: d.monthlyRent,
     totalOpex: op.total,

@@ -83,8 +83,7 @@ export const BLANK_DEAL: Deal = {
   refiExtraFees: [],
   bnhLoanPct: DEFAULT_DEAL.bnhLoanPct,   // a Refi lender term (REFI_TERM_FIELDS)
 
-  // Buy & Hold — title is a deal number (blank); value basis and strategy are kept enums
-  bnhTitleCost: 0,
+  // Buy & Hold — value basis and strategy are kept enums
   bnhValueBasis: DEFAULT_DEAL.bnhValueBasis,
   strategy: DEFAULT_DEAL.strategy,
 

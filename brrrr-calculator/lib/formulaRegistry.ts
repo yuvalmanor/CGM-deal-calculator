@@ -527,14 +527,7 @@ Run across 3 scenarios: 2%, 3%, 4% annual appreciation`,
       return `${fmtCurrency(h.loan)} × (${d.refiPoints}% + ${d.refiBuydownPoints || 0}%) = ${fmtCurrency(h.loanPointsDollar + h.loanBuydownDollar)}\n`
         + `+ ${fmtCurrency(d.refiAppraisal)} + ${fmtCurrency(d.refiUnderwriting)} + ${fmtCurrency(d.refiOtherMisc)} + ${fmtCurrency(extras)} = ${fmtCurrency(h.loanCosts)}`
     },
-    note: 'The selected Refi Term Sheet\'s charges, with points and buydown points taken on the B&H loan — not the refi loan. Refi title/escrow, refi LTV and seasoning are BRRRR-only and not used. The lender\'s title policy is its own row. All cash (loan % = 0): no lender, so no loan costs at all.',
-  },
-
-  bnh_title: {
-    title: 'B&H title cost',
-    formula: 'Input — B&H title cost (Refinance section)',
-    calcFn: (d) => `${fmtCurrency(d.bnhTitleCost)}`,
-    note: 'The lender\'s title policy on the purchase loan. Kept per Deal, because it depends on the title company, not the lender. Escrow already counted in purchase closing costs should not be entered again here.',
+    note: 'The selected Refi Term Sheet\'s charges, with points and buydown points taken on the B&H loan — not the refi loan. Refi title/escrow, refi LTV and seasoning are BRRRR-only and not used — enter the lender\'s title policy as an Additional Refi Fee. All cash (loan % = 0): no lender, so no loan costs at all.',
   },
 
   bnh_cash_rehab: {
@@ -574,9 +567,9 @@ Run across 3 scenarios: 2%, 3%, 4% annual appreciation`,
 
   bnh_cash_in: {
     title: 'B&H Cash In',
-    formula: 'Down Payment + Closing Costs + Loan Costs + Title + Rehab (cash) + One-Time Costs + Holding − Credits at Close',
+    formula: 'Down Payment + Closing Costs + Loan Costs + Rehab (cash) + One-Time Costs + Holding − Credits at Close',
     calcFn: (d, _b, _m, _s, h) =>
-      `${fmtCurrency(h.downPayment)} + ${fmtCurrency(d.closingCostsBuy)} + ${fmtCurrency(h.loanCosts)} + ${fmtCurrency(h.titleCost)} + ${fmtCurrency(h.cashRehab)} + ${fmtCurrency(h.oneTimeCosts)} + ${fmtCurrency(h.holdingCosts)} − ${fmtCurrency(d.projectCostAdjustments)} = ${fmtCurrency(h.cashIn)}`,
+      `${fmtCurrency(h.downPayment)} + ${fmtCurrency(d.closingCostsBuy)} + ${fmtCurrency(h.loanCosts)} +${fmtCurrency(h.cashRehab)} + ${fmtCurrency(h.oneTimeCosts)} + ${fmtCurrency(h.holdingCosts)} − ${fmtCurrency(d.projectCostAdjustments)} = ${fmtCurrency(h.cashIn)}`,
     note: 'Everything you wire at closing and spend before the first rent. There is no refi on B&H, so none of it comes back — this is the B&H counterpart of BRRRR\'s Money in deal, judged against the same Max money in deal threshold.',
   },
 

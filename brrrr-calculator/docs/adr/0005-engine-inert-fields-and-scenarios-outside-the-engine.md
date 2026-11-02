@@ -15,10 +15,11 @@ follows the `refiPppSchedule` precedent (ADR-0004), and the user chose it over d
 fields from a side file (2026-10-31): one place lists every field a Deal stores, and every
 field always has a value, so no reader handles "missing".
 
-Buy & Hold adds four: `bnhLoanPct` (80, a Refi lender term in `REFI_TERM_FIELDS`),
-`bnhTitleCost` (0, a per-Deal number), `bnhValueBasis` (`'arv'`) and `strategy`
-(`'brrrr'`). Old saved rows, drafts and Term Sheets load with `BLANK_DEAL`'s values for
-them — zero migration, same posture as ADR-0003.
+Buy & Hold adds three: `bnhLoanPct` (80, a Refi lender term in `REFI_TERM_FIELDS`),
+`bnhValueBasis` (`'arv'`) and `strategy` (`'brrrr'`). A fourth, `bnhTitleCost`, was
+removed on 2026-11-02 (the title policy is an Additional Refi Fee instead); removing an
+engine-inert field follows the same rule as adding one. Old saved rows, drafts and Term
+Sheets load with `BLANK_DEAL`'s values for them — zero migration, same posture as ADR-0003.
 
 **Proof each time:** the golden suite passes with no golden file changed. A field that
 changes any golden value is not engine-inert and goes through ADR-0004's engine-change

@@ -395,6 +395,12 @@ charges the Refi lender's flat fees (appraisal, underwriting, other misc, extra 
 loan, no lender. Title cost stays as entered. `lib/buy-hold.ts`, its all-cash test, the
 `bnh_loan_costs` formula note and the plan's formula line updated.
 
+**Follow-up 2026-11-02 (user decision):** the B&H Title Cost input is removed entirely.
+The lender's title policy goes in Additional Refi Fees and sums into B&H loan costs with
+the other Refi fees. `bnhTitleCost` is gone from `Deal`, `DEFAULT_DEAL` and `BLANK_DEAL`
+(field-only engine-file edit, goldens unchanged); the Title row, its formula entry and the
+input are removed. Saved rows that carry the old key load fine — it is simply ignored.
+
 ---
 
 ## How to Update This File

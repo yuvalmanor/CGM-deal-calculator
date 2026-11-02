@@ -3,11 +3,11 @@
 // The fixture's expected values were worked out by hand, independently of the
 // module (round inputs; only the mortgage needs a calculator):
 //   loan        = 200,000 × 80%                      = 160,000   down payment 40,000
-//   loan costs  = 1% + 0.5% of 160,000 (2,400) + 600 + 1,000 + 400 + 250 = 4,650
+//   loan costs  = 1% + 0.5% of 160,000 (2,400) + 600 + 1,000 + 400 + 250 + 1,200 title = 5,850
 //   mortgage    = PMT(6%/12, 360, 160,000)           = 959.2808
 //   cash rehab  = 10,000 + 1,000 CO + 1,500 funded + 500 cash = 13,000
 //   holding     = 2 mo × (300 + 100 + 50 + 25 + 300 + 959.2808) = 3,468.5617
-//   Cash In     = 40,000 + 4,000 + 4,650 + 1,200 + 13,000 + 300 + 3,468.5617 − 1,000 = 65,618.5617
+//   Cash In     = 40,000 + 4,000 + 5,850 + 13,000 + 300 + 3,468.5617 − 1,000 = 65,618.5617
 //   opex        = 300 tax + 100 ins + 25 HOA + 50 SIT + 200 capex + 160 mgmt = 835
 //   NOI 1,165 · cashflow 205.7192 · w/o capex 405.7192
 //   CoC 3.7621% · w/o capex 7.4196% · DSCR 2,000 ÷ 1,359.2808 = 1.4714 · lender 2,000 ÷ 475 = 4.2105
@@ -48,13 +48,15 @@ const BH_DEAL: Deal = {
   refiAppraisal: 600,
   refiUnderwriting: 1000,
   refiOtherMisc: 400,
-  refiExtraFees: [{ id: 'f1', label: 'Rate lock', amount: 250 }],
+  refiExtraFees: [
+    { id: 'f1', label: 'Rate lock', amount: 250 },
+    { id: 'f2', label: 'Title (lender policy)', amount: 1200 },
+  ],
   refiTitleEscrow: 3000,
   refiLtv: 75,
   refiSeasoningMonths: 6,
 
   bnhLoanPct: 80,
-  bnhTitleCost: 1200,
 
   oneTimeCosts: [{ id: 'o1', label: 'Inspection', amount: 300 }],
   projectCostAdjustments: 1000,
@@ -75,8 +77,7 @@ describe('calcBuyHold: hand-checked fixture', () => {
   it('charges the Refi Term Sheet costs on the B&H loan', () => {
     expect(r.loanPointsDollar).toBeCloseTo(1600, 6)
     expect(r.loanBuydownDollar).toBeCloseTo(800, 6)
-    expect(r.loanCosts).toBeCloseTo(4650, 6)
-    expect(r.titleCost).toBe(1200)
+    expect(r.loanCosts).toBeCloseTo(5850, 6)
   })
 
   it('amortizes the mortgage at the refi rate and term', () => {
@@ -114,15 +115,14 @@ describe('calcBuyHold: edge cases', () => {
     expect(r.mortgagePI).toBe(0)
     expect(r.loanPointsDollar).toBe(0)
     expect(r.loanBuydownDollar).toBe(0)
-    expect(r.loanCosts).toBe(0)        // no lender → no appraisal, underwriting, misc or extra fees
-    expect(r.titleCost).toBe(1200)     // title is a per-Deal input; it stays as entered
+    expect(r.loanCosts).toBe(0)        // no lender → no appraisal, underwriting, misc or extra fees (title included)
     expect(r.cashflow).toBeCloseTo(1165, 6)
     expect(r.dscr).toBeCloseTo(2000 / 400, 6)
     // holding: 2 × (300 + 100 + 50 + 25 + 300) = 1,550
-    // Cash In: 200,000 + 4,000 + 0 + 1,200 + 13,000 + 300 + 1,550 − 1,000 = 219,050
+    // Cash In: 200,000 + 4,000 + 0 + 13,000 + 300 + 1,550 − 1,000 = 217,850
     expect(r.holdingCosts).toBeCloseTo(1550, 6)
-    expect(r.cashIn).toBeCloseTo(219050, 6)
-    expect(r.coc).toBeCloseTo(1165 * 12 / 219050 * 100, 6)  // 6.3821%
+    expect(r.cashIn).toBeCloseTo(217850, 6)
+    expect(r.coc).toBeCloseTo(1165 * 12 / 217850 * 100, 6)  // 6.4172%
   })
 
   it('zero rehab months means no holding costs', () => {
@@ -156,7 +156,7 @@ describe('calcBuyHold: edge cases', () => {
     const r = calcBuyHold({ ...BH_DEAL, arv: 400000 })
     expect(r.loanPointsDollar).toBeCloseTo(160000 * 0.01, 6)
     expect(r.loanBuydownDollar).toBeCloseTo(160000 * 0.005, 6)
-    expect(r.loanCosts).toBeCloseTo(4650, 6)
+    expect(r.loanCosts).toBeCloseTo(5850, 6)
   })
 
   it('ignores refi title/escrow (incl. its auto value), refi LTV and seasoning', () => {

@@ -64,7 +64,6 @@ describe('BLANK_DEAL', () => {
     expect(BLANK_DEAL.mgmtPct).toBe(0)
     expect(BLANK_DEAL.mgmtFixed).toBe(0)
     expect(BLANK_DEAL.projectCostAdjustments).toBe(0)
-    expect(BLANK_DEAL.bnhTitleCost).toBe(0)
   })
 
   it('starts Buy & Hold at an 80% loan on ARV, as a BRRRR strategy', () => {

@@ -194,8 +194,6 @@ export function InputForm({ deal, update }: Props) {
         <div className="field-wide field-subhead">Buy &amp; Hold</div>
         <NumberField label="B&H Loan % of PP" value={deal.bnhLoanPct} onChange={set('bnhLoanPct')} suffix="%"
           helper="Purchase loan on these terms · 0 = all cash" />
-        <NumberField label="B&H Title Cost" value={deal.bnhTitleCost} onChange={set('bnhTitleCost')} prefix="$"
-          helper="Lender's title policy — per deal, not per lender" />
       </Section>
 
       {/* 07 · One-Time Costs */}

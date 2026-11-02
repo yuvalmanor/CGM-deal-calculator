@@ -16,12 +16,13 @@ Durable decisions that apply across all phases:
 - **New ADR (written in phase 1)**: the Deal model may grow engine-inert fields, and new
   Scenarios live outside the frozen engine, reuse its exported building blocks, and never
   change goldens.
-- **Deal model: four new engine-inert fields** (the engine ignores them, like `refiPppSchedule`):
+- **Deal model: three new engine-inert fields** (the engine ignores them, like `refiPppSchedule`).
+  A fourth, `bnhTitleCost`, shipped in phase 1 and was removed 2026-11-02 (user decision): the
+  lender's title policy is entered as an Additional Refi Fee and sums into loan costs.
 
   | Field | Kind | Default | Blank-deal group |
   |---|---|---|---|
   | `bnhLoanPct` | whole-number percent of purchase price | `80` | Lender term: joins `REFI_TERM_FIELDS` |
-  | `bnhTitleCost` | dollars | `0` (blank) | Deal number, per Deal |
   | `bnhValueBasis` | `'arv' \| 'purchase'` | `'arv'` | Mode enum (kept) |
   | `strategy` | `'brrrr' \| 'buyHold'` | `'brrrr'` | Mode enum (kept) |
 
@@ -30,11 +31,10 @@ Durable decisions that apply across all phases:
 - **B&H formulas** (exactly as in the PRD; fixed in the B&H module only if one turns out wrong):
   - Loan = price × `bnhLoanPct`. Down payment = price − loan. A loan % of 0 means all cash.
   - Loan costs come from the selected Refi Term Sheet, applied to the **B&H loan**:
-    origination points + buydown points + appraisal + underwriting + other misc + extra fees,
-    plus `bnhTitleCost`. Refi title/escrow (including its auto value), refi LTV and seasoning
+    origination points + buydown points + appraisal + underwriting + other misc + extra fees
+    (the lender's title policy is one of the extra fees). Refi title/escrow (including its auto value), refi LTV and seasoning
     are excluded. All cash (loan % = 0) has no lender, so the flat fees (appraisal,
-    underwriting, other misc, extra fees) are not charged either; title stays as entered
-    (user decision 2026-11-02).
+    underwriting, other misc, extra fees) are not charged either (user decision 2026-11-02).
   - Mortgage = standard amortization at the refi rate over the refi term. A zero rate divides
     evenly, and a zero loan gives a zero payment.
   - Cash rehab = total rehab (estimate + change orders) + **all** additional rehab costs. The
@@ -79,14 +79,14 @@ Durable decisions that apply across all phases:
 
 ### What to build
 
-The tracer bullet. Add all four new Deal fields to the model, the golden fixture (inert
+The tracer bullet. Add the new Deal fields to the model, the golden fixture (inert
 values) and `BLANK_DEAL` (in their groups). Add `bnhLoanPct` to the Refi Term Sheet field set.
 Add the new B&H calculator module, covering the loan, loan costs, mortgage, cash rehab, holding,
 Cash In, NOI, cashflow (with and without CapEx), CoC, DSCR and lender ratio. The Refi section of
-the input form gains a "Buy & Hold" sub-heading with the loan % and title cost, using
+the input form gains a "Buy & Hold" sub-heading with the loan %, using
 blur-to-commit inputs. The scenario panel gains a Buy & Hold tab laid out like BRRRR: summary
 tiles colored against the buy-box thresholds, with Cash In judged against Max Money in Deal; a
-cost breakdown (price, down payment, loan, loan costs, title, closing, rehab, holding → Cash In);
+cost breakdown (price, down payment, loan, loan costs, closing, rehab, holding → Cash In);
 and monthly rows (rent, expenses, mortgage → cashflow with and without CapEx). Each B&H number
 opens a formula explanation. The formula modal can compute live values from the B&H result.
 Write the new ADR.
@@ -97,7 +97,7 @@ behave correctly. Every BRRRR and Flip number is unchanged.
 
 ### Acceptance criteria
 
-- [x] Golden suite passes unchanged. The engine file has no formula diff — only the four
+- [x] Golden suite passes unchanged. The engine file has no formula diff — only the
       engine-inert fields on `Deal` and `DEFAULT_DEAL` (ADR-0005, user-approved 2026-10-31).
 - [x] B&H module tests: a hand-checked fixture with independently worked expected values for
       every phase-1 output, plus edge cases: all cash (loan % = 0: no mortgage, DSCR denominator
@@ -105,8 +105,8 @@ behave correctly. Every BRRRR and Flip number is unchanged.
       additional rehab costs still counted as cash, and points/buydown computed on the B&H loan,
       not the refi loan.
 - [x] Refi title/escrow, refi LTV and seasoning have no effect on any B&H number.
-- [x] A new Deal and Reset show loan % = 80 and a blank title cost. A saved Deal from before
-      this feature opens without error with the defaults (80%, blank title, ARV, BRRRR).
+- [x] A new Deal and Reset show loan % = 80. A saved Deal from before this feature opens
+      without error with the defaults (80%, ARV, BRRRR). (Title cost removed 2026-11-02.)
 - [x] Switching Refi Term Sheets switches the loan %. Applying a sheet saved before this
       feature keeps the Deal's current loan % (covered by a term-sheet test).
 - [x] The B&H inputs survive a page reload as an unsaved draft.
