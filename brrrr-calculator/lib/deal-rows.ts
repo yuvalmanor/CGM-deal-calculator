@@ -2,7 +2,7 @@
 // without the Sheets client.
 
 import { parseSavedDeal } from './parse-saved-deal'
-import { calcBRRRR, calcMAO, calcDealScore } from './deal-model'
+import { strategyKpis, strategyOf, type Strategy } from './strategy'
 
 /**
  * Map deal ids to the 1-based sheet row numbers holding them, sorted DESCENDING.
@@ -76,8 +76,24 @@ export function listingFacts(inputsJson: string): ListingFacts {
 }
 
 /**
- * The deal score recomputed from a row's `inputsJson`, or `null` when the blob
- * is not a recognizable Deal.
+ * The Strategy a row's `inputsJson` was saved under. A blob that is missing the
+ * field — every row saved before Buy & Hold — or that cannot be read at all
+ * reads as BRRRR, the same forgiving posture as listingFacts().
+ */
+export function listingStrategy(inputsJson: string): Strategy {
+  try {
+    const parsed: unknown = JSON.parse(inputsJson)
+    if (typeof parsed !== 'object' || parsed === null) return 'brrrr'
+    return strategyOf(parsed as { strategy?: unknown })
+  } catch {
+    return 'brrrr'
+  }
+}
+
+/**
+ * The deal score recomputed from a row's `inputsJson`, under the Deal's own
+ * Strategy (the B&H score for a B&H Deal), or `null` when the blob is not a
+ * recognizable Deal.
  *
  * Column D holds the score as it stood when the row was last saved, so it goes
  * stale the moment the engine's scoring changes — every row saved before a
@@ -94,7 +110,7 @@ export function listingScore(inputsJson: string): number | null {
   try {
     const deal = parseSavedDeal(JSON.parse(inputsJson))
     if (!deal) return null
-    return calcDealScore(deal, calcBRRRR(deal), calcMAO(deal)).score
+    return strategyKpis(deal).score
   } catch {
     return null
   }

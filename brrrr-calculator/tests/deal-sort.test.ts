@@ -79,3 +79,25 @@ describe('sortDeals', () => {
     expect(values).toContain(DEFAULT_SORT)
   })
 })
+
+// Score sort ranks by the score the card shows — the Deal's Strategy score, which
+// listDeals() already resolved — and sinks rows that were never analyzed.
+describe('sortDeals by score', () => {
+  const scored = [
+    { ...deal('B St', '', 0, 0), score: 5.3, analyzed: true },
+    { ...deal('A St', '', 0, 0), score: 7.2, analyzed: true },
+    { ...deal('D St', '', 0, 0), score: 9.9, analyzed: false }, // triage row, no score shown
+    { ...deal('C St', '', 0, 0), score: 6.0, analyzed: true },
+  ]
+
+  it('sorts high → low and low → high, unanalyzed rows last', () => {
+    expect(order('score-desc', scored)).toEqual(['A St', 'C St', 'B St', 'D St'])
+    expect(order('score-asc', scored)).toEqual(['B St', 'C St', 'A St', 'D St'])
+  })
+
+  it('offers both directions in the sort menu', () => {
+    const values = SORT_OPTIONS.map(o => o.value)
+    expect(values).toContain('score-desc')
+    expect(values).toContain('score-asc')
+  })
+})

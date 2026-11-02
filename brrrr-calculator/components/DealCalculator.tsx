@@ -6,6 +6,7 @@ import {
 } from '@/lib/deal-model'
 import { BLANK_DEAL } from '@/lib/blank-deal'
 import { calcBuyHold, calcBuyHoldScore } from '@/lib/buy-hold'
+import { strategyOf, strategyKpis, strategyForSave, type ScenarioTab } from '@/lib/strategy'
 import { ModalContext } from '@/lib/modalContext'
 import {
   initialTermSheetState, isTermSheetState, syncSelected, settingsJsonForSave,
@@ -47,7 +48,7 @@ function loadDraft(): Draft {
   } catch { return fallback() }
 }
 
-type ScenarioKey = 'brrrr' | 'buyHold' | 'flipCash' | 'flipHml'
+type ScenarioKey = ScenarioTab
 type AccentKey = 'slate' | 'ember' | 'moss' | 'amber'
 type DensityKey = 'comfortable' | 'compact'
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error'
@@ -71,7 +72,8 @@ export default function DealCalculator({ initialDeal, initialDealId, initialTerm
   // reading it in the initial render makes server and client HTML disagree).
   // Until then the persist effect must not run, or it would clobber the draft.
   const [draftLoaded, setDraftLoaded] = useState(false)
-  const [scenario, setScenario] = useState<ScenarioKey>('brrrr')
+  // A saved Deal opens on its Strategy's tab; /deal/new always opens on BRRRR.
+  const [scenario, setScenario] = useState<ScenarioKey>(() => initialDeal ? strategyOf(initialDeal) : 'brrrr')
   const [activeSection, setActiveSection] = useState('property')
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [tweaks, setTweaks] = useState<Tweaks>(TWEAK_DEFAULTS)
@@ -205,13 +207,18 @@ export default function DealCalculator({ initialDeal, initialDealId, initialTerm
       // sync before serializing so the blob matches what's being saved.
       const synced = syncSelected(termSheets, deal)
       setTermSheets(synced)
+      // The BRRRR and B&H tabs set the Deal's Strategy; a Flip tab keeps it.
+      // Score (D) and money in deal (F) are the Strategy's; ARV (E) and NOI (G) are not.
+      const saved: Deal = { ...deal, strategy: strategyForSave(scenario, deal.strategy) }
+      setDeal(saved)
+      const kpis = strategyKpis(saved)
       const payload = {
-        address: deal.address,
-        score: score.score,
-        arv: deal.arv,
-        moneyInDeal: brrrr.moneyInDeal,
+        address: saved.address,
+        score: kpis.score,
+        arv: saved.arv,
+        moneyInDeal: kpis.moneyInDeal,
         monthlyNOI: brrrr.noi,
-        inputsJson: JSON.stringify(deal),
+        inputsJson: JSON.stringify(saved),
         settingsJson: settingsJsonForSave(synced, unreadableSettings),
       }
       const url = dealId ? `/api/deals/${dealId}` : '/api/deals'

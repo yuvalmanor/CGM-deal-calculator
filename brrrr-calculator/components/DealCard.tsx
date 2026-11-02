@@ -1,6 +1,7 @@
 'use client'
 import { useRouter } from 'next/navigation'
 import type { DealSummary } from '@/lib/sheets'
+import { STRATEGY_TAG } from '@/lib/strategy'
 
 function fmt(n: number) {
   return n.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })
@@ -84,8 +85,14 @@ export default function DealCard({
         )}
       </div>
 
-      <p className="text-xs text-gray-400 mb-3">
+      <p className="flex items-center gap-1.5 text-xs text-gray-400 mb-3">
         {deal.analyzed ? `${deal.score.toFixed(1)}/10` : 'Not analyzed yet'}
+        {/* Which lens the score comes from — the Deal's Strategy. */}
+        {deal.analyzed && (
+          <span className="rounded bg-gray-100 px-1.5 py-px text-[10px] font-semibold tracking-wide text-gray-500">
+            {STRATEGY_TAG[deal.strategy]}
+          </span>
+        )}
       </p>
 
       {/* Property facts first, then what the analysis made of them. */}

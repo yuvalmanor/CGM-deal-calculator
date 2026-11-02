@@ -12,10 +12,11 @@ import type { DealSummary } from '@/lib/sheets'
 // derivation changes, not just its presence: the cached rows are already-computed
 // values, so a stale entry serves the old derivation. v2 = purchasePrice +
 // yearBuilt, v3 = sqft (and arv now read from inputsJson rather than column E),
-// v4 = score recomputed from inputsJson rather than read from column D.
+// v4 = score recomputed from inputsJson rather than read from column D,
+// v5 = strategy + score under the Deal's Strategy (B&H score for B&H Deals).
 const getCachedDeals = unstable_cache(
   () => listDeals(),
-  ['deals-list-v4'],
+  ['deals-list-v5'],
   { revalidate: 60, tags: ['deals'] },
 )
 

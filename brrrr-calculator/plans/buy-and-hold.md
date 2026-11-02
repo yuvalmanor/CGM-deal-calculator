@@ -197,18 +197,19 @@ tagged "B&H", ranks by it, and reopens on the B&H tab. Every existing Deal still
 
 ### Acceptance criteria
 
-- [ ] Picker tests: a BRRRR Deal returns BRRRR KPIs and score, a B&H Deal returns B&H KPIs and
+- [x] Picker tests: a BRRRR Deal returns BRRRR KPIs and score, a B&H Deal returns B&H KPIs and
       score, and a Deal missing `strategy` reads as BRRRR.
-- [ ] Save-rule test: the `brrrr` and `buyHold` tabs set the strategy, and `flipCash`/`flipHml`
+- [x] Save-rule test: the `brrrr` and `buyHold` tabs set the strategy, and `flipCash`/`flipHml`
       keep the current value.
-- [ ] Listing-score tests over saved-row JSON: a B&H row scores with the B&H lens, and old rows
+- [x] Listing-score tests over saved-row JSON: a B&H row scores with the B&H lens, and old rows
       score as BRRRR.
-- [ ] Columns D and F hold the strategy's values on save. Columns E and G are unchanged.
-- [ ] Cards show the strategy tag next to the score. Sorting by score uses the strategy score.
-- [ ] A saved Deal opens on its strategy's tab. `/deal/new` opens on BRRRR.
-- [ ] Mutation routes still call `revalidateTag('deals')`.
-- [ ] CONTEXT.md updated (Scenario, Strategy, Refi Lender).
-- [ ] Golden suite and existing deal-rows / deal-sort / parse-saved-deal suites pass.
+- [x] Columns D and F hold the strategy's values on save. Columns E and G are unchanged.
+- [x] Cards show the strategy tag next to the score. Sorting by score uses the strategy score.
+      (The dashboard had no score sort before; phase 4 added "Score: high → low / low → high".)
+- [x] A saved Deal opens on its strategy's tab. `/deal/new` opens on BRRRR.
+- [x] Mutation routes still call `revalidateTag('deals')`.
+- [x] CONTEXT.md updated (Scenario, Strategy, Refi Lender).
+- [x] Golden suite and existing deal-rows / deal-sort / parse-saved-deal suites pass.
 
 ---
 

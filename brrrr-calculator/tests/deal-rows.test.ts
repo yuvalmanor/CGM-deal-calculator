@@ -5,8 +5,9 @@
 // one, silently taking out a neighbouring deal.
 
 import { describe, it, expect } from 'vitest'
-import { rowsToDelete, missingIds, listingFacts, listingScore } from '../lib/deal-rows'
+import { rowsToDelete, missingIds, listingFacts, listingScore, listingStrategy } from '../lib/deal-rows'
 import { DEFAULT_DEAL, calcBRRRR, calcMAO, calcDealScore } from '../lib/deal-model'
+import { calcBuyHoldScore } from '../lib/buy-hold'
 
 // DEALS_APP column A: header + one row per deal.
 const idColumn = [
@@ -128,5 +129,33 @@ describe('listingScore', () => {
     const score = listingScore(sparse)
     expect(score).not.toBeNull()
     expect(Number.isFinite(score)).toBe(true)
+  })
+})
+
+// The listing score follows the Deal's Strategy: a B&H row ranks by its B&H score,
+// and every row saved before Buy & Hold existed still scores as BRRRR.
+describe("listing score and strategy under the Deal's Strategy", () => {
+  const bnhRow = JSON.stringify({ ...DEFAULT_DEAL, strategy: 'buyHold' })
+  const { strategy: _omit, ...legacyDeal } = DEFAULT_DEAL
+  const oldRow = JSON.stringify(legacyDeal)
+
+  it('scores a B&H row with the B&H lens', () => {
+    const bnh = { ...DEFAULT_DEAL, strategy: 'buyHold' as const }
+    expect(listingScore(bnhRow)).toBe(calcBuyHoldScore(bnh).score)
+    expect(listingScore(bnhRow)).not.toBe(listingScore(JSON.stringify(DEFAULT_DEAL)))
+    expect(listingStrategy(bnhRow)).toBe('buyHold')
+  })
+
+  it('scores an old row (no strategy key) as BRRRR', () => {
+    expect(oldRow).not.toContain('"strategy"')
+    const expected = calcDealScore(DEFAULT_DEAL, calcBRRRR(DEFAULT_DEAL), calcMAO(DEFAULT_DEAL)).score
+    expect(listingScore(oldRow)).toBe(expected)
+    expect(listingStrategy(oldRow)).toBe('brrrr')
+  })
+
+  it('reads an unreadable blob as BRRRR', () => {
+    expect(listingStrategy('')).toBe('brrrr')
+    expect(listingStrategy('{not json')).toBe('brrrr')
+    expect(listingStrategy('null')).toBe('brrrr')
   })
 })

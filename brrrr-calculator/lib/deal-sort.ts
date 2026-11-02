@@ -8,6 +8,8 @@ export type SortKey =
   | 'price-asc'
   | 'year-desc'
   | 'year-asc'
+  | 'score-desc'
+  | 'score-asc'
 
 /** Most recently saved first — the order the lists open in. */
 export const DEFAULT_SORT: SortKey = 'savedAt-desc'
@@ -19,6 +21,8 @@ export const SORT_OPTIONS: { value: SortKey; label: string }[] = [
   { value: 'price-asc',    label: 'Price: low → high' },
   { value: 'year-desc',    label: 'Year built: newest → oldest' },
   { value: 'year-asc',     label: 'Year built: oldest → newest' },
+  { value: 'score-desc',   label: 'Score: high → low' },
+  { value: 'score-asc',    label: 'Score: low → high' },
 ]
 
 /** The fields a deal list sorts on — a structural subset of DealSummary. */
@@ -27,6 +31,10 @@ export interface SortableDeal {
   savedAt: string
   purchasePrice: number
   yearBuilt: number
+  /** The score under the Deal's Strategy — what the card shows. */
+  score?: number
+  /** False for a row never saved by the calculator: its card shows no score. */
+  analyzed?: boolean
 }
 
 /**
@@ -35,7 +43,8 @@ export interface SortableDeal {
  * A triage row can carry no price or year built (0 in the template), and a row
  * written by hand can carry an unparseable savedAt. Those are missing data, not
  * a price of zero or a house built in year 0, so they get NaN and sink to the
- * bottom rather than colonising one end of the range.
+ * bottom rather than colonising one end of the range. A row the calculator has
+ * never analyzed shows no score on its card, so it has no score to sort on either.
  */
 function sortValue(deal: SortableDeal, key: SortKey): number {
   switch (key) {
@@ -48,6 +57,9 @@ function sortValue(deal: SortableDeal, key: SortKey): number {
     case 'year-desc':
     case 'year-asc':
       return deal.yearBuilt > 0 ? deal.yearBuilt : NaN
+    case 'score-desc':
+    case 'score-asc':
+      return deal.analyzed !== false && typeof deal.score === 'number' ? deal.score : NaN
   }
 }
 
