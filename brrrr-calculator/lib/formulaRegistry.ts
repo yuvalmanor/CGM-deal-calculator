@@ -527,7 +527,7 @@ Run across 3 scenarios: 2%, 3%, 4% annual appreciation`,
       return `${fmtCurrency(h.loan)} × (${d.refiPoints}% + ${d.refiBuydownPoints || 0}%) = ${fmtCurrency(h.loanPointsDollar + h.loanBuydownDollar)}\n`
         + `+ ${fmtCurrency(d.refiAppraisal)} + ${fmtCurrency(d.refiUnderwriting)} + ${fmtCurrency(d.refiOtherMisc)} + ${fmtCurrency(extras)} = ${fmtCurrency(h.loanCosts)}`
     },
-    note: 'The selected Refi Term Sheet\'s charges, with points and buydown points taken on the B&H loan — not the refi loan. Refi title/escrow, refi LTV and seasoning are BRRRR-only and not used. The lender\'s title policy is its own row.',
+    note: 'The selected Refi Term Sheet\'s charges, with points and buydown points taken on the B&H loan — not the refi loan. Refi title/escrow, refi LTV and seasoning are BRRRR-only and not used. The lender\'s title policy is its own row. All cash (loan % = 0): no lender, so no loan costs at all.',
   },
 
   bnh_title: {

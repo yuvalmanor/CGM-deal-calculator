@@ -60,8 +60,11 @@ export function calcBuyHold(d: Deal): BuyHoldResult {
 
   const loanPointsDollar = loan * (d.refiPoints / 100)
   const loanBuydownDollar = loan * ((d.refiBuydownPoints || 0) / 100)
-  const loanCosts = loanPointsDollar + loanBuydownDollar
-    + d.refiAppraisal + d.refiUnderwriting + d.refiOtherMisc + sum(d.refiExtraFees)
+  // All cash (no loan) means no lender, so none of the Refi lender's flat fees apply
+  const lenderFlatFees = loan > 0
+    ? d.refiAppraisal + d.refiUnderwriting + d.refiOtherMisc + sum(d.refiExtraFees)
+    : 0
+  const loanCosts = loanPointsDollar + loanBuydownDollar + lenderFlatFees
   const titleCost = d.bnhTitleCost || 0
   const mortgagePI = monthlyPayment(loan, d.refiRate, d.refiTermYears)
 

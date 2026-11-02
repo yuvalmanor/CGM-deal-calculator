@@ -390,6 +390,11 @@ formula with live values; loan % edit survives reload; switching Refi Term Sheet
 loan % (70 ↔ 75); Reset → 80% / blank; saved deal `1444 Mountain Air Trl` (pre-feature)
 opens with 80% / blank and unchanged BRRRR numbers; no console errors.
 
+**Follow-up 2026-11-02 (user decision):** an all-cash B&H purchase (loan % = 0) no longer
+charges the Refi lender's flat fees (appraisal, underwriting, other misc, extra fees) — no
+loan, no lender. Title cost stays as entered. `lib/buy-hold.ts`, its all-cash test, the
+`bnh_loan_costs` formula note and the plan's formula line updated.
+
 ---
 
 ## How to Update This File

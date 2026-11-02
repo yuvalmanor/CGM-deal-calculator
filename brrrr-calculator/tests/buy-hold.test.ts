@@ -114,12 +114,15 @@ describe('calcBuyHold: edge cases', () => {
     expect(r.mortgagePI).toBe(0)
     expect(r.loanPointsDollar).toBe(0)
     expect(r.loanBuydownDollar).toBe(0)
+    expect(r.loanCosts).toBe(0)        // no lender → no appraisal, underwriting, misc or extra fees
+    expect(r.titleCost).toBe(1200)     // title is a per-Deal input; it stays as entered
     expect(r.cashflow).toBeCloseTo(1165, 6)
     expect(r.dscr).toBeCloseTo(2000 / 400, 6)
-    // holding: 2 × (300 + 100 + 50 + 25 + 300) = 1,550; lender fees as stated in the plan
+    // holding: 2 × (300 + 100 + 50 + 25 + 300) = 1,550
+    // Cash In: 200,000 + 4,000 + 0 + 1,200 + 13,000 + 300 + 1,550 − 1,000 = 219,050
     expect(r.holdingCosts).toBeCloseTo(1550, 6)
-    expect(r.cashIn).toBeCloseTo(221300, 6)
-    expect(r.coc).toBeCloseTo(6.3172, 4)
+    expect(r.cashIn).toBeCloseTo(219050, 6)
+    expect(r.coc).toBeCloseTo(1165 * 12 / 219050 * 100, 6)  // 6.3821%
   })
 
   it('zero rehab months means no holding costs', () => {

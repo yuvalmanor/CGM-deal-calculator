@@ -32,7 +32,9 @@ Durable decisions that apply across all phases:
   - Loan costs come from the selected Refi Term Sheet, applied to the **B&H loan**:
     origination points + buydown points + appraisal + underwriting + other misc + extra fees,
     plus `bnhTitleCost`. Refi title/escrow (including its auto value), refi LTV and seasoning
-    are excluded.
+    are excluded. All cash (loan % = 0) has no lender, so the flat fees (appraisal,
+    underwriting, other misc, extra fees) are not charged either; title stays as entered
+    (user decision 2026-11-02).
   - Mortgage = standard amortization at the refi rate over the refi term. A zero rate divides
     evenly, and a zero loan gives a zero payment.
   - Cash rehab = total rehab (estimate + change orders) + **all** additional rehab costs. The
