@@ -13,9 +13,10 @@ interface Props {
   mao: MAOResult
   score: DealScore
   bnh: BuyHoldResult
+  bnhScore: DealScore
 }
 
-export default function FormulaModal({ isOpen, onClose, metricId, deal, brrrr, mao, score, bnh }: Props) {
+export default function FormulaModal({ isOpen, onClose, metricId, deal, brrrr, mao, score, bnh, bnhScore }: Props) {
   useEffect(() => {
     if (!isOpen) return
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
@@ -27,7 +28,7 @@ export default function FormulaModal({ isOpen, onClose, metricId, deal, brrrr, m
   const entry = formulaRegistry[metricId]
   if (!entry) return null
 
-  const liveCalc = entry.calcFn(deal, brrrr, mao, score, bnh)
+  const liveCalc = entry.calcFn(deal, brrrr, mao, score, bnh, bnhScore)
 
   return (
     <div

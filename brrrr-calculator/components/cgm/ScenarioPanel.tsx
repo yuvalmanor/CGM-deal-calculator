@@ -454,15 +454,20 @@ function MAODetail({ deal, mao, onLabelClick }: { deal: Deal; mao: MAOResult; on
 
 // ---- Score Breakdown ----
 
-function ScoreBreakdown({ score, onLabelClick }: { score: DealScore; onLabelClick?: (id: string) => void }) {
-  const scoreKeyToMetricId: Record<string, string> = {
-    coc: 'score_coc', equity: 'score_equity', location: 'score_location',
-  }
+function ScoreBreakdown({ score, buyHold, onLabelClick }: { score: DealScore; buyHold?: boolean; onLabelClick?: (id: string) => void }) {
+  // On the B&H tab the score is B&H's: CoC and Equity % come from the B&H lens
+  const scoreKeyToMetricId: Record<string, string> = buyHold
+    ? { coc: 'bnh_score_coc', equity: 'bnh_score_equity', location: 'score_location' }
+    : { coc: 'score_coc', equity: 'score_equity', location: 'score_location' }
   return (
     <div className="score-breakdown">
       <div className="breakdown-header">
-        <div className="breakdown-title">Deal Score Breakdown</div>
-        <div className="breakdown-total">{score.score.toFixed(1)} <span>/ 10</span></div>
+        <div className="breakdown-title">{buyHold ? 'B&H Deal Score Breakdown' : 'Deal Score Breakdown'}</div>
+        <div
+          className={`breakdown-total${buyHold && onLabelClick ? ' bd-label-clickable' : ''}`}
+          onClick={buyHold && onLabelClick ? () => onLabelClick('bnh_score') : undefined}
+          title={buyHold ? 'Formula: B&H Deal Score' : undefined}
+        >{score.score.toFixed(1)} <span>/ 10</span></div>
       </div>
       <ul className="breakdown-list">
         {score.components.map((c) => {
@@ -698,7 +703,7 @@ interface Props {
   flipCash: FlipCashResult
   flipHml: FlipHMLResult
   mao: MAOResult
-  score: DealScore
+  score: DealScore           // B&H's score on the B&H tab, BRRRR's elsewhere
   scenario: ScenarioKey
   setScenario: (s: ScenarioKey) => void
   onEdit?: () => void
@@ -746,7 +751,7 @@ export function ScenarioPanel({ deal, brrrr, buyHold, flipCash, flipHml, mao, sc
 
       {termSheetSections}
       <MAODetail deal={deal} mao={mao} onLabelClick={onLabelClick} />
-      <ScoreBreakdown score={score} onLabelClick={onLabelClick} />
+      <ScoreBreakdown score={score} buyHold={scenario === 'buyHold'} onLabelClick={onLabelClick} />
       {scenario === 'brrrr' && <AdvancedMetrics deal={deal} brrrr={brrrr} onLabelClick={onLabelClick} />}
       {scenario === 'buyHold' && <BuyHoldAdvancedMetrics deal={deal} bnh={buyHold} onLabelClick={onLabelClick} />}
     </div>

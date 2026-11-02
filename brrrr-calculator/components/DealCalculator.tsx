@@ -5,7 +5,7 @@ import {
   type Deal,
 } from '@/lib/deal-model'
 import { BLANK_DEAL } from '@/lib/blank-deal'
-import { calcBuyHold } from '@/lib/buy-hold'
+import { calcBuyHold, calcBuyHoldScore } from '@/lib/buy-hold'
 import { ModalContext } from '@/lib/modalContext'
 import {
   initialTermSheetState, isTermSheetState, syncSelected, settingsJsonForSave,
@@ -189,6 +189,9 @@ export default function DealCalculator({ initialDeal, initialDealId, initialTerm
   const flipHml  = useMemo(() => calcFlipHML(deal),  [deal])
   const mao      = useMemo(() => calcMAO(deal),      [deal])
   const score    = useMemo(() => calcDealScore(deal, brrrr, mao), [deal, brrrr, mao])
+  const bnhScore = useMemo(() => calcBuyHoldScore(deal, buyHold, mao), [deal, buyHold, mao])
+  // The top bar and score breakdown show the B&H lens on the B&H tab, BRRRR on every other tab
+  const onBuyHold = scenario === 'buyHold'
 
   const openModal = useCallback((id: string) => setModalMetricId(id), [])
   const closeModal = useCallback(() => setModalMetricId(null), [])
@@ -251,7 +254,8 @@ export default function DealCalculator({ initialDeal, initialDealId, initialTerm
           deal={deal}
           brrrr={brrrr}
           mao={mao}
-          score={score}
+          score={onBuyHold ? bnhScore : score}
+          bnh={onBuyHold ? buyHold : undefined}
           onLabelClick={openModal}
         />
 
@@ -264,7 +268,7 @@ export default function DealCalculator({ initialDeal, initialDealId, initialTerm
             flipCash={flipCash}
             flipHml={flipHml}
             mao={mao}
-            score={score}
+            score={onBuyHold ? bnhScore : score}
             scenario={scenario}
             setScenario={setScenario}
             onEdit={() => setDrawerOpen(true)}
@@ -381,6 +385,7 @@ export default function DealCalculator({ initialDeal, initialDealId, initialTerm
           mao={mao}
           score={score}
           bnh={buyHold}
+          bnhScore={bnhScore}
         />
       </div>
     </ModalContext.Provider>

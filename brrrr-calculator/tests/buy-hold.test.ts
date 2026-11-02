@@ -21,11 +21,18 @@
 //   Purchase basis (200,000): Equity $ 40,000 · Equity % −41.7067 · cap 6.99% · GRM 8.3333 · ROE 6.1716%
 //                             IRR 2% −0.6520 · 3% 2.4734 · 4% 5.3503
 //   All cash, ARV, 3%:        IRR 10.3583 (no balance; Cash In 217,850, cashflow 1,165)
+//
+// B&H Deal Score (phase 3) — the engine's step rules on B&H CoC and Equity %:
+//   school grade 12 → location 9
+//   ARV basis:      CoC 3.5976% → 0 · Equity 31.1598% → 9 · (0 + 9 + 9) ÷ 3 = 6     NO-GO
+//   purchase basis: CoC 3.5976% → 0 · Equity −41.7067% → 0 · (0 + 0 + 9) ÷ 3 = 3   NO-GO
+//   rent 3,000, grade 15: opex 1,015 · cashflow 1,025.7192 · Cash In unchanged 68,618.5617
+//                   CoC 17.9378% → 10 · Equity 31.1598% → 9 · location 10 · 29 ÷ 3 = 9.6667  GO
 
 import { describe, it, expect } from 'vitest'
-import { calcBRRRR, type Deal } from '../lib/deal-model'
+import { calcBRRRR, calcDealScore, calcMAO, type Deal } from '../lib/deal-model'
 import { BLANK_DEAL } from '../lib/blank-deal'
-import { calcBuyHold, type BuyHoldResult } from '../lib/buy-hold'
+import { calcBuyHold, calcBuyHoldScore, type BuyHoldResult } from '../lib/buy-hold'
 
 const BH_DEAL: Deal = {
   ...BLANK_DEAL,
@@ -263,5 +270,56 @@ describe('calcBuyHold: edge cases', () => {
     const r = calcBuyHold({ ...BH_DEAL, projectCostAdjustments: 100000 })
     expect(r.cashIn).toBeLessThan(0)
     expect(r.coc).toBe(Infinity)
+  })
+})
+
+describe("calcBuyHoldScore: the engine's scoring rules on the B&H lens", () => {
+  const graded: Deal = { ...BH_DEAL, schoolGrade: 12 }
+  const pts = (key: string, d: Deal) => calcBuyHoldScore(d).components.find((c) => c.key === key)!.score
+
+  it('scores B&H CoC and Equity % with the step rules (hand-checked)', () => {
+    const s = calcBuyHoldScore(graded)
+    expect(pts('coc', graded)).toBe(0)
+    expect(pts('equity', graded)).toBe(9)
+    expect(pts('location', graded)).toBe(9)
+    expect(s.score).toBeCloseTo(6, 10)
+    expect(s.verdict).toBe('NO-GO')
+  })
+
+  it('follows the value basis through Equity %', () => {
+    const d: Deal = { ...graded, bnhValueBasis: 'purchase' }
+    expect(pts('equity', d)).toBe(0)
+    expect(calcBuyHoldScore(d).score).toBeCloseTo(3, 10)
+  })
+
+  it('a strong B&H deal clears the same GO cutoff (hand-checked)', () => {
+    const d: Deal = { ...BH_DEAL, monthlyRent: 3000, schoolGrade: 15 }
+    const r = calcBuyHold(d)
+    expect(r.cashflow).toBeCloseTo(1025.7192, 4)
+    expect(r.coc).toBeCloseTo(17.9378, 4)
+    const s = calcBuyHoldScore(d)
+    expect(s.score).toBeCloseTo(29 / 3, 10)
+    expect(s.verdict).toBe('GO')
+  })
+
+  it("equals the engine's scoring function fed B&H CoC and Equity %", () => {
+    for (const d of [graded, { ...graded, bnhValueBasis: 'purchase' as const }, { ...graded, bnhLoanPct: 0 },
+      { ...graded, projectCostAdjustments: 100000 }, BLANK_DEAL]) {
+      const bnh = calcBuyHold(d)
+      const engine = calcDealScore(d, { ...calcBRRRR(d), coc: bnh.coc, equityPct: bnh.equityPct }, calcMAO(d))
+      expect(calcBuyHoldScore(d)).toEqual(engine)
+    }
+  })
+
+  it('never reads BRRRR CoC or Equity % — only the Location is shared', () => {
+    const brrrrScore = calcDealScore(graded, calcBRRRR(graded), calcMAO(graded))
+    const bnhScore = calcBuyHoldScore(graded)
+    expect(bnhScore.components.find((c) => c.key === 'location')).toEqual(
+      brrrrScore.components.find((c) => c.key === 'location'))
+    expect(bnhScore.components.find((c) => c.key === 'coc')!.value).toBe('3.6%')
+  })
+
+  it('infinite B&H CoC (credits cover Cash In) scores a full 10 on CoC, as BRRRR does', () => {
+    expect(pts('coc', { ...graded, projectCostAdjustments: 100000 })).toBe(10)
   })
 })

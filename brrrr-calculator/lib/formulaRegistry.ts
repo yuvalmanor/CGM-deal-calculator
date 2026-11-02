@@ -5,7 +5,7 @@ import type { BuyHoldResult } from './buy-hold'
 export interface FormulaEntry {
   title: string
   formula: string
-  calcFn: (deal: Deal, brrrr: BRRRRResult, mao: MAOResult, score: DealScore, bnh: BuyHoldResult) => string
+  calcFn: (deal: Deal, brrrr: BRRRRResult, mao: MAOResult, score: DealScore, bnh: BuyHoldResult, bnhScore: DealScore) => string
   note: string
 }
 
@@ -699,5 +699,36 @@ Where:
     note: `The annualized total return over 5 years — cashflow, loan paydown, appreciation and a year-5 sale net of selling costs — the same way BRRRR's IRR is built, on the B&H loan, Cash In and the chosen value.
 
 < 8% — weak · 8–12% — acceptable · 12–18% — healthy · 18–25% — strong · > 25% — verify assumptions`,
+  },
+
+  bnh_score: {
+    title: 'B&H Deal Score',
+    formula: '(CoC score + Equity % score + Location score) ÷ 3\nGO at ≥ 8, else NO-GO',
+    calcFn: (_d, _b, _m, _s, _h, hs) => {
+      const pts = (key: string) => hs.components.find(c => c.key === key)?.score.toFixed(0) ?? '—'
+      return `(${pts('coc')} + ${pts('equity')} + ${pts('location')}) ÷ 3 = ${hs.score.toFixed(1)} → ${hs.verdict}`
+    },
+    note: 'The same scoring rules and GO/NO-GO cutoff as the BRRRR Deal Score, fed B&H Cash-on-Cash and B&H Equity %. Location is the same on both tabs.',
+  },
+
+  bnh_score_coc: {
+    title: 'B&H Score: Cash-on-Cash',
+    formula: '≥10%→10, ≥9%→9, ≥8%→8, ≥7%→7, ≥6%→6, <6%→0',
+    calcFn: (_d, _b, _m, _s, h, hs) => {
+      const c = hs.components.find(c => c.key === 'coc')
+      const coc = Number.isFinite(h.coc) ? fmtPct(h.coc) : '∞'
+      return `${coc} → score ${c?.score.toFixed(0) ?? '—'}/10 (weight 33%)`
+    },
+    note: 'The BRRRR step scoring applied to B&H Cash-on-Cash: yearly cashflow ÷ Cash In.',
+  },
+
+  bnh_score_equity: {
+    title: 'B&H Score: Equity %',
+    formula: '≥35%→10, ≥30%→9, ≥25%→8, ≥20%→7, else→0',
+    calcFn: (_d, _b, _m, _s, h, hs) => {
+      const c = hs.components.find(c => c.key === 'equity')
+      return `${fmtPct(h.equityPct)} → score ${c?.score.toFixed(0) ?? '—'}/10 (weight 33%)`
+    },
+    note: 'The BRRRR step scoring applied to B&H Equity %: (Equity $ − Cash In) ÷ Cash In, with Equity $ = value − B&H loan. Follows the Property value toggle.',
   },
 }

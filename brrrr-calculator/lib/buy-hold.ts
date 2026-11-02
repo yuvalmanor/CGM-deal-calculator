@@ -13,8 +13,15 @@
 //
 // Value metrics (equity, cap rate, GRM, ROE, IRR) are measured against ARV or the
 // purchase price, per bnhValueBasis. Income metrics never read the value.
+//
+// The B&H Deal Score reuses the engine's scoring function: B&H CoC and Equity %
+// go in through a BRRRR-shaped adapter, so the scoring rules and the GO/NO-GO
+// cutoff are never copied here.
 
-import { calcBRRRR, monthlyOpExpenses, totalRehab, type Deal } from './deal-model'
+import {
+  calcBRRRR, calcDealScore, calcMAO, monthlyOpExpenses, totalRehab,
+  type Deal, type DealScore, type MAOResult,
+} from './deal-model'
 
 export interface BuyHoldResult {
   // Loan
@@ -166,4 +173,10 @@ export function calcBuyHold(d: Deal): BuyHoldResult {
     value, equityDollar, equityPct, capRate, grm, roe, remainingBalance60,
     irr2pct: irr(0.02), irr3pct: irr(0.03), irr4pct: irr(0.04),
   }
+}
+
+// The engine scores a BRRRRResult on its CoC and Equity % (plus the Deal's Location).
+// Feed it BRRRR's own result with those two swapped for B&H's.
+export function calcBuyHoldScore(d: Deal, bnh: BuyHoldResult = calcBuyHold(d), mao: MAOResult = calcMAO(d)): DealScore {
+  return calcDealScore(d, { ...calcBRRRR(d), coc: bnh.coc, equityPct: bnh.equityPct }, mao)
 }

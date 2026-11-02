@@ -167,13 +167,13 @@ B&H lens. Switching to a Flip tab shows BRRRR, exactly as before.
 
 ### Acceptance criteria
 
-- [ ] Test: the B&H score equals the engine's scoring rules applied to B&H CoC/Equity %, with
+- [x] Test: the B&H score equals the engine's scoring rules applied to B&H CoC/Equity %, with
       the same GO/NO-GO cutoff.
-- [ ] The top bar shows B&H KPIs and score on the B&H tab, and BRRRR on the BRRRR, Flip Cash and
+- [x] The top bar shows B&H KPIs and score on the B&H tab, and BRRRR on the BRRRR, Flip Cash and
       Flip HML tabs.
-- [ ] The "Cash In" tile on B&H is colored against Max Money in Deal.
-- [ ] Max offer is identical on the BRRRR and B&H tabs.
-- [ ] Golden suite passes unchanged.
+- [x] The "Cash In" tile on B&H is colored against Max Money in Deal.
+- [x] Max offer is identical on the BRRRR and B&H tabs.
+- [x] Golden suite passes unchanged.
 
 ---
 

@@ -2,6 +2,7 @@
 import Link from 'next/link'
 import type { Deal, BRRRRResult, MAOResult, DealScore, Status } from '@/lib/deal-model'
 import { fmtCurrency, fmtPct, fmtNum, statusFor } from '@/lib/deal-model'
+import type { BuyHoldResult } from '@/lib/buy-hold'
 
 function StatusDot({ status }: { status: Status }) {
   return <span className={`status-dot status-${status}`} aria-hidden="true" />
@@ -41,17 +42,25 @@ interface Props {
   deal: Deal
   brrrr: BRRRRResult
   mao: MAOResult
-  score: DealScore
+  score: DealScore           // the score of the lens shown — B&H's when `bnh` is set
+  bnh?: BuyHoldResult        // set while the B&H tab is open: headline KPIs switch to B&H
   onLabelClick?: (id: string) => void
 }
 
-export function DashboardBar({ deal, brrrr, mao, score, onLabelClick }: Props) {
-  const cfStatus   = statusFor('cashflow',    brrrr.cashflow,       deal)
-  const cocStatus  = statusFor('coc',         brrrr.coc,            deal)
-  const dscrStatus = statusFor('dscr',        brrrr.dscr,           deal)
-  const eqStatus   = statusFor('equity',      brrrr.equityPct,       deal)
-  const midStatus  = statusFor('moneyInDeal', brrrr.moneyInDeal,    deal)
-  const scoreStatus = statusFor('score',      score.score,          deal)
+export function DashboardBar({ deal, brrrr, mao, score, bnh, onLabelClick }: Props) {
+  // The headline lens: B&H on the B&H tab, BRRRR everywhere else. MAO is always BRRRR's.
+  const k = bnh
+    ? { ...bnh, cashLabel: 'Cash In', cash: bnh.cashIn,
+        ids: { cashflow: 'bnh_cashflow', coc: 'bnh_coc', dscr: 'bnh_dscr', equity: 'bnh_equity', cash: 'bnh_cash_in' } }
+    : { ...brrrr, cashLabel: 'Money in Deal', cash: brrrr.moneyInDeal,
+        ids: { cashflow: 'cashflow', coc: 'coc', dscr: 'dscr', equity: 'equity_book', cash: 'moneyInDeal' } }
+
+  const cfStatus   = statusFor('cashflow',    k.cashflow,       deal)
+  const cocStatus  = statusFor('coc',         k.coc,            deal)
+  const dscrStatus = statusFor('dscr',        k.dscr,           deal)
+  const eqStatus   = statusFor('equity',      k.equityPct,      deal)
+  const midStatus  = statusFor('moneyInDeal', k.cash,           deal)
+  const scoreStatus = statusFor('score',      score.score,      deal)
 
   const maoDelta   = mao.deltaToOffer
   const maoStatus: Status = maoDelta >= 0 ? 'good' : maoDelta >= -10000 ? 'warn' : 'bad'
@@ -86,17 +95,17 @@ export function DashboardBar({ deal, brrrr, mao, score, onLabelClick }: Props) {
 
       {/* Center: 6 metric chips */}
       <div className="dashboard-metrics">
-        <Metric label="Cashflow"      value={fmtCurrency(brrrr.cashflow) + '/mo'} status={cfStatus}
-          sub={`w/o CapEx: ${fmtCurrency(brrrr.cashflowNoCapex)}/mo`} metricId="cashflow" onLabelClick={onLabelClick} />
-        <Metric label="CoC"           value={fmtPct(brrrr.coc)}                   status={cocStatus}
-          sub={`w/o CapEx: ${fmtPct(brrrr.cocNoCapex)}`} metricId="coc" onLabelClick={onLabelClick} />
-        <Metric label="DSCR"          value={fmtNum(brrrr.dscr)}                  status={dscrStatus}
-          sub={`lender ratio: ${fmtNum(brrrr.lenderDscr, 2)}`} metricId="dscr" onLabelClick={onLabelClick} />
-        <Metric label="Equity"        value={fmtPct(brrrr.equityPct)}             status={eqStatus}
-          sub={fmtCurrency(brrrr.equityDollar)} metricId="equity_book" onLabelClick={onLabelClick} />
-        <Metric label="Money in Deal" value={fmtCurrency(brrrr.moneyInDeal)}      status={midStatus}
-          sub={brrrr.moneyInDeal <= 0 ? 'infinite return' : `target ≤ $${(deal.maxMoneyInDeal / 1000).toFixed(0)}k`}
-          metricId="moneyInDeal" onLabelClick={onLabelClick} />
+        <Metric label="Cashflow"      value={fmtCurrency(k.cashflow) + '/mo'}     status={cfStatus}
+          sub={`w/o CapEx: ${fmtCurrency(k.cashflowNoCapex)}/mo`} metricId={k.ids.cashflow} onLabelClick={onLabelClick} />
+        <Metric label="CoC"           value={fmtPct(k.coc)}                       status={cocStatus}
+          sub={`w/o CapEx: ${fmtPct(k.cocNoCapex)}`} metricId={k.ids.coc} onLabelClick={onLabelClick} />
+        <Metric label="DSCR"          value={fmtNum(k.dscr)}                      status={dscrStatus}
+          sub={`lender ratio: ${fmtNum(k.lenderDscr, 2)}`} metricId={k.ids.dscr} onLabelClick={onLabelClick} />
+        <Metric label="Equity"        value={fmtPct(k.equityPct)}                 status={eqStatus}
+          sub={fmtCurrency(k.equityDollar)} metricId={k.ids.equity} onLabelClick={onLabelClick} />
+        <Metric label={k.cashLabel}   value={fmtCurrency(k.cash)}                 status={midStatus}
+          sub={k.cash <= 0 ? 'infinite return' : `target ≤ $${(deal.maxMoneyInDeal / 1000).toFixed(0)}k`}
+          metricId={k.ids.cash} onLabelClick={onLabelClick} />
         <Metric label="MAO"           value={fmtCurrency(mao.mao)}                status={maoStatus}
           sub={`${fmtCurrency(Math.abs(maoDelta))} ${maoVerb} · ${mao.constraint}`} metricId="mao" onLabelClick={onLabelClick} />
       </div>
@@ -106,7 +115,7 @@ export function DashboardBar({ deal, brrrr, mao, score, onLabelClick }: Props) {
         <div className="hero-top">
           <div className="hero-label">
             <StatusDot status={scoreStatus} />
-            <span>Deal Score</span>
+            <span>{bnh ? 'B&H Deal Score' : 'Deal Score'}</span>
           </div>
           <VerdictPill verdict={score.verdict} status={scoreStatus} />
         </div>
