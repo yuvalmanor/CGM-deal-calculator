@@ -32,9 +32,11 @@ Durable decisions that apply across all phases:
   - Loan = price × `bnhLoanPct`. Down payment = price − loan. A loan % of 0 means all cash.
   - Loan costs come from the selected Refi Term Sheet, applied to the **B&H loan**:
     origination points + buydown points + appraisal + underwriting + other misc + extra fees
-    (the lender's title policy is one of the extra fees). Refi title/escrow (including its auto value), refi LTV and seasoning
-    are excluded. All cash (loan % = 0) has no lender, so the flat fees (appraisal,
-    underwriting, other misc, extra fees) are not charged either (user decision 2026-11-02).
+    (the lender's title policy is one of the extra fees) + refi title/escrow at the same value
+    BRRRR uses, its ARV-based auto value included (user decision 2026-11-02). Refi LTV and
+    seasoning are excluded. All cash (loan % = 0) has no lender, so the flat fees (appraisal,
+    underwriting, other misc, extra fees, title/escrow) are not charged either (user decision
+    2026-11-02).
   - Mortgage = standard amortization at the refi rate over the refi term. A zero rate divides
     evenly, and a zero loan gives a zero payment.
   - Cash rehab = total rehab (estimate + change orders) + **all** additional rehab costs. The
@@ -104,7 +106,8 @@ behave correctly. Every BRRRR and Flip number is unchanged.
       without P&I), zero rehab months (no holding), zero rent (no division blow-ups), funded
       additional rehab costs still counted as cash, and points/buydown computed on the B&H loan,
       not the refi loan.
-- [x] Refi title/escrow, refi LTV and seasoning have no effect on any B&H number.
+- [x] Refi LTV and seasoning have no effect on any B&H number. (Refi title/escrow joined B&H
+      loan costs 2026-11-02, at BRRRR's value.)
 - [x] A new Deal and Reset show loan % = 80. A saved Deal from before this feature opens
       without error with the defaults (80%, ARV, BRRRR). (Title cost removed 2026-11-02.)
 - [x] Switching Refi Term Sheets switches the loan %. Applying a sheet saved before this

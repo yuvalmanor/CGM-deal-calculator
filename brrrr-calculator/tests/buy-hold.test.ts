@@ -3,17 +3,17 @@
 // The fixture's expected values were worked out by hand, independently of the
 // module (round inputs; only the mortgage needs a calculator):
 //   loan        = 200,000 × 80%                      = 160,000   down payment 40,000
-//   loan costs  = 1% + 0.5% of 160,000 (2,400) + 600 + 1,000 + 400 + 250 + 1,200 title = 5,850
+//   loan costs  = 1% + 0.5% of 160,000 (2,400) + 600 + 1,000 + 400 + 250 + 1,200 title + 3,000 title/escrow = 8,850
 //   mortgage    = PMT(6%/12, 360, 160,000)           = 959.2808
 //   cash rehab  = 10,000 + 1,000 CO + 1,500 funded + 500 cash = 13,000
 //   holding     = 2 mo × (300 + 100 + 50 + 25 + 300 + 959.2808) = 3,468.5617
-//   Cash In     = 40,000 + 4,000 + 5,850 + 13,000 + 300 + 3,468.5617 − 1,000 = 65,618.5617
+//   Cash In     = 40,000 + 4,000 + 8,850 + 13,000 + 300 + 3,468.5617 − 1,000 = 68,618.5617
 //   opex        = 300 tax + 100 ins + 25 HOA + 50 SIT + 200 capex + 160 mgmt = 835
 //   NOI 1,165 · cashflow 205.7192 · w/o capex 405.7192
-//   CoC 3.7621% · w/o capex 7.4196% · DSCR 2,000 ÷ 1,359.2808 = 1.4714 · lender 2,000 ÷ 475 = 4.2105
+//   CoC 3.5976% · w/o capex 7.0952% · DSCR 2,000 ÷ 1,359.2808 = 1.4714 · lender 2,000 ÷ 475 = 4.2105
 
 import { describe, it, expect } from 'vitest'
-import { type Deal } from '../lib/deal-model'
+import { calcBRRRR, type Deal } from '../lib/deal-model'
 import { BLANK_DEAL } from '../lib/blank-deal'
 import { calcBuyHold, type BuyHoldResult } from '../lib/buy-hold'
 
@@ -77,7 +77,8 @@ describe('calcBuyHold: hand-checked fixture', () => {
   it('charges the Refi Term Sheet costs on the B&H loan', () => {
     expect(r.loanPointsDollar).toBeCloseTo(1600, 6)
     expect(r.loanBuydownDollar).toBeCloseTo(800, 6)
-    expect(r.loanCosts).toBeCloseTo(5850, 6)
+    expect(r.titleEscrow).toBe(3000)
+    expect(r.loanCosts).toBeCloseTo(8850, 6)
   })
 
   it('amortizes the mortgage at the refi rate and term', () => {
@@ -88,7 +89,7 @@ describe('calcBuyHold: hand-checked fixture', () => {
     expect(r.cashRehab).toBe(13000)
     expect(r.oneTimeCosts).toBe(300)
     expect(r.holdingCosts).toBeCloseTo(3468.5617, 4)
-    expect(r.cashIn).toBeCloseTo(65618.5617, 4)
+    expect(r.cashIn).toBeCloseTo(68618.5617, 4)
   })
 
   it('computes NOI, cashflow, CoC, DSCR and the lender ratio', () => {
@@ -100,8 +101,8 @@ describe('calcBuyHold: hand-checked fixture', () => {
     expect(r.cashflow).toBeCloseTo(205.7192, 4)
     expect(r.cashflowNoCapex).toBeCloseTo(405.7192, 4)
     expect(r.annualCashflow).toBeCloseTo(2468.6299, 3)
-    expect(r.coc).toBeCloseTo(3.7621, 4)
-    expect(r.cocNoCapex).toBeCloseTo(7.4196, 4)
+    expect(r.coc).toBeCloseTo(3.5976, 4)
+    expect(r.cocNoCapex).toBeCloseTo(7.0952, 4)
     expect(r.dscr).toBeCloseTo(1.4714, 4)
     expect(r.lenderDscr).toBeCloseTo(4.2105, 4)
   })
@@ -115,7 +116,8 @@ describe('calcBuyHold: edge cases', () => {
     expect(r.mortgagePI).toBe(0)
     expect(r.loanPointsDollar).toBe(0)
     expect(r.loanBuydownDollar).toBe(0)
-    expect(r.loanCosts).toBe(0)        // no lender → no appraisal, underwriting, misc or extra fees (title included)
+    expect(r.loanCosts).toBe(0)        // no lender → no appraisal, underwriting, misc, extra fees or title/escrow
+    expect(r.titleEscrow).toBe(0)
     expect(r.cashflow).toBeCloseTo(1165, 6)
     expect(r.dscr).toBeCloseTo(2000 / 400, 6)
     // holding: 2 × (300 + 100 + 50 + 25 + 300) = 1,550
@@ -128,7 +130,7 @@ describe('calcBuyHold: edge cases', () => {
   it('zero rehab months means no holding costs', () => {
     const r = calcBuyHold({ ...BH_DEAL, rehabMonths: 0 })
     expect(r.holdingCosts).toBe(0)
-    expect(r.cashIn).toBeCloseTo(65618.5617 - 3468.5617, 4)
+    expect(r.cashIn).toBeCloseTo(68618.5617 - 3468.5617, 4)
   })
 
   it('zero rent never blows up', () => {
@@ -156,13 +158,22 @@ describe('calcBuyHold: edge cases', () => {
     const r = calcBuyHold({ ...BH_DEAL, arv: 400000 })
     expect(r.loanPointsDollar).toBeCloseTo(160000 * 0.01, 6)
     expect(r.loanBuydownDollar).toBeCloseTo(160000 * 0.005, 6)
-    expect(r.loanCosts).toBeCloseTo(5850, 6)
+    expect(r.loanCosts).toBeCloseTo(8850, 6)
   })
 
-  it('ignores refi title/escrow (incl. its auto value), refi LTV and seasoning', () => {
+  it('charges refi title/escrow at the same value BRRRR uses, auto value included', () => {
+    const typed = calcBuyHold(BH_DEAL)
+    expect(typed.titleEscrow).toBe(calcBRRRR(BH_DEAL).refiTitleEscrow)
+    // Blank (0) = BRRRR's auto value: ARV × 2% + $500 = 250,000 × 2% + 500 = 5,500
+    const auto: Deal = { ...BH_DEAL, refiTitleEscrow: 0 }
+    const r = calcBuyHold(auto)
+    expect(r.titleEscrow).toBe(5500)
+    expect(r.titleEscrow).toBe(calcBRRRR(auto).refiTitleEscrow)
+    expect(r.loanCosts).toBeCloseTo(8850 - 3000 + 5500, 6)
+  })
+
+  it('ignores refi LTV and seasoning', () => {
     const base = calcBuyHold(BH_DEAL)
-    expect(calcBuyHold({ ...BH_DEAL, refiTitleEscrow: 0 })).toEqual(base)   // 0 = ARV-based auto in BRRRR
-    expect(calcBuyHold({ ...BH_DEAL, refiTitleEscrow: 9999 })).toEqual(base)
     expect(calcBuyHold({ ...BH_DEAL, refiLtv: 0 })).toEqual(base)
     expect(calcBuyHold({ ...BH_DEAL, refiLtv: 80 })).toEqual(base)
     expect(calcBuyHold({ ...BH_DEAL, refiSeasoningMonths: 0 })).toEqual(base)

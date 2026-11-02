@@ -239,7 +239,7 @@ function BuyHoldView({ deal, bnh, onLabelClick }: { deal: Deal; bnh: BuyHoldResu
         <OutputRow label="Purchase price"                       value={fmtCurrency(deal.purchasePrice)} metricId="pp" onLabelClick={click} />
         <OutputRow label="Down payment"                         value={fmtCurrency(bnh.downPayment)} metricId="bnh_down_payment" onLabelClick={click} />
         <OutputRow label={`Loan (${deal.bnhLoanPct}% of price)`} value={fmtCurrency(bnh.loan)} metricId="bnh_loan" onLabelClick={click} />
-        <OutputRow label="Loan costs (points + lender fees)"    value={fmtCurrency(bnh.loanCosts)} metricId="bnh_loan_costs" onLabelClick={click} />
+        <OutputRow label="Loan costs (points + fees + title/escrow)" value={fmtCurrency(bnh.loanCosts)} metricId="bnh_loan_costs" onLabelClick={click} />
         <OutputRow label="Closing costs"                        value={fmtCurrency(deal.closingCostsBuy)} metricId="closing_buy" onLabelClick={click} />
         <OutputRow label="Rehab (all cash)"                     value={fmtCurrency(bnh.cashRehab)} metricId="bnh_cash_rehab" onLabelClick={click} />
         <OutputRow label="One-time costs"                       value={fmtCurrency(bnh.oneTimeCosts)} metricId="bnh_one_time" onLabelClick={click} />

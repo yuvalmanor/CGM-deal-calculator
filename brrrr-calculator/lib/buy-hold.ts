@@ -7,10 +7,11 @@
 //
 // Imports only the engine's exported building blocks. The engine's amortization
 // helper is private, so this module carries its own rather than exporting it out
-// of the frozen file. Refi title/escrow, refi LTV and seasoning are BRRRR-only
-// and never read here.
+// of the frozen file. Refi LTV and seasoning are BRRRR-only and never read here.
+// Refi title/escrow is charged at the exact value BRRRR uses (typed, or its auto
+// value when blank), read from calcBRRRR's result so the auto rule is never copied.
 
-import { monthlyOpExpenses, totalRehab, type Deal } from './deal-model'
+import { calcBRRRR, monthlyOpExpenses, totalRehab, type Deal } from './deal-model'
 
 export interface BuyHoldResult {
   // Loan
@@ -18,7 +19,8 @@ export interface BuyHoldResult {
   downPayment: number
   loanPointsDollar: number    // origination points on the B&H loan
   loanBuydownDollar: number   // rate-buydown points on the B&H loan
-  loanCosts: number           // points + buydown + appraisal + underwriting + other misc + extra fees (title goes in extra fees)
+  titleEscrow: number         // Refi title/escrow, same value as BRRRR's (0 when all cash)
+  loanCosts: number           // points + buydown + appraisal + underwriting + other misc + extra fees + title/escrow
   mortgagePI: number
   // Cash In
   cashRehab: number           // total rehab + every additional rehab cost — no HML, so all cash
@@ -60,8 +62,9 @@ export function calcBuyHold(d: Deal): BuyHoldResult {
   const loanPointsDollar = loan * (d.refiPoints / 100)
   const loanBuydownDollar = loan * ((d.refiBuydownPoints || 0) / 100)
   // All cash (no loan) means no lender, so none of the Refi lender's flat fees apply
+  const titleEscrow = loan > 0 ? calcBRRRR(d).refiTitleEscrow : 0
   const lenderFlatFees = loan > 0
-    ? d.refiAppraisal + d.refiUnderwriting + d.refiOtherMisc + sum(d.refiExtraFees)
+    ? d.refiAppraisal + d.refiUnderwriting + d.refiOtherMisc + sum(d.refiExtraFees) + titleEscrow
     : 0
   const loanCosts = loanPointsDollar + loanBuydownDollar + lenderFlatFees
   const mortgagePI = monthlyPayment(loan, d.refiRate, d.refiTermYears)
@@ -87,7 +90,7 @@ export function calcBuyHold(d: Deal): BuyHoldResult {
   const lenderDscr = lenderDscrDenom > 0 ? d.monthlyRent / lenderDscrDenom : 0
 
   return {
-    loan, downPayment, loanPointsDollar, loanBuydownDollar, loanCosts, mortgagePI,
+    loan, downPayment, loanPointsDollar, loanBuydownDollar, titleEscrow, loanCosts, mortgagePI,
     cashRehab, oneTimeCosts, holdingCosts, cashIn,
     monthlyRent: d.monthlyRent,
     totalOpex: op.total,

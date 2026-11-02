@@ -521,13 +521,13 @@ Run across 3 scenarios: 2%, 3%, 4% annual appreciation`,
 
   bnh_loan_costs: {
     title: 'B&H loan costs',
-    formula: 'B&H Loan × (Points% + Buydown Points%) + Appraisal + Underwriting + Other Misc + Extra Refi Fees',
+    formula: 'B&H Loan × (Points% + Buydown Points%) + Appraisal + Underwriting + Other Misc + Extra Refi Fees + Refi Title/Escrow',
     calcFn: (d, _b, _m, _s, h) => {
       const extras = (d.refiExtraFees || []).reduce((s, f) => s + (f.amount || 0), 0)
       return `${fmtCurrency(h.loan)} × (${d.refiPoints}% + ${d.refiBuydownPoints || 0}%) = ${fmtCurrency(h.loanPointsDollar + h.loanBuydownDollar)}\n`
-        + `+ ${fmtCurrency(d.refiAppraisal)} + ${fmtCurrency(d.refiUnderwriting)} + ${fmtCurrency(d.refiOtherMisc)} + ${fmtCurrency(extras)} = ${fmtCurrency(h.loanCosts)}`
+        + `+ ${fmtCurrency(d.refiAppraisal)} + ${fmtCurrency(d.refiUnderwriting)} + ${fmtCurrency(d.refiOtherMisc)} + ${fmtCurrency(extras)} + ${fmtCurrency(h.titleEscrow)} = ${fmtCurrency(h.loanCosts)}`
     },
-    note: 'The selected Refi Term Sheet\'s charges, with points and buydown points taken on the B&H loan — not the refi loan. Refi title/escrow, refi LTV and seasoning are BRRRR-only and not used — enter the lender\'s title policy as an Additional Refi Fee. All cash (loan % = 0): no lender, so no loan costs at all.',
+    note: 'The selected Refi Term Sheet\'s charges, with points and buydown points taken on the B&H loan — not the refi loan. Refi Title/Escrow is the same number BRRRR uses: what you typed, or ARV × 2% + $500 when left blank. Refi LTV and seasoning are BRRRR-only and not used. All cash (loan % = 0): no lender, so no loan costs at all.',
   },
 
   bnh_cash_rehab: {

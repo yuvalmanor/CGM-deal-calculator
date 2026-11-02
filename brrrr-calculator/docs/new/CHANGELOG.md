@@ -401,6 +401,11 @@ the other Refi fees. `bnhTitleCost` is gone from `Deal`, `DEFAULT_DEAL` and `BLA
 (field-only engine-file edit, goldens unchanged); the Title row, its formula entry and the
 input are removed. Saved rows that carry the old key load fine — it is simply ignored.
 
+**Follow-up 2026-11-02 (user decision):** B&H loan costs now include Refi Title/Escrow at the
+same value BRRRR uses — the typed amount, or ARV × 2% + $500 when blank — read from
+`calcBRRRR(d).refiTitleEscrow` so the auto rule isn't copied. Dropped on all-cash, like the
+other lender fees. Row relabeled "Loan costs (points + fees + title/escrow)".
+
 ---
 
 ## How to Update This File
