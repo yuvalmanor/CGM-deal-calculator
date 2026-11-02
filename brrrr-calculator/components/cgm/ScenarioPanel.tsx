@@ -192,9 +192,12 @@ function BRRRRView({ deal, brrrr, onLabelClick }: { deal: Deal; brrrr: BRRRRResu
 
 // ---- Buy & Hold view ----
 
-function BuyHoldView({ deal, bnh, onLabelClick }: { deal: Deal; bnh: BuyHoldResult; onLabelClick?: (id: string) => void }) {
+function BuyHoldView({ deal, bnh, onLabelClick, onUpdate }: {
+  deal: Deal; bnh: BuyHoldResult; onLabelClick?: (id: string) => void; onUpdate?: (patch: Partial<Deal>) => void
+}) {
   const click = onLabelClick
   const [cocNoCapexView, setCocNoCapexView] = useState(false)
+  const [equityShowDollar, setEquityShowDollar] = useState(false)
   const [opexExpanded, setOpexExpanded] = useState(true)
   const op = monthlyOpExpenses(deal)
   // Tile labels open the formula modal; a tile that toggles a view keeps that on its value
@@ -203,6 +206,23 @@ function BuyHoldView({ deal, bnh, onLabelClick }: { deal: Deal; bnh: BuyHoldResu
   )
   return (
     <div className="scenario-view">
+      <div className="bnh-basis">
+        <span className="am-label am-label-clickable" onClick={() => click?.('bnh_value')} title="Formula: B&H property value">
+          Property value
+        </span>
+        <div className="am-equity-toggle" role="group" aria-label="B&H property value">
+          {(['arv', 'purchase'] as const).map((b) => (
+            <button
+              key={b}
+              className={`am-eq-btn${deal.bnhValueBasis === b ? ' active' : ''}`}
+              aria-pressed={deal.bnhValueBasis === b}
+              onClick={() => onUpdate?.({ bnhValueBasis: b })}
+            >{b === 'arv' ? 'ARV' : 'Purchase price'}</button>
+          ))}
+        </div>
+        <span className="mono bnh-basis-value">{fmtCurrency(bnh.value)}</span>
+      </div>
+
       <div className="scenario-summary">
         <div className="summary-pri">
           <div className="summary-eyebrow am-label-clickable" onClick={() => click?.('bnh_cashflow')} title="Formula: B&H cashflow">Annual cashflow</div>
@@ -224,9 +244,15 @@ function BuyHoldView({ deal, bnh, onLabelClick }: { deal: Deal; bnh: BuyHoldResu
             {tileLabel('DSCR', 'bnh_dscr')}
             <div className="cell-value">{fmtNum(bnh.dscr)}</div>
           </div>
-          <div className="summary-cell neutral">
-            {tileLabel(`Loan (${deal.bnhLoanPct}%)`, 'bnh_loan')}
-            <div className="cell-value">{fmtCurrency(bnh.loan)}</div>
+          <div
+            className={`summary-cell ${statusFor('equity', bnh.equityPct, deal)}`}
+            onClick={() => setEquityShowDollar((v) => !v)}
+            style={{ cursor: 'pointer', userSelect: 'none' }}
+          >
+            {tileLabel(`Equity ${equityShowDollar ? '$' : '%'}`, 'bnh_equity')}
+            <div className="cell-value">
+              {equityShowDollar ? fmtCurrency(bnh.equityDollar) : fmtPct(bnh.equityPct)}
+            </div>
           </div>
           <div className={`summary-cell ${statusFor('moneyInDeal', bnh.cashIn, deal)}`}>
             {tileLabel('Cash In', 'bnh_cash_in')}
@@ -579,6 +605,88 @@ function AdvancedMetrics({ deal, brrrr, onLabelClick }: { deal: Deal; brrrr: BRR
   )
 }
 
+// ---- Buy & Hold Advanced Metrics ----
+
+function BuyHoldAdvancedMetrics({ deal, bnh, onLabelClick }: { deal: Deal; bnh: BuyHoldResult; onLabelClick?: (id: string) => void }) {
+  const [annualCFNoCapex, setAnnualCFNoCapex] = useState(false)
+  const click = onLabelClick
+  const basisLabel = deal.bnhValueBasis === 'purchase' ? 'purchase price' : 'ARV'
+
+  return (
+    <div className="am-panel">
+      <div className="am-header">
+        <div className="am-title">Advanced Metrics · Buy & Hold</div>
+      </div>
+
+      <div className="am-grid">
+        <div className={`am-cell am-${statusFor('capRate', bnh.capRate, deal)}`}>
+          <div className="am-label am-label-clickable" onClick={() => click?.('bnh_cap_rate')}>Cap Rate</div>
+          <div className="am-value">{fmtPct(bnh.capRate)}</div>
+        </div>
+        <div className={`am-cell am-${statusFor('grm', bnh.grm, deal)}`}>
+          <div className="am-label am-label-clickable" onClick={() => click?.('bnh_grm')}>GRM</div>
+          <div className="am-value">{bnh.grm.toFixed(1)}×</div>
+        </div>
+        <div className={`am-cell am-${statusFor('roe', bnh.roe, deal)}`}>
+          <div className="am-label am-label-clickable" onClick={() => click?.('bnh_roe')}>ROE</div>
+          <div className="am-value">{fmtPct(bnh.roe)}</div>
+        </div>
+        <div className="am-cell am-neutral">
+          <div className="am-label am-label-clickable" onClick={() => click?.('bnh_cashflow')}>
+            Annual CF {annualCFNoCapex ? '(no capex)' : '(w/ capex)'}
+          </div>
+          <div
+            className="am-value am-label-clickable"
+            title="Click to toggle CapEx"
+            onClick={() => setAnnualCFNoCapex((v) => !v)}
+          >
+            {fmtCurrency(annualCFNoCapex ? bnh.cashflowNoCapex * 12 : bnh.annualCashflow)}
+          </div>
+        </div>
+        <div className="am-cell am-neutral">
+          <div className="am-label am-label-clickable" onClick={() => click?.('bnh_value')}>Value ({basisLabel})</div>
+          <div className="am-value">{fmtCurrency(bnh.value)}</div>
+        </div>
+        <div className="am-cell am-neutral">
+          <div className="am-label am-label-clickable" onClick={() => click?.('bnh_loan')}>Loan ({deal.bnhLoanPct}%)</div>
+          <div className="am-value">{fmtCurrency(bnh.loan)}</div>
+        </div>
+      </div>
+
+      <div className="am-irr">
+        <div className="am-irr-title am-label-clickable" onClick={() => click?.('bnh_irr')}>
+          5-Year IRR
+        </div>
+        {bnh.cashIn <= 0 ? (
+          <div className="am-irr-note">No cash in the deal — infinite return</div>
+        ) : (
+          <div className="am-irr-rows">
+            {([['2%', bnh.irr2pct], ['3%', bnh.irr3pct], ['4%', bnh.irr4pct]] as const).map(([label, v]) => (
+              <div className="am-irr-row" key={label}>
+                <span className="am-irr-label">{label} appreciation</span>
+                <span className={`am-irr-value am-${statusFor('irr', v, deal)}`}>{fmtPct(v)}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="am-equity">
+        <div className="am-equity-header">
+          <div className="am-label">Equity at purchase</div>
+        </div>
+        <div className="am-equity-values">
+          <span className="am-equity-dollar am-label-clickable" onClick={() => click?.('bnh_equity')}>
+            {fmtCurrency(bnh.equityDollar)}
+          </span>
+          <span className="am-equity-pct">{fmtPct(bnh.equityPct)}</span>
+        </div>
+        <div className="am-equity-note">On {basisLabel}: value − B&H loan</div>
+      </div>
+    </div>
+  )
+}
+
 // ---- ScenarioPanel (exported) ----
 
 type ScenarioKey = 'brrrr' | 'buyHold' | 'flipCash' | 'flipHml'
@@ -595,10 +703,11 @@ interface Props {
   setScenario: (s: ScenarioKey) => void
   onEdit?: () => void
   onLabelClick?: (id: string) => void
+  onUpdate?: (patch: Partial<Deal>) => void  // the B&H value toggle writes bnhValueBasis
   termSheetSections?: React.ReactNode  // per-role Term Sheet panels, owned by DealCalculator
 }
 
-export function ScenarioPanel({ deal, brrrr, buyHold, flipCash, flipHml, mao, score, scenario, setScenario, onEdit, onLabelClick, termSheetSections }: Props) {
+export function ScenarioPanel({ deal, brrrr, buyHold, flipCash, flipHml, mao, score, scenario, setScenario, onEdit, onLabelClick, onUpdate, termSheetSections }: Props) {
   const tabs: { key: ScenarioKey; label: string; sub: string }[] = [
     { key: 'brrrr',    label: 'BRRRR',       sub: fmtCurrency(brrrr.cashflow) + '/mo' },
     { key: 'buyHold',  label: 'Buy & Hold',  sub: fmtCurrency(buyHold.cashflow) + '/mo' },
@@ -630,7 +739,7 @@ export function ScenarioPanel({ deal, brrrr, buyHold, flipCash, flipHml, mao, sc
 
       <div className="scenario-body">
         {scenario === 'brrrr'    && <BRRRRView    deal={deal} brrrr={brrrr} onLabelClick={onLabelClick} />}
-        {scenario === 'buyHold'  && <BuyHoldView  deal={deal} bnh={buyHold} onLabelClick={onLabelClick} />}
+        {scenario === 'buyHold'  && <BuyHoldView  deal={deal} bnh={buyHold} onLabelClick={onLabelClick} onUpdate={onUpdate} />}
         {scenario === 'flipCash' && <FlipCashView deal={deal} flip={flipCash} onLabelClick={onLabelClick} />}
         {scenario === 'flipHml'  && <FlipHMLView  deal={deal} flip={flipHml} onLabelClick={onLabelClick} />}
       </div>
@@ -639,6 +748,7 @@ export function ScenarioPanel({ deal, brrrr, buyHold, flipCash, flipHml, mao, sc
       <MAODetail deal={deal} mao={mao} onLabelClick={onLabelClick} />
       <ScoreBreakdown score={score} onLabelClick={onLabelClick} />
       {scenario === 'brrrr' && <AdvancedMetrics deal={deal} brrrr={brrrr} onLabelClick={onLabelClick} />}
+      {scenario === 'buyHold' && <BuyHoldAdvancedMetrics deal={deal} bnh={buyHold} onLabelClick={onLabelClick} />}
     </div>
   )
 }

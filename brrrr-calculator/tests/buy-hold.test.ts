@@ -11,6 +11,16 @@
 //   opex        = 300 tax + 100 ins + 25 HOA + 50 SIT + 200 capex + 160 mgmt = 835
 //   NOI 1,165 · cashflow 205.7192 · w/o capex 405.7192
 //   CoC 3.5976% · w/o capex 7.0952% · DSCR 2,000 ÷ 1,359.2808 = 1.4714 · lender 2,000 ÷ 475 = 4.2105
+//
+// Value metrics (phase 2), selling costs 8%. The balance after 60 payments was found
+// by stepping the schedule month by month, and the IRRs by bisection on the NPV —
+// not with the module's closed form or Newton solver:
+//   balance after 60 payments = 148,886.9709
+//   ARV basis (250,000):      Equity $ 90,000 · Equity % 31.1598 · cap 5.592% · GRM 10.4167 · ROE 2.7429%
+//                             IRR 2% 12.1297 · 3% 14.5461 · 4% 16.8539
+//   Purchase basis (200,000): Equity $ 40,000 · Equity % −41.7067 · cap 6.99% · GRM 8.3333 · ROE 6.1716%
+//                             IRR 2% −0.6520 · 3% 2.4734 · 4% 5.3503
+//   All cash, ARV, 3%:        IRR 10.3583 (no balance; Cash In 217,850, cashflow 1,165)
 
 import { describe, it, expect } from 'vitest'
 import { calcBRRRR, type Deal } from '../lib/deal-model'
@@ -105,6 +115,71 @@ describe('calcBuyHold: hand-checked fixture', () => {
     expect(r.cocNoCapex).toBeCloseTo(7.0952, 4)
     expect(r.dscr).toBeCloseTo(1.4714, 4)
     expect(r.lenderDscr).toBeCloseTo(4.2105, 4)
+  })
+})
+
+describe('calcBuyHold: value metrics (hand-checked)', () => {
+  it('measures equity, cap rate, GRM, ROE and IRR against ARV by default', () => {
+    const r = calcBuyHold(BH_DEAL)
+    expect(r.value).toBe(250000)
+    expect(r.equityDollar).toBe(90000)
+    expect(r.equityPct).toBeCloseTo(31.1598, 4)
+    expect(r.capRate).toBeCloseTo(5.592, 6)
+    expect(r.grm).toBeCloseTo(10.4167, 4)
+    expect(r.roe).toBeCloseTo(2.7429, 4)
+    expect(r.remainingBalance60).toBeCloseTo(148886.9709, 3)
+    expect(r.irr2pct).toBeCloseTo(12.1297, 3)
+    expect(r.irr3pct).toBeCloseTo(14.5461, 3)
+    expect(r.irr4pct).toBeCloseTo(16.8539, 3)
+  })
+
+  it('measures them against the purchase price when the basis is purchase', () => {
+    const r = calcBuyHold({ ...BH_DEAL, bnhValueBasis: 'purchase' })
+    expect(r.value).toBe(200000)
+    expect(r.equityDollar).toBe(40000)
+    expect(r.equityPct).toBeCloseTo(-41.7067, 4)
+    expect(r.capRate).toBeCloseTo(6.99, 6)
+    expect(r.grm).toBeCloseTo(8.3333, 4)
+    expect(r.roe).toBeCloseTo(6.1716, 4)
+    expect(r.irr2pct).toBeCloseTo(-0.6520, 3)
+    expect(r.irr3pct).toBeCloseTo(2.4734, 3)
+    expect(r.irr4pct).toBeCloseTo(5.3503, 3)
+  })
+
+  it('the basis changes value metrics only — never cashflow, CoC, DSCR or Cash In', () => {
+    const arv = calcBuyHold({ ...BH_DEAL, bnhValueBasis: 'arv' })
+    const pp = calcBuyHold({ ...BH_DEAL, bnhValueBasis: 'purchase' })
+    for (const k of ['equityDollar', 'equityPct', 'capRate', 'grm', 'irr2pct', 'irr3pct', 'irr4pct'] as const) {
+      expect(pp[k], k).not.toBeCloseTo(arv[k], 2)
+    }
+    for (const k of ['cashflow', 'cashflowNoCapex', 'coc', 'cocNoCapex', 'dscr', 'lenderDscr', 'cashIn', 'noi', 'mortgagePI'] as const) {
+      expect(pp[k], k).toBe(arv[k])
+    }
+  })
+
+  it('IRR flows: −Cash In, 60 monthly cashflows, year-5 sale net of selling costs and the balance', () => {
+    // Rebuild the flows here and check the result zeroes their NPV
+    const r = calcBuyHold(BH_DEAL)
+    for (const [g, irr] of [[0.02, r.irr2pct], [0.03, r.irr3pct], [0.04, r.irr4pct]] as const) {
+      const exit = 250000 * Math.pow(1 + g, 5) * (1 - 0.08) - 148886.9709
+      const flows = [-r.cashIn, ...Array(59).fill(r.cashflow), r.cashflow + exit]
+      const m = Math.pow(1 + irr / 100, 1 / 12) - 1
+      const npv = flows.reduce((s, c, t) => s + c / Math.pow(1 + m, t), 0)
+      expect(Math.abs(npv)).toBeLessThan(0.05)
+    }
+  })
+
+  it('all cash: no balance to pay off at the sale', () => {
+    const r = calcBuyHold({ ...BH_DEAL, bnhLoanPct: 0 })
+    expect(r.remainingBalance60).toBe(0)
+    expect(r.equityDollar).toBe(250000)
+    expect(r.irr3pct).toBeCloseTo(10.3583, 3)
+  })
+
+  it('no IRR when credits cover all of Cash In', () => {
+    const r = calcBuyHold({ ...BH_DEAL, projectCostAdjustments: 100000 })
+    expect(r.irr3pct).toBe(0)
+    expect(r.equityPct).toBe(0)
   })
 })
 

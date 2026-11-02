@@ -1209,6 +1209,10 @@ input, textarea { font-family: inherit; color: inherit; }
 .am-equity-pct { font-size: 14px; font-weight: 600; font-family: var(--font-mono); color: var(--text-dim); }
 .am-equity-note { font-size: 11px; color: var(--text-mute); font-style: italic; }
 
+/* B&H property-value toggle (ARV / purchase price) */
+.bnh-basis { display: flex; align-items: center; gap: var(--s-3); flex-wrap: wrap; margin-bottom: var(--s-3); }
+.bnh-basis-value { font-size: 13px; color: var(--text-dim); }
+
 /* ---- Scrollbars ---- */
 .drawer-inputs::-webkit-scrollbar,
 .scenario-panel::-webkit-scrollbar,

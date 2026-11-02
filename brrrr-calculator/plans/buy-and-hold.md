@@ -137,15 +137,15 @@ cashflow, CoC and DSCR unchanged. A reload or reopened Deal keeps the chosen bas
 
 ### Acceptance criteria
 
-- [ ] The B&H fixture is extended with independently worked Equity $/%, cap rate, GRM, ROE and
+- [x] The B&H fixture is extended with independently worked Equity $/%, cap rate, GRM, ROE and
       IRR values.
-- [ ] Test: value basis = purchase price vs ARV changes equity, cap rate, GRM and IRR, and does
+- [x] Test: value basis = purchase price vs ARV changes equity, cap rate, GRM and IRR, and does
       not change cashflow, CoC or DSCR.
-- [ ] IRR flows match the stated formula (month-0 Cash In, 60 monthly cashflows, year-5 sale
+- [x] IRR flows match the stated formula (month-0 Cash In, 60 monthly cashflows, year-5 sale
       net of selling costs and remaining balance). Zero rent and zero loan don't throw.
-- [ ] The toggle persists through save/load and draft reload. Old Deals open on ARV.
-- [ ] Every new metric opens its formula explanation with live values.
-- [ ] Golden suite passes unchanged.
+- [x] The toggle persists through save/load and draft reload. Old Deals open on ARV.
+- [x] Every new metric opens its formula explanation with live values.
+- [x] Golden suite passes unchanged.
 
 ---
 

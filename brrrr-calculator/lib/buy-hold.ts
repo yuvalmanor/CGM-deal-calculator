@@ -10,6 +10,9 @@
 // of the frozen file. Refi LTV and seasoning are BRRRR-only and never read here.
 // Refi title/escrow is charged at the exact value BRRRR uses (typed, or its auto
 // value when blank), read from calcBRRRR's result so the auto rule is never copied.
+//
+// Value metrics (equity, cap rate, GRM, ROE, IRR) are measured against ARV or the
+// purchase price, per bnhValueBasis. Income metrics never read the value.
 
 import { calcBRRRR, monthlyOpExpenses, totalRehab, type Deal } from './deal-model'
 
@@ -42,6 +45,17 @@ export interface BuyHoldResult {
   cocNoCapex: number
   dscr: number                // rent / (mortgage + tax + ins)
   lenderDscr: number          // rent / (tax + ins + state tax + HOA) — same as BRRRR's
+  // Value metrics — measured against `value` (ARV or purchase price, per bnhValueBasis)
+  value: number
+  equityDollar: number        // value − loan
+  equityPct: number           // (Equity $ − Cash In) / Cash In
+  capRate: number             // NOI × 12 / value
+  grm: number                 // value / (rent × 12)
+  roe: number                 // yearly cashflow / Equity $
+  remainingBalance60: number  // loan balance after 60 payments — the IRR exit pays it off
+  irr2pct: number
+  irr3pct: number
+  irr4pct: number
 }
 
 const sum = (rows: { amount: number }[] | undefined) =>
@@ -53,6 +67,46 @@ function monthlyPayment(principal: number, annualRatePct: number, termYears: num
   const r = annualRatePct / 100 / 12
   if (r === 0) return principal / n
   return (principal * r) / (1 - Math.pow(1 + r, -n))
+}
+
+function balanceAfter(principal: number, annualRatePct: number, termYears: number, paymentsMade: number): number {
+  if (principal === 0) return 0
+  const payment = monthlyPayment(principal, annualRatePct, termYears)
+  const r = annualRatePct / 100 / 12
+  if (r === 0) return Math.max(0, principal - payment * paymentsMade)
+  const g = Math.pow(1 + r, paymentsMade)
+  return Math.max(0, principal * g - payment * (g - 1) / r)
+}
+
+// Annualized IRR (%) of monthly flows; 0 when it can't be solved, same as BRRRR's
+function irrAnnualPct(flows: number[]): number {
+  if (flows[0] >= 0) return 0
+  let r = 0.005
+  for (let iter = 0; iter < 300; iter++) {
+    let npv = 0, dnpv = 0
+    for (let t = 0; t < flows.length; t++) {
+      const f = Math.pow(1 + r, t)
+      npv += flows[t] / f
+      dnpv -= t * flows[t] / (f * (1 + r))
+    }
+    if (Math.abs(dnpv) < 1e-14) break
+    const dr = npv / dnpv
+    r -= dr
+    if (Math.abs(dr) < 1e-8) break
+  }
+  if (!Number.isFinite(r) || r <= -1) return 0
+  return (Math.pow(1 + r, 12) - 1) * 100
+}
+
+// −Cash In at month 0, the monthly cashflow for 60 months, and at month 60 the sale:
+// value × (1+g)^5 × (1 − selling %) − the loan balance after 60 payments
+function irr5Year(cashIn: number, cashflow: number, value: number, appreciation: number, sellingPct: number, balance60: number): number {
+  if (cashIn <= 0) return 0
+  const exit = value * Math.pow(1 + appreciation, 5) * (1 - sellingPct / 100) - balance60
+  const flows = [-cashIn]
+  for (let m = 1; m <= 59; m++) flows.push(cashflow)
+  flows.push(cashflow + exit)
+  return irrAnnualPct(flows)
 }
 
 export function calcBuyHold(d: Deal): BuyHoldResult {
@@ -89,6 +143,15 @@ export function calcBuyHold(d: Deal): BuyHoldResult {
   const lenderDscrDenom = op.taxes + op.ins + op.sit + op.hoa
   const lenderDscr = lenderDscrDenom > 0 ? d.monthlyRent / lenderDscrDenom : 0
 
+  const value = d.bnhValueBasis === 'purchase' ? d.purchasePrice : d.arv
+  const equityDollar = value - loan
+  const equityPct = cashIn > 0 ? ((equityDollar - cashIn) / cashIn) * 100 : 0
+  const capRate = value > 0 ? (noi * 12) / value * 100 : 0
+  const grm = d.monthlyRent > 0 ? value / (d.monthlyRent * 12) : 0
+  const roe = equityDollar > 0 ? (cashflow * 12) / equityDollar * 100 : 0
+  const remainingBalance60 = balanceAfter(loan, d.refiRate, d.refiTermYears, 60)
+  const irr = (g: number) => irr5Year(cashIn, cashflow, value, g, d.sellingCostsPct, remainingBalance60)
+
   return {
     loan, downPayment, loanPointsDollar, loanBuydownDollar, titleEscrow, loanCosts, mortgagePI,
     cashRehab, oneTimeCosts, holdingCosts, cashIn,
@@ -100,5 +163,7 @@ export function calcBuyHold(d: Deal): BuyHoldResult {
     capexVacancy: op.capV,
     noi, cashflow, cashflowNoCapex, annualCashflow: cashflow * 12,
     coc, cocNoCapex, dscr, lenderDscr,
+    value, equityDollar, equityPct, capRate, grm, roe, remainingBalance60,
+    irr2pct: irr(0.02), irr3pct: irr(0.03), irr4pct: irr(0.04),
   }
 }

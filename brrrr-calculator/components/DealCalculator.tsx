@@ -269,6 +269,7 @@ export default function DealCalculator({ initialDeal, initialDealId, initialTerm
             setScenario={setScenario}
             onEdit={() => setDrawerOpen(true)}
             onLabelClick={openModal}
+            onUpdate={update}
             termSheetSections={
               <>
                 <TermSheetSection

@@ -72,6 +72,11 @@ describe('parseSavedDeal', () => {
     expect(loaded.purchasePrice).toBe(199000)
   })
 
+  it('keeps a saved B&H value basis of purchase price', () => {
+    const row = JSON.parse(JSON.stringify({ ...savedDeal, bnhValueBasis: 'purchase' }))
+    expect(parseSavedDeal(row)!.bnhValueBasis).toBe('purchase')
+  })
+
   it('leaves a deal fact blank when the row omits it — no worked-example numbers', () => {
     const { rehabEstimate: _dropped, ...olderRow } = savedDeal
     const parsed = parseSavedDeal(olderRow)

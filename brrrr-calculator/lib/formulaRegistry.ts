@@ -629,4 +629,75 @@ Run across 3 scenarios: 2%, 3%, 4% annual appreciation`,
     },
     note: 'Whether a DSCR lender would approve the purchase loan. Lenders want ≥ 1.25. All cash: no P&I in the denominator.',
   },
+
+  bnh_value: {
+    title: 'B&H property value',
+    formula: 'ARV or Purchase Price, per the Property value toggle',
+    calcFn: (d, _b, _m, _s, h) =>
+      d.bnhValueBasis === 'purchase'
+        ? `Purchase price = ${fmtCurrency(h.value)} (ARV ${fmtCurrency(d.arv)} not used)`
+        : `ARV = ${fmtCurrency(h.value)} (purchase price ${fmtCurrency(d.purchasePrice)} not used)`,
+    note: 'The value B&H equity, cap rate, GRM, ROE and the 5-year IRR exit are measured against. ARV is the optimistic picture; purchase price the conservative one. Saved with the Deal. Cashflow, CoC, DSCR and Cash In never read it.',
+  },
+
+  bnh_equity: {
+    title: 'B&H equity',
+    formula: 'Equity $ = Value − B&H Loan\nEquity % = (Equity $ − Cash In) ÷ Cash In',
+    calcFn: (_d, _b, _m, _s, h) =>
+      `Equity $: ${fmtCurrency(h.value)} − ${fmtCurrency(h.loan)} = ${fmtCurrency(h.equityDollar)}\n`
+      + (h.cashIn > 0
+        ? `Equity %: (${fmtCurrency(h.equityDollar)} − ${fmtCurrency(h.cashIn)}) ÷ ${fmtCurrency(h.cashIn)} = ${fmtPct(h.equityPct)}`
+        : 'Equity %: Cash In ≤ $0 → shown as 0%'),
+    note: 'What you own on day one, and the equity created per dollar of cash the purchase took — measured the same way as BRRRR\'s Equity %, so the two tabs compare side by side. Click the tile\'s value to toggle $ / %.',
+  },
+
+  bnh_cap_rate: {
+    title: 'B&H cap rate',
+    formula: '(Monthly NOI × 12) ÷ Value',
+    calcFn: (_d, _b, _m, _s, h) =>
+      `(${fmtCurrency(h.noi)} × 12) ÷ ${fmtCurrency(h.value)} = ${fmtPct(h.capRate)}`,
+    note: `The property's annual return with no mortgage, against the chosen value.
+
+< 5% — weak · 5–7% — healthy · 7–9% — strong · > 9% — high risk or exceptional deal, check area quality`,
+  },
+
+  bnh_grm: {
+    title: 'B&H GRM (Gross Rent Multiplier)',
+    formula: 'Value ÷ (Monthly Rent × 12)',
+    calcFn: (d, _b, _m, _s, h) =>
+      `${fmtCurrency(h.value)} ÷ (${fmtCurrency(d.monthlyRent)} × 12) = ${h.grm.toFixed(1)}×`,
+    note: `How many years of gross rent equal the chosen value. Lower is better.
+
+< 8 — strong · 8–12 — healthy · 12–15 — thin · > 15 — cashflow unlikely`,
+  },
+
+  bnh_roe: {
+    title: 'B&H return on equity (ROE)',
+    formula: 'Annual Cashflow ÷ Equity $',
+    calcFn: (_d, _b, _m, _s, h) =>
+      `${fmtCurrency(h.annualCashflow)}/yr ÷ ${fmtCurrency(h.equityDollar)} = ${fmtPct(h.roe)}`,
+    note: `How hard the equity (value − B&H loan) is working. 0% when there is no positive equity.
+
+< 4% — weak · 4–7% — acceptable · 7–10% — healthy · > 10% — strong`,
+  },
+
+  bnh_irr: {
+    title: 'B&H 5-year IRR (appreciation scenarios)',
+    formula: `IRR of monthly flows: [−Cash In, CF × 59, CF + exit]
+Where:
+  exit = Value × (1 + appreciation)^5 × (1 − Selling Costs%) − B&H loan balance after 60 payments
+  Annualized as (1 + monthly IRR)^12 − 1`,
+    calcFn: (d, _b, _m, _s, h) => {
+      if (h.cashIn <= 0) return 'Cash In ≤ $0 → infinite return (shown as 0%)'
+      const exit = (g: number) => h.value * Math.pow(1 + g, 5) * (1 - d.sellingCostsPct / 100) - h.remainingBalance60
+      return `−${fmtCurrency(h.cashIn)} at month 0, ${fmtCurrency(h.cashflow)}/mo for 60 months\n`
+        + `Balance after 60 payments: ${fmtCurrency(h.remainingBalance60)}\n`
+        + `2%: exit ${fmtCurrency(exit(0.02))} → ${fmtPct(h.irr2pct)}\n`
+        + `3%: exit ${fmtCurrency(exit(0.03))} → ${fmtPct(h.irr3pct)}\n`
+        + `4%: exit ${fmtCurrency(exit(0.04))} → ${fmtPct(h.irr4pct)}`
+    },
+    note: `The annualized total return over 5 years — cashflow, loan paydown, appreciation and a year-5 sale net of selling costs — the same way BRRRR's IRR is built, on the B&H loan, Cash In and the chosen value.
+
+< 8% — weak · 8–12% — acceptable · 12–18% — healthy · 18–25% — strong · > 25% — verify assumptions`,
+  },
 }
