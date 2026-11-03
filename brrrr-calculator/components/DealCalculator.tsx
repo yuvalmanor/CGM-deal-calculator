@@ -175,14 +175,17 @@ export default function DealCalculator({ initialDeal, initialDealId, initialTerm
     () => compareTermSheets(deal, termSheets, 'hml', hmlCompareScenario),
     [deal, termSheets, hmlCompareScenario],
   )
-  // Refi always compares under BRRRR — a refi only exists in the BRRRR exit.
+  // Refi compares under Buy & Hold on the B&H tab (the Refi Lender funds the
+  // purchase loan there) and under BRRRR everywhere else. The payoff matrix
+  // follows, sized on each sheet's B&H loan or refi loan.
+  const refiCompareScenario = scenario === 'buyHold' ? 'buyHold' : 'brrrr'
   const refiCompareRows = useMemo(
-    () => compareTermSheets(deal, termSheets, 'refi', 'brrrr'),
-    [deal, termSheets],
+    () => compareTermSheets(deal, termSheets, 'refi', refiCompareScenario),
+    [deal, termSheets, refiCompareScenario],
   )
   const payoffColumns = useMemo(
-    () => comparePayoffHorizons(deal, termSheets),
-    [deal, termSheets],
+    () => comparePayoffHorizons(deal, termSheets, refiCompareScenario),
+    [deal, termSheets, refiCompareScenario],
   )
 
   const brrrr   = useMemo(() => calcBRRRR(deal),   [deal])

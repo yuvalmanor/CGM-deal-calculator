@@ -23,11 +23,21 @@ interface Props {
 const KPI_HEADERS: Record<ComparisonKpis['scenario'], string[]> = {
   brrrr:   ['Total cash in', 'Money in deal', 'Cashflow /mo', 'CoC', 'DSCR', 'Score'],
   flipHml: ['Total cash in', 'Net profit', 'ROI'],
+  buyHold: ['Cash In', 'Cashflow /mo', 'CoC', 'DSCR', 'Score'],
 }
 
 function kpiCells(kpis: ComparisonKpis): string[] {
   if (kpis.scenario === 'flipHml') {
     return [fmtCurrency(kpis.totalCashIn), fmtCurrency(kpis.profit), fmtPct(kpis.roi)]
+  }
+  if (kpis.scenario === 'buyHold') {
+    return [
+      fmtCurrency(kpis.cashIn),
+      fmtCurrency(kpis.cashflow),
+      Number.isFinite(kpis.coc) ? fmtPct(kpis.coc) : '∞',
+      fmtNum(kpis.dscr),
+      kpis.score.toFixed(1),
+    ]
   }
   return [
     fmtCurrency(kpis.totalCashIn),

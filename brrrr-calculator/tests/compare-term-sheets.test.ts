@@ -12,6 +12,7 @@ import {
   type TermSheetState,
 } from '../lib/term-sheets'
 import { compareTermSheets, comparePayoffHorizons } from '../lib/compare-term-sheets'
+import { calcBuyHold, calcBuyHoldScore } from '../lib/buy-hold'
 import { PAYOFF_HORIZONS_YEARS } from '../lib/payoff-horizon'
 
 const deal: Deal = { ...DEFAULT_DEAL, hmlName: 'Lender A', hmlRate: 11, hmlPoints: 2 }
@@ -212,5 +213,87 @@ describe('compareTermSheets — scenario switch', () => {
     expect('dscr' in brrrrKpis).toBe(true)
     expect('dscr' in flipKpis).toBe(false)
     expect('profit' in flipKpis).toBe(true)
+  })
+})
+
+describe('Buy & Hold — refi role', () => {
+  // Two refi sheets with different loan %, rate, points and PPP: A (stored) and B (selected, live)
+  function twoBnhSheetSetup(): { state: TermSheetState; dealB: Deal; idA: string; idB: string } {
+    const base: Deal = { ...deal, refiName: 'Bank A', refiRate: 6.75, bnhLoanPct: 75, refiPppSchedule: [5, 4, 3] }
+    const s0 = initialTermSheetState(base)
+    const s1 = addTermSheet(s0, base, 'refi')
+    const dealB: Deal = { ...base, refiName: 'Bank B', refiRate: 7.5, refiPoints: 2, bnhLoanPct: 80, refiPppSchedule: [] }
+    return { state: s1, dealB, idA: s0.refi.selectedId, idB: s1.refi.selectedId }
+  }
+
+  it('buyHold rows carry B&H Cash In, cashflow, CoC, DSCR and score per candidate', () => {
+    const { state, dealB, idA, idB } = twoBnhSheetSetup()
+    const rows = compareTermSheets(dealB, state, 'refi', 'buyHold')
+    expect(rows).toHaveLength(2)
+
+    const candidates: Record<string, Deal> = {
+      [idA]: applyTerms(dealB, state.refi.sheets.find((s) => s.id === idA)!.terms),
+      [idB]: dealB,
+    }
+    // Each candidate uses its own loan %: A at 75, B (selected, live) at 80
+    expect(candidates[idA].bnhLoanPct).toBe(75)
+    expect(candidates[idB].bnhLoanPct).toBe(80)
+    for (const row of rows) {
+      const c = candidates[row.id]
+      const bnh = calcBuyHold(c)
+      expect(row.kpis).toEqual({
+        scenario: 'buyHold',
+        cashIn: bnh.cashIn,
+        cashflow: bnh.cashflow,
+        coc: bnh.coc,
+        dscr: bnh.dscr,
+        score: calcBuyHoldScore(c, bnh).score,
+      })
+    }
+    expect(rows[0].kpis).not.toEqual(rows[1].kpis)
+  })
+
+  it('the HML role still compares under BRRRR while the refi role compares under buyHold', () => {
+    const { state, dealB } = twoSheetSetup()
+    expect(compareTermSheets(dealB, state, 'hml', 'brrrr')[0].kpis.scenario).toBe('brrrr')
+    expect(compareTermSheets(dealB, state, 'refi', 'buyHold')[0].kpis.scenario).toBe('buyHold')
+  })
+
+  it('payoff columns under buyHold are sized on each sheet\'s B&H loan, with B&H loan costs upfront', () => {
+    const { state, dealB, idA, idB } = twoBnhSheetSetup()
+    const cols = comparePayoffHorizons(dealB, state, 'buyHold')
+    expect(cols.map((c) => c.id)).toEqual([idA, idB])
+
+    const candidates: Record<string, Deal> = {
+      [idA]: applyTerms(dealB, state.refi.sheets.find((s) => s.id === idA)!.terms),
+      [idB]: dealB,
+    }
+    for (const col of cols) {
+      const bnh = calcBuyHold(candidates[col.id])
+      expect(col.loanAmount).toBe(bnh.loan)
+      expect(col.pi).toBe(bnh.mortgagePI)
+      for (const cell of col.cells) {
+        expect(cell.total).toBeCloseTo(bnh.loanCosts + cell.cumInterest + cell.penalty, 6)
+      }
+    }
+    // Not the refi loan: the BRRRR matrix on the same setup is sized differently
+    const brrrrCols = comparePayoffHorizons(dealB, state)
+    expect(cols[0].loanAmount).not.toBe(brrrrCols[0].loanAmount)
+    // Sheet A's PPP still applies on the B&H loan; sheet B has none
+    expect(cols[0].cells[0].penalty).toBe(0) // 3 yr payoff = end of a 3-year PPP → free
+    expect(cols.find((c) => c.id === idB)!.cells.every((c) => c.penalty === 0)).toBe(true)
+  })
+
+  it('omitting the scenario keeps the BRRRR matrix', () => {
+    const { state, dealB } = twoBnhSheetSetup()
+    expect(comparePayoffHorizons(dealB, state)).toEqual(comparePayoffHorizons(dealB, state, 'brrrr'))
+  })
+
+  it('an all-cash sheet (loan % 0) gives a zero-loan column without throwing', () => {
+    const s0 = initialTermSheetState({ ...deal, bnhLoanPct: 0 })
+    const cols = comparePayoffHorizons({ ...deal, bnhLoanPct: 0 }, s0, 'buyHold')
+    expect(cols[0].loanAmount).toBe(0)
+    expect(cols[0].pi).toBe(0)
+    expect(cols[0].cells.every((c) => c.total === 0)).toBe(true)
   })
 })

@@ -7,14 +7,16 @@
 // of the compared role is the deal itself — its live terms ARE the flat
 // fields, which may be ahead of the sheet's stored terms.
 //
-// HML compares under BRRRR or Flip HML; Refi compares under BRRRR only
-// (callers pass 'brrrr' for the refi role — a refi only exists in BRRRR).
+// HML compares under BRRRR or Flip HML; Refi compares under BRRRR or Buy &
+// Hold (the Refi Lender also funds the B&H purchase loan). Callers never pass
+// 'flipHml' for the refi role or 'buyHold' for the HML role.
 
 import { calcBRRRR, calcFlipHML, calcMAO, calcDealScore, type Deal } from './deal-model'
+import { calcBuyHold, calcBuyHoldScore } from './buy-hold'
 import { applyTerms, type TermSheetState, type LenderRole } from './term-sheets'
 import { payoffHorizonColumn, PAYOFF_HORIZONS_YEARS, type PayoffCell } from './payoff-horizon'
 
-export type ComparisonScenario = 'brrrr' | 'flipHml'
+export type ComparisonScenario = 'brrrr' | 'flipHml' | 'buyHold'
 
 export interface BrrrrKpis {
   scenario: 'brrrr'
@@ -33,7 +35,16 @@ export interface FlipHmlKpis {
   roi: number
 }
 
-export type ComparisonKpis = BrrrrKpis | FlipHmlKpis
+export interface BuyHoldKpis {
+  scenario: 'buyHold'
+  cashIn: number
+  cashflow: number   // monthly
+  coc: number
+  dscr: number
+  score: number      // B&H deal score (X.X / 10)
+}
+
+export type ComparisonKpis = BrrrrKpis | FlipHmlKpis | BuyHoldKpis
 
 export interface ComparisonRow {
   id: string
@@ -46,6 +57,17 @@ function kpisFor(deal: Deal, scenario: ComparisonScenario): ComparisonKpis {
   if (scenario === 'flipHml') {
     const flip = calcFlipHML(deal)
     return { scenario: 'flipHml', totalCashIn: flip.cashIn, profit: flip.profit, roi: flip.roi }
+  }
+  if (scenario === 'buyHold') {
+    const bnh = calcBuyHold(deal)
+    return {
+      scenario: 'buyHold',
+      cashIn: bnh.cashIn,
+      cashflow: bnh.cashflow,
+      coc: bnh.coc,
+      dscr: bnh.dscr,
+      score: calcBuyHoldScore(deal, bnh).score,
+    }
   }
   const brrrr = calcBRRRR(deal)
   const score = calcDealScore(deal, brrrr, calcMAO(deal))
@@ -86,34 +108,48 @@ export interface PayoffColumn {
   id: string
   name: string
   selected: boolean
-  pi: number          // the engine's monthly P&I for this candidate
-  loanAmount: number  // the engine's refi loan for this candidate
+  pi: number          // monthly P&I for this candidate's loan
+  loanAmount: number  // the refi loan, or the B&H loan under 'buyHold'
   cells: PayoffCell[] // one per PAYOFF_HORIZONS_YEARS entry, in order
 }
 
 /**
- * One matrix column per Refi Term Sheet: the frozen engine runs per candidate
- * (selected sheet = the deal's live flat fields) and supplies `upfrontCost`
- * from its own `totalRefiClosing` — the payoff module never re-derives it.
+ * One matrix column per Refi Term Sheet, run per candidate (selected sheet =
+ * the deal's live flat fields). The loan comes from the active scenario: under
+ * BRRRR the frozen engine supplies the refi loan, its P&I and `upfrontCost`
+ * from its own `totalRefiClosing`; under 'buyHold' the B&H module supplies the
+ * B&H loan, its mortgage and its loan costs. The payoff module never re-derives
+ * either. Rate, term and PPP schedule are the sheet's in both.
  */
-export function comparePayoffHorizons(deal: Deal, state: TermSheetState): PayoffColumn[] {
+export function comparePayoffHorizons(
+  deal: Deal,
+  state: TermSheetState,
+  scenario: 'brrrr' | 'buyHold' = 'brrrr',
+): PayoffColumn[] {
   const { sheets, selectedId } = state.refi
   return sheets.map((sheet) => {
     const selected = sheet.id === selectedId
     const candidate = selected ? deal : applyTerms(deal, sheet.terms)
-    const brrrr = calcBRRRR(candidate)
+    let loanAmount: number, pi: number, upfrontCost: number
+    if (scenario === 'buyHold') {
+      const bnh = calcBuyHold(candidate)
+      loanAmount = bnh.loan; pi = bnh.mortgagePI; upfrontCost = bnh.loanCosts
+    } else {
+      const brrrr = calcBRRRR(candidate)
+      loanAmount = brrrr.refiLoan; pi = brrrr.refiPI; upfrontCost = brrrr.refiTotalClosing
+    }
     return {
       id: sheet.id,
       name: String(candidate.refiName ?? ''),
       selected,
-      pi: brrrr.refiPI,
-      loanAmount: brrrr.refiLoan,
+      pi,
+      loanAmount,
       cells: payoffHorizonColumn({
-        loanAmount: brrrr.refiLoan,
+        loanAmount,
         annualRatePct: candidate.refiRate,
         termYears: candidate.refiTermYears,
         pppSchedule: candidate.refiPppSchedule ?? [],
-        upfrontCost: brrrr.refiTotalClosing,
+        upfrontCost,
       }, PAYOFF_HORIZONS_YEARS),
     }
   })

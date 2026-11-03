@@ -1,9 +1,10 @@
 'use client'
 
 // Payoff Horizon matrix — one row per horizon year, one column per Refi Term
-// Sheet. Each cell is the nominal cost of that refi if paid off at that
-// horizon: closing costs + cumulative interest + prepayment penalty
-// (principal excluded — see lib/payoff-horizon.ts). Cheapest cell per row is
+// Sheet. Each cell is the nominal cost of that sheet's loan (the refi loan, or
+// the B&H loan on the B&H tab) if paid off at that horizon: closing costs +
+// cumulative interest + prepayment penalty (principal excluded — see
+// lib/payoff-horizon.ts). Cheapest cell per row is
 // highlighted; cells with an active penalty show the penalty amount. Columns
 // come from comparePayoffHorizons — this component only renders.
 

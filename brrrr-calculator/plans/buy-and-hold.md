@@ -230,10 +230,10 @@ cashflow and score, and the early-payoff table matches the B&H loan size.
 
 ### Acceptance criteria
 
-- [ ] On the B&H tab, the Refi comparison shows B&H Cash In, Cashflow/mo, CoC, DSCR and Score
+- [x] On the B&H tab, the Refi comparison shows B&H Cash In, Cashflow/mo, CoC, DSCR and Score
       per sheet, each candidate using its own loan % and terms.
-- [ ] On the B&H tab, the HML comparison shows BRRRR KPIs.
-- [ ] On the B&H tab, the payoff-horizon matrix is sized on each sheet's B&H loan. On other tabs
+- [x] On the B&H tab, the HML comparison shows BRRRR KPIs.
+- [x] On the B&H tab, the payoff-horizon matrix is sized on each sheet's B&H loan. On other tabs
       it is unchanged.
-- [ ] Existing compare-term-sheets and payoff-horizon suites pass unchanged.
-- [ ] Golden suite passes unchanged.
+- [x] Existing compare-term-sheets and payoff-horizon suites pass unchanged.
+- [x] Golden suite passes unchanged.
