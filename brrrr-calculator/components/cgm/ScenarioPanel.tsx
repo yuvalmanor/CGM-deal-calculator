@@ -3,6 +3,7 @@ import { useState } from 'react'
 import type { Deal, BRRRRResult, FlipCashResult, FlipHMLResult, MAOResult, DealScore, Status } from '@/lib/deal-model'
 import { fmtCurrency, fmtPct, fmtNum, statusFor, monthlyOpExpenses } from '@/lib/deal-model'
 import type { BuyHoldResult } from '@/lib/buy-hold'
+import { SectionCard, InfoIcon } from './SectionCard'
 
 // ---- Primitives ----
 
@@ -19,7 +20,7 @@ function OutputRow({
         className={`out-label${canClick ? ' out-label-clickable' : ''}`}
         onClick={canClick ? () => onLabelClick(metricId) : undefined}
         title={canClick ? `Formula: ${label}` : undefined}
-      >{label}</div>
+      >{canClick && <InfoIcon />}{label}</div>
       <div className="out-value mono">{value}</div>
     </div>
   )
@@ -34,158 +35,281 @@ function OutputGroup({ title, children }: { title: string; children: React.React
   )
 }
 
-// ---- BRRRR view ----
+// ---- BRRRR tab: section cards ----
+// Purchase & Rehab → Cash Flow → Financing → Valuation & Equity →
+// Investment Returns → Financial Ratios → Purchase Criteria. Today's group
+// titles survive as sub-headings inside the cards.
 
-function BRRRRView({ deal, brrrr, onLabelClick }: { deal: Deal; brrrr: BRRRRResult; onLabelClick?: (id: string) => void }) {
+function BRRRRSections({ deal, brrrr, mao, score, onLabelClick, termSheetSections }: {
+  deal: Deal; brrrr: BRRRRResult; mao: MAOResult; score: DealScore
+  onLabelClick?: (id: string) => void; termSheetSections?: React.ReactNode
+}) {
   const click = onLabelClick
   const [equityShowDollar, setEquityShowDollar] = useState(false)
   const [cocNoCapexView, setCocNoCapexView] = useState(false)
   const [opexExpanded, setOpexExpanded] = useState(true)
   const [ioExpanded, setIoExpanded] = useState(false)
-  return (
-    <div className="scenario-view">
-      <div className="scenario-summary">
-        <div className="summary-pri">
-          <div className="summary-eyebrow">Annual cashflow</div>
-          <div className={`summary-value ${statusFor('cashflow', brrrr.cashflow, deal)}`}>
-            {fmtCurrency(brrrr.annualCashflow)}
-          </div>
-          <div className="summary-sub">{fmtCurrency(brrrr.cashflow)} / month after debt service</div>
-        </div>
-        <div className="summary-grid">
-          <div
-            className={`summary-cell ${statusFor('coc', cocNoCapexView ? brrrr.cocNoCapex : brrrr.coc, deal)}`}
-            onClick={() => setCocNoCapexView((v) => !v)}
-            style={{ cursor: 'pointer', userSelect: 'none' }}
-          >
-            <div className="cell-label">Cash-on-Cash{cocNoCapexView ? ' (w/o CapEx)' : ''}</div>
-            <div className="cell-value">{fmtPct(cocNoCapexView ? brrrr.cocNoCapex : brrrr.coc)}</div>
-          </div>
-          <div className={`summary-cell ${statusFor('dscr', brrrr.dscr, deal)}`}>
-            <div className="cell-label">DSCR</div>
-            <div className="cell-value">{fmtNum(brrrr.dscr)}</div>
-          </div>
-          <div
-            className={`summary-cell ${statusFor('equity', brrrr.equityPct, deal)}`}
-            onClick={() => setEquityShowDollar((v) => !v)}
-            style={{ cursor: 'pointer', userSelect: 'none' }}
-          >
-            <div className="cell-label">Equity {equityShowDollar ? '$' : '%'}</div>
-            <div className="cell-value">
-              {equityShowDollar ? fmtCurrency(brrrr.equityDollar) : fmtPct(brrrr.equityPct)}
-            </div>
-          </div>
-          <div className={`summary-cell ${statusFor('moneyInDeal', brrrr.moneyInDeal, deal)}`}>
-            <div className="cell-label">Money in deal</div>
-            <div className="cell-value">{fmtCurrency(brrrr.moneyInDeal)}</div>
-          </div>
-        </div>
+  const [equityMode, setEquityMode] = useState<'book' | 'liquidation'>('book')
+  const [annualCFNoCapex, setAnnualCFNoCapex] = useState(false)
+  const op = monthlyOpExpenses(deal)
+
+  const equityDollar = equityMode === 'book' ? brrrr.equityDollar : brrrr.equityLiquidationDollar
+  const equityPct    = equityMode === 'book' ? brrrr.equityPct    : brrrr.equityLiquidationPct
+  const equityMetricId = equityMode === 'book' ? 'equity_book' : 'equity_liquidation'
+
+  // An Advanced Metrics tile; its label opens the formula
+  const amCell = (label: string, value: string, status: Status, metricId: string) => (
+    <div className={`am-cell am-${status}`}>
+      <div className="am-label am-label-clickable" onClick={() => click?.(metricId)} title={`Formula: ${label}`}>
+        <InfoIcon />{label}
       </div>
+      <div className="am-value">{value}</div>
+    </div>
+  )
 
-      <OutputGroup title="Acquisition">
-        <OutputRow label="Purchase price"          value={fmtCurrency(deal.purchasePrice)} metricId="pp" onLabelClick={click} />
-        <OutputRow label="Rehab Estimate (Funded)" value={fmtCurrency(brrrr.rehabEstimate)} metricId="rehab_total" onLabelClick={click} />
-        <OutputRow label="Change Orders (Not Funded)" value={fmtCurrency(brrrr.changeOrders)} />
-        <OutputRow label="Additional rehab costs" value={fmtCurrency((deal.rehabAdditionalCosts || []).reduce((s, c) => s + (c.amount || 0), 0))} />
-        <OutputRow label="Closing costs"           value={fmtCurrency(deal.closingCostsBuy)} metricId="closing_buy" onLabelClick={click} />
-        <OutputRow label="One-time costs"          value={fmtCurrency((deal.oneTimeCosts || []).reduce((s, c) => s + (c.amount || 0), 0))} />
-        <OutputRow label="Holding costs"           value={fmtCurrency(brrrr.cashInHolding)} metricId="holding_costs" onLabelClick={click} />
-        <OutputRow label="Project cost adjustments" value={'−' + fmtCurrency(deal.projectCostAdjustments)} />
-        <OutputRow label="Total project cost"      value={fmtCurrency(brrrr.totalProjectCost)} metricId="total_project_cost" onLabelClick={click} accent />
-      </OutputGroup>
+  return (
+    <div className="section-stack">
+      <SectionCard title="Purchase & Rehab">
+        <OutputGroup title="Acquisition">
+          <OutputRow label="Purchase price"          value={fmtCurrency(deal.purchasePrice)} metricId="pp" onLabelClick={click} />
+          <OutputRow label="Rehab Estimate (Funded)" value={fmtCurrency(brrrr.rehabEstimate)} metricId="rehab_total" onLabelClick={click} />
+          <OutputRow label="Change Orders (Not Funded)" value={fmtCurrency(brrrr.changeOrders)} />
+          <OutputRow label="Additional rehab costs" value={fmtCurrency((deal.rehabAdditionalCosts || []).reduce((s, c) => s + (c.amount || 0), 0))} />
+          <OutputRow label="Closing costs"           value={fmtCurrency(deal.closingCostsBuy)} metricId="closing_buy" onLabelClick={click} />
+          <OutputRow label="One-time costs"          value={fmtCurrency((deal.oneTimeCosts || []).reduce((s, c) => s + (c.amount || 0), 0))} />
+          <OutputRow label="Holding costs"           value={fmtCurrency(brrrr.cashInHolding)} metricId="holding_costs" onLabelClick={click} />
+          <OutputRow label="Project cost adjustments" value={'−' + fmtCurrency(deal.projectCostAdjustments)} />
+          <OutputRow label="Total project cost"      value={fmtCurrency(brrrr.totalProjectCost)} metricId="total_project_cost" onLabelClick={click} accent />
+        </OutputGroup>
+      </SectionCard>
 
-      {(() => {
-        const op = monthlyOpExpenses(deal)
-        return (
-          <OutputGroup title="Monthly operating">
-            <OutputRow label="Gross rent"                                     value={fmtCurrency(brrrr.monthlyRent)} metricId="gross_rent" onLabelClick={click} />
-            <div
-              className="out-row out-label-clickable"
-              onClick={() => setOpexExpanded((v) => !v)}
-              style={{ cursor: 'pointer', userSelect: 'none' }}
-              title={opexExpanded ? 'Hide breakdown' : 'Show breakdown'}
-            >
-              <div className="out-label">{opexExpanded ? '▾' : '▸'} Expense breakdown</div>
-              <div className="out-value mono"></div>
+      <SectionCard title="Cash Flow">
+        <div className="scenario-summary">
+          <div className="summary-pri">
+            <div className="summary-eyebrow">Annual cashflow</div>
+            <div className={`summary-value ${statusFor('cashflow', brrrr.cashflow, deal)}`}>
+              {fmtCurrency(brrrr.annualCashflow)}
             </div>
-            {opexExpanded && (<>
-              <OutputRow label="Property Tax"         value={'−' + fmtCurrency(op.taxes)} />
-              <OutputRow label="Insurance"            value={'−' + fmtCurrency(op.ins)} />
-              <OutputRow label="HOA"                  value={'−' + fmtCurrency(op.hoa)} />
-              <OutputRow label="State income tax"     value={'−' + fmtCurrency(op.sit)} />
-              <OutputRow label="Property management"  value={'−' + fmtCurrency(op.mgmt)} />
-              <OutputRow label="Capex / vacancy"      value={'−' + fmtCurrency(op.capV)} />
-              <OutputRow label="Additional Monthly Costs" value={'−' + fmtCurrency(op.extras)} />
-              <OutputRow label="Mortgage P&I"         value={'−' + fmtCurrency(brrrr.refiPI)} metricId="mortgage_pi" onLabelClick={click} />
-            </>)}
-            <OutputRow label="Total Operating expenses (Include PITI) / w/o Capex"
-              value={'−' + fmtCurrency(brrrr.totalOpexWithPI) + ' / −' + fmtCurrency(brrrr.totalOpexNoCapexWithPI)}
-              metricId="total_opex" onLabelClick={click} />
-            <OutputRow label="NOI / w/o Capex"
-              value={fmtCurrency(brrrr.cashflow) + ' / ' + fmtCurrency(brrrr.cashflowNoCapex)}
-              metricId="noi" onLabelClick={click} />
-            <OutputRow label="Monthly cashflow / w/o Capex"
-              value={fmtCurrency(brrrr.cashflow) + ' / ' + fmtCurrency(brrrr.cashflowNoCapex)}
-              status={statusFor('cashflow', brrrr.cashflow, deal)} metricId="cashflow" onLabelClick={click} accent />
-            {(() => {
-              const ioMonthly = brrrr.refiLoan * (deal.refiRate / 100) / 12
-              const totalOpexWithIO        = brrrr.totalOpexWithPI        - brrrr.refiPI + ioMonthly
-              const totalOpexNoCapexWithIO = brrrr.totalOpexNoCapexWithPI - brrrr.refiPI + ioMonthly
-              const cashflowIO        = brrrr.cashflow        + brrrr.refiPI - ioMonthly
-              const cashflowNoCapexIO = brrrr.cashflowNoCapex + brrrr.refiPI - ioMonthly
-              return (<>
-                <div
-                  className="out-row out-label-clickable"
-                  onClick={() => setIoExpanded((v) => !v)}
-                  style={{ cursor: 'pointer', userSelect: 'none' }}
-                  title={ioExpanded ? 'Hide interest-only breakdown' : 'Show interest-only breakdown'}
-                >
-                  <div className="out-label">{ioExpanded ? '▾' : '▸'} Interest-only scenario</div>
-                  <div className="out-value mono"></div>
-                </div>
-                {ioExpanded && (<>
-                  <OutputRow label="Interest only mortgage monthly" value={'−' + fmtCurrency(ioMonthly)} />
-                  <OutputRow label="Total Operating expenses (Include ITI) / w/o Capex"
-                    value={'−' + fmtCurrency(totalOpexWithIO) + ' / −' + fmtCurrency(totalOpexNoCapexWithIO)} />
-                  <OutputRow label="Monthly cashflow Interest-only / w/o Capex"
-                    value={fmtCurrency(cashflowIO) + ' / ' + fmtCurrency(cashflowNoCapexIO)}
-                    status={statusFor('cashflow', cashflowIO, deal)} accent />
-                </>)}
-              </>)
-            })()}
-          </OutputGroup>
-        )
-      })()}
+            <div className="summary-sub">{fmtCurrency(brrrr.cashflow)} / month after debt service</div>
+          </div>
+          <div className="summary-grid">
+            <div
+              className={`summary-cell ${statusFor('coc', cocNoCapexView ? brrrr.cocNoCapex : brrrr.coc, deal)}`}
+              onClick={() => setCocNoCapexView((v) => !v)}
+              style={{ cursor: 'pointer', userSelect: 'none' }}
+            >
+              <div className="cell-label">Cash-on-Cash{cocNoCapexView ? ' (w/o CapEx)' : ''}</div>
+              <div className="cell-value">{fmtPct(cocNoCapexView ? brrrr.cocNoCapex : brrrr.coc)}</div>
+            </div>
+            <div className={`summary-cell ${statusFor('dscr', brrrr.dscr, deal)}`}>
+              <div className="cell-label">DSCR</div>
+              <div className="cell-value">{fmtNum(brrrr.dscr)}</div>
+            </div>
+            <div
+              className={`summary-cell ${statusFor('equity', brrrr.equityPct, deal)}`}
+              onClick={() => setEquityShowDollar((v) => !v)}
+              style={{ cursor: 'pointer', userSelect: 'none' }}
+            >
+              <div className="cell-label">Equity {equityShowDollar ? '$' : '%'}</div>
+              <div className="cell-value">
+                {equityShowDollar ? fmtCurrency(brrrr.equityDollar) : fmtPct(brrrr.equityPct)}
+              </div>
+            </div>
+            <div className={`summary-cell ${statusFor('moneyInDeal', brrrr.moneyInDeal, deal)}`}>
+              <div className="cell-label">Money in deal</div>
+              <div className="cell-value">{fmtCurrency(brrrr.moneyInDeal)}</div>
+            </div>
+          </div>
+        </div>
 
-      <OutputGroup title="Hard money loan">
-        <OutputRow label={`HML principal (${deal.hmlLevPP.toFixed(1)}% LTC)`} value={fmtCurrency(brrrr.hmlPrincipal)} metricId="hml_principal" onLabelClick={click} />
-        <OutputRow label={`Points (${deal.hmlPoints}%)`}      value={fmtCurrency(brrrr.hmlPointsDollar)} />
-        <OutputRow label="Monthly interest"   value={fmtCurrency(brrrr.hmlMonthlyInterest)} metricId="hml_monthly_interest" onLabelClick={click} />
-        <OutputRow label={`Interest carry (${brrrr.hmlCarryMonths} mo)`} value={fmtCurrency(brrrr.hmlCarryInterest)} metricId="hml_carry" onLabelClick={click} />
-        <OutputRow label="Total HML cost (fees)"  value={fmtCurrency(brrrr.hmlTotalCost)} metricId="hml_total_cost" onLabelClick={click} accent />
-        <OutputRow label="Total debt to HML"  value={fmtCurrency(brrrr.hmlTotalDebt)} />
-        {(() => {
-          // Same cashflow as post-refi, with the HML's interest-only payment as
-          // the debt service instead of the refi P&I. Derived here, not in the
-          // engine — same pattern as the interest-only block above.
-          const cashflowHml        = brrrr.cashflow        + brrrr.refiPI - brrrr.hmlMonthlyInterest
-          const cashflowHmlNoCapex = brrrr.cashflowNoCapex + brrrr.refiPI - brrrr.hmlMonthlyInterest
-          return (
-            <OutputRow label="Monthly cashflow — HML phase / w/o Capex"
-              value={fmtCurrency(cashflowHml) + ' / ' + fmtCurrency(cashflowHmlNoCapex)}
-              status={statusFor('cashflow', cashflowHml, deal)}
-              metricId="cashflow_hml_phase" onLabelClick={click} accent />
-          )
-        })()}
-      </OutputGroup>
+        <OutputGroup title="Monthly operating">
+          <OutputRow label="Gross rent"                                     value={fmtCurrency(brrrr.monthlyRent)} metricId="gross_rent" onLabelClick={click} />
+          <div
+            className="out-row out-label-clickable"
+            onClick={() => setOpexExpanded((v) => !v)}
+            style={{ cursor: 'pointer', userSelect: 'none' }}
+            title={opexExpanded ? 'Hide breakdown' : 'Show breakdown'}
+          >
+            <div className="out-label">{opexExpanded ? '▾' : '▸'} Expense breakdown</div>
+            <div className="out-value mono"></div>
+          </div>
+          {opexExpanded && (<>
+            <OutputRow label="Property Tax"         value={'−' + fmtCurrency(op.taxes)} />
+            <OutputRow label="Insurance"            value={'−' + fmtCurrency(op.ins)} />
+            <OutputRow label="HOA"                  value={'−' + fmtCurrency(op.hoa)} />
+            <OutputRow label="State income tax"     value={'−' + fmtCurrency(op.sit)} />
+            <OutputRow label="Property management"  value={'−' + fmtCurrency(op.mgmt)} />
+            <OutputRow label="Capex / vacancy"      value={'−' + fmtCurrency(op.capV)} />
+            <OutputRow label="Additional Monthly Costs" value={'−' + fmtCurrency(op.extras)} />
+            <OutputRow label="Mortgage P&I"         value={'−' + fmtCurrency(brrrr.refiPI)} metricId="mortgage_pi" onLabelClick={click} />
+          </>)}
+          <OutputRow label="Total Operating expenses (Include PITI) / w/o Capex"
+            value={'−' + fmtCurrency(brrrr.totalOpexWithPI) + ' / −' + fmtCurrency(brrrr.totalOpexNoCapexWithPI)}
+            metricId="total_opex" onLabelClick={click} />
+          {/* Known display bug carried over verbatim (plan header): shows the cashflow values */}
+          <OutputRow label="NOI / w/o Capex"
+            value={fmtCurrency(brrrr.cashflow) + ' / ' + fmtCurrency(brrrr.cashflowNoCapex)}
+            metricId="noi" onLabelClick={click} />
+          <OutputRow label="Monthly cashflow / w/o Capex"
+            value={fmtCurrency(brrrr.cashflow) + ' / ' + fmtCurrency(brrrr.cashflowNoCapex)}
+            status={statusFor('cashflow', brrrr.cashflow, deal)} metricId="cashflow" onLabelClick={click} accent />
+          {(() => {
+            const ioMonthly = brrrr.refiLoan * (deal.refiRate / 100) / 12
+            const totalOpexWithIO        = brrrr.totalOpexWithPI        - brrrr.refiPI + ioMonthly
+            const totalOpexNoCapexWithIO = brrrr.totalOpexNoCapexWithPI - brrrr.refiPI + ioMonthly
+            const cashflowIO        = brrrr.cashflow        + brrrr.refiPI - ioMonthly
+            const cashflowNoCapexIO = brrrr.cashflowNoCapex + brrrr.refiPI - ioMonthly
+            return (<>
+              <div
+                className="out-row out-label-clickable"
+                onClick={() => setIoExpanded((v) => !v)}
+                style={{ cursor: 'pointer', userSelect: 'none' }}
+                title={ioExpanded ? 'Hide interest-only breakdown' : 'Show interest-only breakdown'}
+              >
+                <div className="out-label">{ioExpanded ? '▾' : '▸'} Interest-only scenario</div>
+                <div className="out-value mono"></div>
+              </div>
+              {ioExpanded && (<>
+                <OutputRow label="Interest only mortgage monthly" value={'−' + fmtCurrency(ioMonthly)} />
+                <OutputRow label="Total Operating expenses (Include ITI) / w/o Capex"
+                  value={'−' + fmtCurrency(totalOpexWithIO) + ' / −' + fmtCurrency(totalOpexNoCapexWithIO)} />
+                <OutputRow label="Monthly cashflow Interest-only / w/o Capex"
+                  value={fmtCurrency(cashflowIO) + ' / ' + fmtCurrency(cashflowNoCapexIO)}
+                  status={statusFor('cashflow', cashflowIO, deal)} accent />
+              </>)}
+            </>)
+          })()}
+        </OutputGroup>
+      </SectionCard>
 
-      <OutputGroup title="Refinance">
-        <OutputRow label={`New loan (${deal.refiLtv}% LTV)`}  value={fmtCurrency(brrrr.refiLoan)} metricId="refi_loan" onLabelClick={click} />
-        <OutputRow label="Refi closing + points"               value={fmtCurrency(brrrr.refiTotalClosing)} metricId="refi_total" onLabelClick={click} />
-        <OutputRow label="Cash returned at refi"               value={fmtCurrency(brrrr.cashReturnedAtRefi)} metricId="cash_returned" onLabelClick={click} accent />
-        <OutputRow label="Money in deal"                       value={fmtCurrency(brrrr.moneyInDeal)}
-          status={statusFor('moneyInDeal', brrrr.moneyInDeal, deal)} metricId="moneyInDeal" onLabelClick={click} accent />
-      </OutputGroup>
+      <SectionCard title="Financing">
+        <div className="loan-cards">
+          <div className="loan-card">
+            <div className="loan-card-title">Loan 1 · Hard money</div>
+            <OutputGroup title="Hard money loan">
+              <OutputRow label={`HML principal (${deal.hmlLevPP.toFixed(1)}% LTC)`} value={fmtCurrency(brrrr.hmlPrincipal)} metricId="hml_principal" onLabelClick={click} />
+              <OutputRow label={`Points (${deal.hmlPoints}%)`}      value={fmtCurrency(brrrr.hmlPointsDollar)} />
+              <OutputRow label="Monthly interest"   value={fmtCurrency(brrrr.hmlMonthlyInterest)} metricId="hml_monthly_interest" onLabelClick={click} />
+              <OutputRow label={`Interest carry (${brrrr.hmlCarryMonths} mo)`} value={fmtCurrency(brrrr.hmlCarryInterest)} metricId="hml_carry" onLabelClick={click} />
+              <OutputRow label="Total HML cost (fees)"  value={fmtCurrency(brrrr.hmlTotalCost)} metricId="hml_total_cost" onLabelClick={click} accent />
+              <OutputRow label="Total debt to HML"  value={fmtCurrency(brrrr.hmlTotalDebt)} />
+              {(() => {
+                // Same cashflow as post-refi, with the HML's interest-only payment as
+                // the debt service instead of the refi P&I. Derived here, not in the
+                // engine — same pattern as the interest-only block above.
+                const cashflowHml        = brrrr.cashflow        + brrrr.refiPI - brrrr.hmlMonthlyInterest
+                const cashflowHmlNoCapex = brrrr.cashflowNoCapex + brrrr.refiPI - brrrr.hmlMonthlyInterest
+                return (
+                  <OutputRow label="Monthly cashflow — HML phase / w/o Capex"
+                    value={fmtCurrency(cashflowHml) + ' / ' + fmtCurrency(cashflowHmlNoCapex)}
+                    status={statusFor('cashflow', cashflowHml, deal)}
+                    metricId="cashflow_hml_phase" onLabelClick={click} accent />
+                )
+              })()}
+            </OutputGroup>
+          </div>
+          <div className="loan-card">
+            <div className="loan-card-title">Loan 2 · Refinance</div>
+            <OutputGroup title="Refinance">
+              <OutputRow label={`New loan (${deal.refiLtv}% LTV)`}  value={fmtCurrency(brrrr.refiLoan)} metricId="refi_loan" onLabelClick={click} />
+              <OutputRow label="Refi closing + points"               value={fmtCurrency(brrrr.refiTotalClosing)} metricId="refi_total" onLabelClick={click} />
+              <OutputRow label="Cash returned at refi"               value={fmtCurrency(brrrr.cashReturnedAtRefi)} metricId="cash_returned" onLabelClick={click} accent />
+              <OutputRow label="Money in deal"                       value={fmtCurrency(brrrr.moneyInDeal)}
+                status={statusFor('moneyInDeal', brrrr.moneyInDeal, deal)} metricId="moneyInDeal" onLabelClick={click} accent />
+            </OutputGroup>
+          </div>
+        </div>
+        {termSheetSections}
+      </SectionCard>
+
+      <SectionCard title="Valuation & Equity" caption="Advanced Metrics" half>
+        <div className="am-panel">
+          <div className="am-equity">
+            <div className="am-equity-header">
+              <div className="am-label am-label-clickable" onClick={() => click?.(equityMetricId)} title="Formula: Equity post-Refi">
+                <InfoIcon />Equity post-Refi
+              </div>
+              <div className="am-equity-toggle">
+                {(['book', 'liquidation'] as const).map((m) => (
+                  <button
+                    key={m}
+                    className={`am-eq-btn${equityMode === m ? ' active' : ''}`}
+                    onClick={() => setEquityMode(m)}
+                  >{m === 'book' ? 'Book' : 'Liquidation'}</button>
+                ))}
+              </div>
+            </div>
+            <div className="am-equity-values">
+              <span className="am-equity-dollar am-label-clickable" onClick={() => click?.(equityMetricId)}>
+                {fmtCurrency(equityDollar)}
+              </span>
+              <span className="am-equity-pct">{fmtPct(equityPct)}</span>
+            </div>
+            {equityMode === 'liquidation' && (
+              <div className="am-equity-note">After {deal.sellingCostsPct}% selling costs</div>
+            )}
+          </div>
+          <div className="am-grid">
+            {amCell('Margin/ARV', fmtPct(brrrr.equityMarginOnArv), statusFor('marginOnArv', brrrr.equityMarginOnArv, deal), 'equity_margin_arv')}
+            {amCell('Forced Equity ROI', fmtPct(brrrr.equityMarginArv), statusFor('forcedEquityROI', brrrr.equityMarginArv, deal), 'forced_equity_roi')}
+          </div>
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Investment Returns" caption="Advanced Metrics" half>
+        <div className="am-panel">
+          <div className="am-grid">
+            {amCell('Cap Rate', fmtPct(brrrr.capRate), statusFor('capRate', brrrr.capRate, deal), 'cap_rate')}
+            {amCell('ROE', fmtPct(brrrr.roe), statusFor('roe', brrrr.roe, deal), 'roe')}
+            <div className="am-cell am-neutral">
+              <div className="am-label am-label-clickable" onClick={() => click?.('annual_cashflow')}>
+                <InfoIcon />Annual CF {annualCFNoCapex ? '(no capex)' : '(w/ capex)'}
+              </div>
+              <div
+                className="am-value am-label-clickable"
+                title="Click to toggle CapEx"
+                onClick={() => setAnnualCFNoCapex((v) => !v)}
+              >
+                {fmtCurrency(annualCFNoCapex ? brrrr.cashflowNoCapex * 12 : brrrr.annualCashflow)}
+              </div>
+            </div>
+          </div>
+          <div className="am-irr">
+            <div className="am-irr-title am-label-clickable" onClick={() => click?.('irr_scenarios')}>
+              <InfoIcon />5-Year IRR
+            </div>
+            {brrrr.moneyInDeal <= 0 ? (
+              <div className="am-irr-note">Full BRRRR — infinite return (no money left in deal)</div>
+            ) : (
+              <div className="am-irr-rows">
+                {([['2%', brrrr.irr2pct], ['3%', brrrr.irr3pct], ['4%', brrrr.irr4pct]] as const).map(([label, v]) => (
+                  <div className="am-irr-row" key={label}>
+                    <span className="am-irr-label">{label} appreciation</span>
+                    <span className={`am-irr-value am-${statusFor('irr', v, deal)}`}>{fmtPct(v)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Financial Ratios" caption="Advanced Metrics" half>
+        <div className="am-panel">
+          <div className="am-grid">
+            {amCell('GRM', `${brrrr.grm.toFixed(1)}×`, statusFor('grm', brrrr.grm, deal), 'grm')}
+            {/* Deliberate duplicate of the Cash Flow DSCR cell (plan header) */}
+            {amCell('DSCR', fmtNum(brrrr.dscr), statusFor('dscr', brrrr.dscr, deal), 'dscr')}
+          </div>
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Purchase Criteria">
+        <div className="criteria-grid">
+          <MAODetail deal={deal} mao={mao} onLabelClick={click} />
+          <ScoreBreakdown score={score} onLabelClick={click} />
+        </div>
+      </SectionCard>
     </div>
   )
 }
@@ -419,17 +543,17 @@ function MAODetail({ deal, mao, onLabelClick }: { deal: Deal; mao: MAOResult; on
       </div>
       <div className="mao-detail-rows">
         <div className="mao-detail-row">
-          <div className="mao-rule mao-rule-clickable" onClick={() => onLabelClick?.('mao_70')}>70% Rule</div>
+          <div className="mao-rule mao-rule-clickable" onClick={() => onLabelClick?.('mao_70')}><InfoIcon />70% Rule</div>
           <div className="mao-rule-formula">ARV × 70% − rehab</div>
           <div className="mao-rule-value">{fmtCurrency(mao.mao70)}</div>
         </div>
         <div className="mao-detail-row">
-          <div className="mao-rule mao-rule-clickable" onClick={() => onLabelClick?.('mao_brrrr')}>Money in deal ≤ ${(deal.maxMoneyInDeal / 1000).toFixed(0)}k</div>
+          <div className="mao-rule mao-rule-clickable" onClick={() => onLabelClick?.('mao_brrrr')}><InfoIcon />Money in deal ≤ ${(deal.maxMoneyInDeal / 1000).toFixed(0)}k</div>
           <div className="mao-rule-formula">money in deal = target</div>
           <div className="mao-rule-value">{fmtCurrency(mao.maoMoneyInDeal)}</div>
         </div>
         <div className="mao-detail-row">
-          <div className="mao-rule mao-rule-clickable" onClick={() => onLabelClick?.('mao_equity')}>Equity post-Refi ≥ {deal.minEquityPct}%</div>
+          <div className="mao-rule mao-rule-clickable" onClick={() => onLabelClick?.('mao_equity')}><InfoIcon />Equity post-Refi ≥ {deal.minEquityPct}%</div>
           <div className="mao-rule-formula">money in deal ≤ post-Refi equity ÷ (1 + {deal.minEquityPct}%)</div>
           <div className="mao-rule-value">{fmtCurrency(mao.maoEquity)}</div>
         </div>
@@ -467,7 +591,7 @@ function ScoreBreakdown({ score, buyHold, onLabelClick }: { score: DealScore; bu
           className={`breakdown-total${buyHold && onLabelClick ? ' bd-label-clickable' : ''}`}
           onClick={buyHold && onLabelClick ? () => onLabelClick('bnh_score') : undefined}
           title={buyHold ? 'Formula: B&H Deal Score' : undefined}
-        >{score.score.toFixed(1)} <span>/ 10</span></div>
+        >{buyHold && onLabelClick && <InfoIcon />}{score.score.toFixed(1)} <span>/ 10</span></div>
       </div>
       <ul className="breakdown-list">
         {score.components.map((c) => {
@@ -480,7 +604,7 @@ function ScoreBreakdown({ score, buyHold, onLabelClick }: { score: DealScore; bu
                 <span
                   className={`bd-label${metricId && onLabelClick ? ' bd-label-clickable' : ''}`}
                   onClick={metricId && onLabelClick ? () => onLabelClick(metricId) : undefined}
-                >{c.label}</span>
+                >{metricId && onLabelClick && <InfoIcon />}{c.label}</span>
                 <span className="bd-value">{c.value}</span>
               </div>
               <div className="bd-bar">
@@ -494,118 +618,6 @@ function ScoreBreakdown({ score, buyHold, onLabelClick }: { score: DealScore; bu
           )
         })}
       </ul>
-    </div>
-  )
-}
-
-// ---- Advanced Metrics ----
-
-function AdvancedMetrics({ deal, brrrr, onLabelClick }: { deal: Deal; brrrr: BRRRRResult; onLabelClick?: (id: string) => void }) {
-  const [equityMode, setEquityMode] = useState<'book' | 'liquidation'>('book')
-  const [annualCFNoCapex, setAnnualCFNoCapex] = useState(false)
-  const click = onLabelClick
-
-  const irrStatus2 = statusFor('irr', brrrr.irr2pct, deal)
-  const irrStatus3 = statusFor('irr', brrrr.irr3pct, deal)
-  const irrStatus4 = statusFor('irr', brrrr.irr4pct, deal)
-  const capRateStatus = statusFor('capRate', brrrr.capRate, deal)
-  const grmStatus = statusFor('grm', brrrr.grm, deal)
-  const forcedEquityROIStatus = statusFor('forcedEquityROI', brrrr.equityMarginArv, deal)
-  const roeStatus = statusFor('roe', brrrr.roe, deal)
-  const marginOnArvStatus = statusFor('marginOnArv', brrrr.equityMarginOnArv, deal)
-
-  const equityDollar = equityMode === 'book' ? brrrr.equityDollar : brrrr.equityLiquidationDollar
-  const equityPct    = equityMode === 'book' ? brrrr.equityPct    : brrrr.equityLiquidationPct
-
-  return (
-    <div className="am-panel">
-      <div className="am-header">
-        <div className="am-title">Advanced Metrics</div>
-      </div>
-
-      <div className="am-grid">
-        <div className={`am-cell am-${capRateStatus}`}>
-          <div className="am-label am-label-clickable" onClick={() => click?.('cap_rate')}>Cap Rate</div>
-          <div className="am-value">{fmtPct(brrrr.capRate)}</div>
-        </div>
-        <div className={`am-cell am-${grmStatus}`}>
-          <div className="am-label am-label-clickable" onClick={() => click?.('grm')}>GRM</div>
-          <div className="am-value">{brrrr.grm.toFixed(1)}×</div>
-        </div>
-        <div className={`am-cell am-${forcedEquityROIStatus}`}>
-          <div className="am-label am-label-clickable" onClick={() => click?.('forced_equity_roi')}>Forced Equity ROI</div>
-          <div className="am-value">{fmtPct(brrrr.equityMarginArv)}</div>
-        </div>
-        <div className="am-cell am-neutral">
-          <div className="am-label am-label-clickable" onClick={() => click?.('annual_cashflow')}>
-            Annual CF {annualCFNoCapex ? '(no capex)' : '(w/ capex)'}
-          </div>
-          <div
-            className="am-value am-label-clickable"
-            title="Click to toggle CapEx"
-            onClick={() => setAnnualCFNoCapex((v) => !v)}
-          >
-            {fmtCurrency(annualCFNoCapex ? brrrr.cashflowNoCapex * 12 : brrrr.annualCashflow)}
-          </div>
-        </div>
-        <div className={`am-cell am-${roeStatus}`}>
-          <div className="am-label am-label-clickable" onClick={() => click?.('roe')}>ROE</div>
-          <div className="am-value">{fmtPct(brrrr.roe)}</div>
-        </div>
-        <div className={`am-cell am-${marginOnArvStatus}`}>
-          <div className="am-label am-label-clickable" onClick={() => click?.('equity_margin_arv')}>Margin/ARV</div>
-          <div className="am-value">{fmtPct(brrrr.equityMarginOnArv)}</div>
-        </div>
-      </div>
-
-      <div className="am-irr">
-        <div className="am-irr-title am-label-clickable" onClick={() => click?.('irr_scenarios')}>
-          5-Year IRR
-        </div>
-        {brrrr.moneyInDeal <= 0 ? (
-          <div className="am-irr-note">Full BRRRR — infinite return (no money left in deal)</div>
-        ) : (
-          <div className="am-irr-rows">
-            <div className="am-irr-row">
-              <span className="am-irr-label">2% appreciation</span>
-              <span className={`am-irr-value am-${irrStatus2}`}>{fmtPct(brrrr.irr2pct)}</span>
-            </div>
-            <div className="am-irr-row">
-              <span className="am-irr-label">3% appreciation</span>
-              <span className={`am-irr-value am-${irrStatus3}`}>{fmtPct(brrrr.irr3pct)}</span>
-            </div>
-            <div className="am-irr-row">
-              <span className="am-irr-label">4% appreciation</span>
-              <span className={`am-irr-value am-${irrStatus4}`}>{fmtPct(brrrr.irr4pct)}</span>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="am-equity">
-        <div className="am-equity-header">
-          <div className="am-label">Equity post-Refi</div>
-          <div className="am-equity-toggle">
-            {(['book', 'liquidation'] as const).map((m) => (
-              <button
-                key={m}
-                className={`am-eq-btn${equityMode === m ? ' active' : ''}`}
-                onClick={() => setEquityMode(m)}
-              >{m === 'book' ? 'Book' : 'Liquidation'}</button>
-            ))}
-          </div>
-        </div>
-        <div className="am-equity-values">
-          <span
-            className="am-equity-dollar am-label-clickable"
-            onClick={() => click?.(equityMode === 'book' ? 'equity_book' : 'equity_liquidation')}
-          >{fmtCurrency(equityDollar)}</span>
-          <span className="am-equity-pct">{fmtPct(equityPct)}</span>
-        </div>
-        {equityMode === 'liquidation' && (
-          <div className="am-equity-note">After {deal.sellingCostsPct}% selling costs</div>
-        )}
-      </div>
     </div>
   )
 }
@@ -713,10 +725,19 @@ interface Props {
 }
 
 export function ScenarioPanel({ deal, brrrr, buyHold, flipCash, flipHml, mao, score, scenario, onLabelClick, onUpdate, termSheetSections }: Props) {
+  // BRRRR is in section cards (deal page redesign phase 2); the other tabs
+  // keep the earlier layout until phase 3.
+  if (scenario === 'brrrr') {
+    return (
+      <div className="scenario-panel">
+        <BRRRRSections deal={deal} brrrr={brrrr} mao={mao} score={score}
+          onLabelClick={onLabelClick} termSheetSections={termSheetSections} />
+      </div>
+    )
+  }
   return (
     <div className="scenario-panel">
       <div className="scenario-body">
-        {scenario === 'brrrr'    && <BRRRRView    deal={deal} brrrr={brrrr} onLabelClick={onLabelClick} />}
         {scenario === 'buyHold'  && <BuyHoldView  deal={deal} bnh={buyHold} onLabelClick={onLabelClick} onUpdate={onUpdate} />}
         {scenario === 'flipCash' && <FlipCashView deal={deal} flip={flipCash} onLabelClick={onLabelClick} />}
         {scenario === 'flipHml'  && <FlipHMLView  deal={deal} flip={flipHml} onLabelClick={onLabelClick} />}
@@ -725,7 +746,6 @@ export function ScenarioPanel({ deal, brrrr, buyHold, flipCash, flipHml, mao, sc
       {termSheetSections}
       <MAODetail deal={deal} mao={mao} onLabelClick={onLabelClick} />
       <ScoreBreakdown score={score} buyHold={scenario === 'buyHold'} onLabelClick={onLabelClick} />
-      {scenario === 'brrrr' && <AdvancedMetrics deal={deal} brrrr={brrrr} onLabelClick={onLabelClick} />}
       {scenario === 'buyHold' && <BuyHoldAdvancedMetrics deal={deal} bnh={buyHold} onLabelClick={onLabelClick} />}
     </div>
   )

@@ -33,6 +33,12 @@ saved; the B&H property value toggle was flipped unsaved and restored.
   `.dashboard-bar .metric` → `.kpi-tile` (`.metric-label/-value/-sub` → `.kpi-label/-value/-sub`),
   `.deal-score-hero` → `.score-tile` (`.hero-label/-value/-weak` → `.score-tile-label/-value/-weak`).
   Later phases swap the section selectors the same way.
+- **Phase 2 re-check (2026-11-13): all 1,163 pairs matched**, with the same phase-1 top-of-page
+  swaps and no other selector change: the BRRRR section cards keep the inner classes
+  (`.out-group`, `.summary-cell`, `.am-panel`/`.am-cell`, `.ts-section`, `.mao-detail`,
+  `.score-breakdown`). Only extra pair: the second DSCR (Financial Ratios). Compare labels
+  case-insensitively and ignore Section (the BRRRR Advanced Metrics cells now record an empty
+  Section — the caption sits on the card header).
 
 ## Extraction snippet
 

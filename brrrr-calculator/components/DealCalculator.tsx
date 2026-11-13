@@ -273,6 +273,7 @@ export default function DealCalculator({ initialDeal, initialDealId, initialTerm
                   onSelect={(id) => handleSelectSheet('hml', id)}
                   onDelete={(id) => handleDeleteSheet('hml', id)}
                   unreadable={unreadableSettings !== undefined}
+                  collapsible={scenario === 'brrrr'}
                 />
                 <TermSheetSection
                   title="Refi Term Sheets"
@@ -281,6 +282,7 @@ export default function DealCalculator({ initialDeal, initialDealId, initialTerm
                   onSelect={(id) => handleSelectSheet('refi', id)}
                   onDelete={(id) => handleDeleteSheet('refi', id)}
                   unreadable={unreadableSettings !== undefined}
+                  collapsible={scenario === 'brrrr'}
                 >
                   <PayoffHorizonMatrix columns={payoffColumns} />
                 </TermSheetSection>

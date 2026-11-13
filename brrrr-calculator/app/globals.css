@@ -247,8 +247,8 @@ input, textarea { font-family: inherit; color: inherit; }
 .kpi-tile {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: var(--s-3) var(--s-4);
+  gap: 3px;
+  padding: 10px 14px;
 }
 .kpi-label {
   display: flex;
@@ -261,7 +261,7 @@ input, textarea { font-family: inherit; color: inherit; }
   text-transform: uppercase;
 }
 .kpi-value {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 700;
   color: var(--accent);
   letter-spacing: -0.015em;
@@ -478,15 +478,18 @@ input, textarea { font-family: inherit; color: inherit; }
 .summary-value.warn { color: var(--warn); }
 .summary-value.bad  { color: var(--bad); }
 .summary-sub { font-size: 12.5px; color: var(--text-mute); }
-.summary-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--s-2); }
+/* The 4 cells under the headline: compact tiles, four in one row, sized like the top tiles */
+.summary-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s-3); }
 .summary-cell {
-  padding: var(--s-3) var(--s-4);
+  padding: 10px 14px;
   background: var(--bg-card);
   border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  min-width: 0;
 }
-.summary-cell .cell-label { font-size: 11px; color: var(--text-mute); letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 4px; }
-.summary-cell .cell-value { font-family: var(--font-sans); font-size: 18px; letter-spacing: -0.01em; }
+.summary-cell .cell-label { font-size: 11px; font-weight: 600; color: var(--text-mute); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 3px; }
+.summary-cell .cell-value { font-family: var(--font-sans); font-size: 20px; font-weight: 700; letter-spacing: -0.015em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .summary-cell.good { border-color: var(--good-line); background: var(--good-bg); }
 .summary-cell.good .cell-value { color: var(--good-strong); }
 .summary-cell.warn { border-color: var(--warn-line); background: var(--warn-bg); }
@@ -494,8 +497,10 @@ input, textarea { font-family: inherit; color: inherit; }
 .summary-cell.bad  { border-color: var(--bad-line);  background: var(--bad-bg); }
 .summary-cell.bad  .cell-value { color: var(--bad); }
 
-/* ---- Output groups ---- */
-.out-group { margin-bottom: var(--s-5); max-width: 1180px; margin-left: auto; margin-right: auto; width: 100%; }
+/* ---- Output groups ----
+   A row table (label left, value right) is capped at ~600px so a label stays
+   close to its value. */
+.out-group { margin-bottom: var(--s-5); max-width: 600px; width: 100%; }
 .out-group-title {
   font-size: 11px;
   font-weight: 700;
@@ -762,6 +767,132 @@ input, textarea { font-family: inherit; color: inherit; }
 .bd-warn .bd-fill { background: var(--warn); }
 .bd-bad  .bd-fill { background: var(--bad); }
 .bd-row2 { display: flex; justify-content: space-between; font-family: var(--font-sans); font-size: 10.5px; color: var(--text-faint); }
+
+/* ---- Section cards (deal page redesign) ----
+   Stacked white cards with an uppercase blue title. Two "half" cards sit side
+   by side on desktop. Inner blocks keep their own classes; the overrides below
+   only strip the chrome they had as standalone panels. */
+.section-stack {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: var(--s-5) var(--s-5) var(--s-3);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s-4);
+  align-items: start;
+}
+.section-card {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  min-width: 0;
+  padding: var(--s-5);
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+}
+.section-card-half { grid-column: auto; }
+.section-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-3);
+  padding-bottom: var(--s-3);
+  border-bottom: 1px solid var(--line);
+}
+.section-card-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.section-card-caption {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+/* Sub-headings inside a card (today's group titles) */
+.section-card .out-group-title,
+.section-card .mao-detail-title,
+.section-card .breakdown-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.10em;
+  color: var(--text-mute);
+}
+.section-card .out-group { margin: 0; }
+.section-card .out-group + .out-group { margin-top: var(--s-4); }
+.section-card .scenario-summary { margin: 0; padding: 0; border-bottom: 0; }
+.section-card .ts-section { width: auto; max-width: none; margin: 0; }
+.section-card .mao-detail,
+.section-card .score-breakdown,
+.section-card .am-panel {
+  width: auto;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: 0;
+}
+.section-card .mao-detail-header,
+.section-card .breakdown-header { margin-bottom: var(--s-3); padding-bottom: var(--s-2); }
+
+/* Financing: two loan cards side by side */
+.loan-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-4); }
+.loan-card {
+  min-width: 0;
+  padding: var(--s-4);
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+.loan-card-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: var(--s-3); }
+
+/* Purchase Criteria: max-offer rules beside the score breakdown */
+.criteria-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-6); align-items: start; }
+
+/* Expandable Term Sheet sections (inside Financing) */
+.ts-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  margin-bottom: var(--s-2);
+  background: none;
+  border: 0;
+  color: var(--text-mute);
+}
+.ts-toggle .out-group-title { margin: 0; padding: 0; }
+.ts-toggle:hover .out-group-title { color: var(--accent); }
+.ts-caret { width: 10px; height: 10px; transition: transform 150ms ease; }
+.ts-closed .ts-caret { transform: rotate(-90deg); }
+.section-card .ts-section.ts-collapsible { padding-top: var(--s-3); border-top: 1px solid var(--line-faint); }
+
+/* ⓘ formula hint before a label that opens a formula */
+.info-icon {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-right: 5px;
+  vertical-align: -1.5px;
+  color: var(--accent);
+  opacity: 0.75;
+  flex: none;
+}
+.out-label-clickable:hover .info-icon,
+.am-label-clickable:hover .info-icon,
+.mao-rule-clickable:hover .info-icon,
+.bd-label-clickable:hover .info-icon,
+.metric-label-clickable:hover .info-icon { opacity: 1; }
+.kpi-label .info-icon { margin-right: 0; }
 
 /* ---- Inputs drawer ---- */
 .drawer-scrim {
@@ -1207,6 +1338,9 @@ input, textarea { font-family: inherit; color: inherit; }
 /* ---- Responsive (phone pass tuned in a later phase) ---- */
 @media (max-width: 1024px) {
   .kpi-band { grid-template-columns: 1fr; }
+  .section-card-half { grid-column: 1 / -1; }
+  .loan-cards,
+  .criteria-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 720px) {
   .drawer-body { grid-template-columns: 1fr; }

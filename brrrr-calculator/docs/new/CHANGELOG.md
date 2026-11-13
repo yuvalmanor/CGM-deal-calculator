@@ -443,6 +443,41 @@ scrolling past the tiles; blank `/deal/new` shows no NaN.
 
 ---
 
+## Deal page redesign phase 2 — BRRRR tab in section cards ✅ Complete
+Date: 2026-11-13 (branch `deal-page-redesign`, not on `main`)
+
+**Changed:**
+- `components/cgm/SectionCard.tsx` (new) — the shared section card (white card, uppercase blue
+  title, optional caption, half-width option) and the ⓘ formula hint (`InfoIcon`, SVG so label
+  text is unchanged).
+- `components/cgm/ScenarioPanel.tsx` — the BRRRR tab is rebuilt as seven cards: Purchase & Rehab
+  (Acquisition) → Cash Flow (Annual cashflow summary + 4 cells, Monthly operating) → Financing
+  ("Loan 1 · Hard money" and "Loan 2 · Refinance" side by side, then the HML and Refi Term Sheet
+  sections) → Valuation & Equity → Investment Returns → Financial Ratios (the three carry the
+  "Advanced Metrics" caption; Financial Ratios adds the deliberate second DSCR) → Purchase
+  Criteria (max-offer rules beside the Deal Score Breakdown). `AdvancedMetrics` is folded into
+  those cards. Every label that opens a formula gets the ⓘ icon (rows, metric tiles, max-offer
+  rules, score breakdown, top tiles); icon and label open the same modal. The other tabs keep the
+  earlier layout until phase 3. The "NOI / w/o Capex" display bug is carried over verbatim.
+- `components/cgm/TermSheetSection.tsx` — optional `collapsible` (title toggles the table and
+  payoff matrix; starts open), used on the BRRRR tab inside Financing.
+- `components/cgm/DealHeader.tsx` — ⓘ on the headline tiles' labels.
+- `components/ui/FormulaModal.tsx` — palette A colors and the page's sans-serif (no monospace);
+  content and layout unchanged.
+- `app/globals.css` — section card styles; row tables capped at 600px; the 4 summary cells are
+  compact tiles four in a row (two per row below 560px); headline tiles tightened (10px 14px
+  padding, 20px values; the Deal Score tile stays larger).
+
+**Verified:** Gates green — `npm test`, `npx tsc --noEmit`, `npm run lint` (0 errors; 1
+pre-existing font warning), `npm run build`. Browser: re-captured Anna and Melissa on all 4 tabs
+(all toggle states) and diffed against the baseline — all 1,163 pairs match; the only extra pair
+is the second DSCR. On BRRRR, 40 labels open a formula and all 40 carry ⓘ; icon and label open
+the same modal. Row tables measure ≤ 600px, summary tiles sit in one row, tile values 20px,
+modal text in Inter. Term sheet add / select / delete and the Refi section collapse tried on Anna
+without saving (reloaded after); neither deal's `savedAt` changed.
+
+---
+
 ## How to Update This File
 
 After completing each phase or significant change, add an entry here:

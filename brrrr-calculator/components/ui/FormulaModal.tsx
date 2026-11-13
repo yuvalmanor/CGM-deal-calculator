@@ -36,15 +36,15 @@ export default function FormulaModal({ isOpen, onClose, metricId, deal, brrrr, m
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-sm rounded-xl border border-gray-200 bg-white shadow-2xl"
+        className="relative w-full max-w-sm rounded-xl border border-[color:var(--line)] bg-[color:var(--bg-card)] shadow-2xl"
         onClick={e => e.stopPropagation()}
       >
-        <div className="flex items-start justify-between gap-3 border-b border-gray-100 px-5 py-4">
-          <h3 className="text-sm font-semibold text-gray-900">{entry.title}</h3>
+        <div className="flex items-start justify-between gap-3 border-b border-[color:var(--line-faint)] px-5 py-4">
+          <h3 className="text-sm font-semibold text-[color:var(--text)]">{entry.title}</h3>
           <button
             type="button"
             onClick={onClose}
-            className="flex-shrink-0 rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+            className="flex-shrink-0 rounded-md p-1 text-[color:var(--text-faint)] hover:bg-[color:var(--bg-card-2)] hover:text-[color:var(--text)] transition-colors"
             aria-label="Close"
           >
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -54,17 +54,17 @@ export default function FormulaModal({ isOpen, onClose, metricId, deal, brrrr, m
         </div>
         <div className="space-y-3 px-5 py-4">
           <div>
-            <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400">Formula</p>
-            <p className="rounded-md bg-gray-50 px-3 py-2 font-mono text-xs text-gray-700 whitespace-pre-wrap">{entry.formula}</p>
+            <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-[color:var(--accent)]">Formula</p>
+            <p className="rounded-md bg-[color:var(--bg)] px-3 py-2 tabular-nums text-xs text-[color:var(--text)] whitespace-pre-wrap">{entry.formula}</p>
           </div>
           <div>
-            <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400">Live values</p>
-            <p className="rounded-md bg-gray-50 px-3 py-2 font-mono text-xs text-gray-700 whitespace-pre-wrap">{liveCalc}</p>
+            <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-[color:var(--accent)]">Live values</p>
+            <p className="rounded-md bg-[color:var(--bg)] px-3 py-2 tabular-nums text-xs text-[color:var(--text)] whitespace-pre-wrap">{liveCalc}</p>
           </div>
           {entry.note && (
             <>
-              <div className="border-t border-gray-100" />
-              <p className="text-xs leading-relaxed text-gray-500">{entry.note}</p>
+              <div className="border-t border-[color:var(--line-faint)]" />
+              <p className="text-xs leading-relaxed text-[color:var(--text-mute)]">{entry.note}</p>
             </>
           )}
         </div>

@@ -7,6 +7,7 @@ import type {
 import { fmtCurrency, fmtPct, fmtNum, statusFor } from '@/lib/deal-model'
 import type { BuyHoldResult } from '@/lib/buy-hold'
 import type { ScenarioTab } from '@/lib/strategy'
+import { InfoIcon } from './SectionCard'
 
 // Top of the deal page: header, Scenario tabs, headline tiles + Deal Score
 // tile, and the slim bar that pins to the top once the tiles scroll away.
@@ -38,6 +39,7 @@ function Tile({ label, value, status, sub, metricId, onLabelClick }: TileProps) 
         title={canClick ? `Formula: ${label}` : undefined}
       >
         <StatusDot status={status} />
+        {canClick && <InfoIcon />}
         <span>{label}</span>
       </div>
       <div className="kpi-value">{value}</div>

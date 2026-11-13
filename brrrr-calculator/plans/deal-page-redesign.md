@@ -211,14 +211,14 @@ change):
 
 ### Acceptance criteria
 
-- [ ] BRRRR tab shows the seven sections in the agreed order
-- [ ] Every BRRRR line, value and toggle from the baseline appears, with identical values for Anna
-- [ ] Every line with a formula has an ⓘ icon; icon and label both open the modal
-- [ ] Expense breakdown and interest-only collapsibles, CoC/Equity cells, Annual CF and Book/Liquidation toggles still work
-- [ ] Term sheet add / select / delete and payoff matrix work inside Financing
-- [ ] Formula modal uses palette A colors and sans-serif (no monospace); content and layout unchanged
-- [ ] No row table is wider than ~600px; the 4 summary cells sit as compact tiles in one row; top tiles tightened (20px values), score tile still larger
-- [ ] All gates green; committed and branch pushed
+- [x] BRRRR tab shows the seven sections in the agreed order
+- [x] Every BRRRR line, value and toggle from the baseline appears, with identical values for Anna
+- [x] Every line with a formula has an ⓘ icon; icon and label both open the modal
+- [x] Expense breakdown and interest-only collapsibles, CoC/Equity cells, Annual CF and Book/Liquidation toggles still work
+- [x] Term sheet add / select / delete and payoff matrix work inside Financing
+- [x] Formula modal uses palette A colors and sans-serif (no monospace); content and layout unchanged
+- [x] No row table is wider than ~600px; the 4 summary cells sit as compact tiles in one row; top tiles tightened (20px values), score tile still larger
+- [x] All gates green; committed and branch pushed
 
 ---
 
