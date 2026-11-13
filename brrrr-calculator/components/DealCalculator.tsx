@@ -14,7 +14,7 @@ import {
   type TermSheetState, type LenderRole,
 } from '@/lib/term-sheets'
 import { compareTermSheets, comparePayoffHorizons } from '@/lib/compare-term-sheets'
-import { DashboardBar } from './cgm/DashboardBar'
+import { DealHeader } from './cgm/DealHeader'
 import { ScenarioPanel } from './cgm/ScenarioPanel'
 import { SectionNav, InputForm, SECTIONS } from './cgm/InputForm'
 import { TermSheetSection } from './cgm/TermSheetSection'
@@ -49,12 +49,7 @@ function loadDraft(): Draft {
 }
 
 type ScenarioKey = ScenarioTab
-type AccentKey = 'slate' | 'ember' | 'moss' | 'amber'
-type DensityKey = 'comfortable' | 'compact'
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error'
-
-interface Tweaks { accent: AccentKey; density: DensityKey }
-const TWEAK_DEFAULTS: Tweaks = { accent: 'slate', density: 'comfortable' }
 
 interface Props {
   initialDeal?: Deal
@@ -76,8 +71,6 @@ export default function DealCalculator({ initialDeal, initialDealId, initialTerm
   const [scenario, setScenario] = useState<ScenarioKey>(() => initialDeal ? strategyOf(initialDeal) : 'brrrr')
   const [activeSection, setActiveSection] = useState('property')
   const [drawerOpen, setDrawerOpen] = useState(false)
-  const [tweaks, setTweaks] = useState<Tweaks>(TWEAK_DEFAULTS)
-  const [tweaksOpen, setTweaksOpen] = useState(false)
   const [modalMetricId, setModalMetricId] = useState<string | null>(null)
   const [dealId, setDealId] = useState<string | null>(initialDealId ?? null)
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
@@ -99,13 +92,6 @@ export default function DealCalculator({ initialDeal, initialDealId, initialTerm
     if (initialDeal || !draftLoaded) return
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ deal, termSheets })) } catch {}
   }, [deal, termSheets, initialDeal, draftLoaded])
-
-  // Apply tweaks to document root
-  useEffect(() => {
-    const r = document.documentElement
-    r.dataset.accent  = tweaks.accent
-    r.dataset.density = tweaks.density
-  }, [tweaks])
 
   // Keyboard: E opens drawer, Esc closes
   useEffect(() => {
@@ -195,13 +181,11 @@ export default function DealCalculator({ initialDeal, initialDealId, initialTerm
   const mao      = useMemo(() => calcMAO(deal),      [deal])
   const score    = useMemo(() => calcDealScore(deal, brrrr, mao), [deal, brrrr, mao])
   const bnhScore = useMemo(() => calcBuyHoldScore(deal, buyHold, mao), [deal, buyHold, mao])
-  // The top bar and score breakdown show the B&H lens on the B&H tab, BRRRR on every other tab
+  // The tiles and score breakdown show the B&H lens on the B&H tab, BRRRR on every other tab
   const onBuyHold = scenario === 'buyHold'
 
   const openModal = useCallback((id: string) => setModalMetricId(id), [])
   const closeModal = useCallback(() => setModalMetricId(null), [])
-
-  const setTweak = (patch: Partial<Tweaks>) => setTweaks((t) => ({ ...t, ...patch }))
 
   async function handleSave() {
     setSaveStatus('saving')
@@ -244,13 +228,6 @@ export default function DealCalculator({ initialDeal, initialDealId, initialTerm
     }
   }
 
-  const ACCENT_OPTS: { key: AccentKey; label: string; color: string }[] = [
-    { key: 'slate', label: 'Slate', color: '#3b577a' },
-    { key: 'ember', label: 'Ember', color: '#b85a3e' },
-    { key: 'moss',  label: 'Moss',  color: '#5a8a5a' },
-    { key: 'amber', label: 'Amber', color: '#b4882a' },
-  ]
-
   const saveLabel = saveStatus === 'saving' ? 'Saving…'
     : saveStatus === 'saved' ? 'Saved!'
     : saveStatus === 'error' ? 'Error'
@@ -259,13 +236,18 @@ export default function DealCalculator({ initialDeal, initialDealId, initialTerm
   return (
     <ModalContext.Provider value={openModal}>
       <div className="app-root">
-        {/* Top dashboard bar */}
-        <DashboardBar
+        {/* Header, Scenario tabs, headline tiles + score tile, pinned slim bar */}
+        <DealHeader
           deal={deal}
           brrrr={brrrr}
+          buyHold={buyHold}
+          flipCash={flipCash}
+          flipHml={flipHml}
           mao={mao}
           score={onBuyHold ? bnhScore : score}
-          bnh={onBuyHold ? buyHold : undefined}
+          scenario={scenario}
+          setScenario={setScenario}
+          onEdit={() => setDrawerOpen(true)}
           onLabelClick={openModal}
         />
 
@@ -280,8 +262,6 @@ export default function DealCalculator({ initialDeal, initialDealId, initialTerm
             mao={mao}
             score={onBuyHold ? bnhScore : score}
             scenario={scenario}
-            setScenario={setScenario}
-            onEdit={() => setDrawerOpen(true)}
             onLabelClick={openModal}
             onUpdate={update}
             termSheetSections={
@@ -344,46 +324,6 @@ export default function DealCalculator({ initialDeal, initialDealId, initialTerm
             </div>
           </div>
         </aside>
-
-{/* Tweaks panel */}
-        {tweaksOpen && (
-          <div className="tweaks-panel">
-            <div className="tweaks-header">
-              <span>Tweaks</span>
-              <button className="tweaks-close" onClick={() => setTweaksOpen(false)}>×</button>
-            </div>
-            <div className="tweaks-body">
-              <div>
-                <div className="tweaks-label">Accent</div>
-                <div className="tweaks-swatches">
-                  {ACCENT_OPTS.map((a) => (
-                    <button
-                      key={a.key}
-                      className={`swatch${tweaks.accent === a.key ? ' active' : ''}`}
-                      style={{ '--s': a.color } as React.CSSProperties}
-                      onClick={() => setTweak({ accent: a.key })}
-                    >
-                      <span className="swatch-chip" />
-                      <span>{a.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <div className="tweaks-label">Density</div>
-                <div className="tweaks-radio">
-                  {(['comfortable', 'compact'] as DensityKey[]).map((d) => (
-                    <button
-                      key={d}
-                      className={`radio-opt${tweaks.density === d ? ' active' : ''}`}
-                      onClick={() => setTweak({ density: d })}
-                    >{d}</button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Formula modal */}
         <FormulaModal

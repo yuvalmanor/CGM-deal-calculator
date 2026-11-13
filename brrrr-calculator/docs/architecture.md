@@ -33,9 +33,9 @@ brrrr-calculator/
 │   ├── DealCard.tsx                  Dashboard deal summary card (with delete)
 │   ├── DealFilters.tsx               Dashboard text search + address dropdown
 │   ├── cgm/                          Calculator UI (CGM brand namespace)
-│   │   ├── DashboardBar.tsx          KPI strip + scorecard
-│   │   ├── InputForm.tsx             Left-panel input form
-│   │   ├── ScenarioPanel.tsx         Rental BRRRR / Flip-Cash / Flip-HML tabs
+│   │   ├── DealHeader.tsx            Header, Scenario tabs, headline tiles + Deal Score tile, pinned slim bar
+│   │   ├── InputForm.tsx             Edit Deal drawer input form
+│   │   ├── ScenarioPanel.tsx         Body of the open Scenario tab (BRRRR / B&H / Flip-Cash / Flip-HML)
 │   │   └── FormControls.tsx          Numeric inputs (blur-to-commit), toggles
 │   └── ui/FormulaModal.tsx           `?` formula explanation modal
 │
@@ -68,8 +68,8 @@ DealCalculator.tsx  ←── holds useState<Deal>; drafts persist to
 calcBRRRR(deal) / calcFlipCash(deal) / calcFlipHML(deal) /
 calcMAO(deal) / calcDealScore(deal, brrrr, mao)      ← pure functions
         │
-        ├── DashboardBar (KPI strip + scorecard)
-        ├── ScenarioPanel (Rental BRRRR / Flip-Cash / Flip-HML)
+        ├── DealHeader (header, Scenario tabs, headline tiles + score, pinned slim bar)
+        ├── ScenarioPanel (body of the open tab: BRRRR / B&H / Flip-Cash / Flip-HML)
         └── FormulaModal (live numbers via lib/formulaRegistry.ts)
 
 Save:  POST /api/deals            → sheets.saveDeal()  → revalidateTag('deals')

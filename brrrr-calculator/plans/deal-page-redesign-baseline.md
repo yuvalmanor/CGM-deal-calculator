@@ -28,6 +28,11 @@ saved; the B&H property value toggle was flipped unsaved and restored.
   flipped (CoC cell, Equity cell, Annual CF value, Book → Liquidation).
 - If a deal's `savedAt` differs from the table above, the deal was edited: re-capture its
   baseline from `main` before comparing.
+- **Phase 1 re-check (2026-11-13): all 1,163 pairs matched.** For the phase-1 page the snippet's
+  top-of-page selectors were swapped: `.addr-line1` → `.dh-address`, `.addr-line2` → `.dh-facts`,
+  `.dashboard-bar .metric` → `.kpi-tile` (`.metric-label/-value/-sub` → `.kpi-label/-value/-sub`),
+  `.deal-score-hero` → `.score-tile` (`.hero-label/-value/-weak` → `.score-tile-label/-value/-weak`).
+  Later phases swap the section selectors the same way.
 
 ## Extraction snippet
 

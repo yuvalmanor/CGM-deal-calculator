@@ -175,15 +175,15 @@ sections below keep their current layout for now, in the new colors.
 ### Acceptance criteria
 
 - [x] Branch `deal-page-redesign` exists and is pushed; `main` untouched (2026-11-13, commit ca79dd6)
-- [ ] Baseline file holds label → value pairs for Anna and Melissa on all 4 tabs, all states, plus the extraction snippet
-- [ ] Palette A and sans-serif applied on the deal page; drawer uses the new colors, layout unchanged
-- [ ] Tweaks panel and accent/density code removed
-- [ ] Home page and deal desk look unchanged
-- [ ] Header shows back link, logo + brand text, address, breadcrumb, facts line, Edit deal (`E` works)
-- [ ] Strategy tabs sit above the tiles with their sub-lines
-- [ ] 6 tiles + score tile show the same numbers, sub-lines, status colors and formula clicks as today, B&H lens on the B&H tab
-- [ ] Slim bar appears on scroll with address, cashflow, CoC, cash in, score, Edit
-- [ ] All gates green; committed and branch pushed
+- [x] Baseline file holds label → value pairs for Anna and Melissa on all 4 tabs, all states, plus the extraction snippet
+- [x] Palette A and sans-serif applied on the deal page; drawer uses the new colors, layout unchanged
+- [x] Tweaks panel and accent/density code removed
+- [x] Home page and deal desk look unchanged
+- [x] Header shows back link, logo + brand text, address, breadcrumb, facts line, Edit deal (`E` works)
+- [x] Strategy tabs sit above the tiles with their sub-lines
+- [x] 6 tiles + score tile show the same numbers, sub-lines, status colors and formula clicks as today, B&H lens on the B&H tab
+- [x] Slim bar appears on scroll with address, cashflow, CoC, cash in, score, Edit
+- [x] All gates green; committed and branch pushed
 
 ---
 

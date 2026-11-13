@@ -693,6 +693,8 @@ function BuyHoldAdvancedMetrics({ deal, bnh, onLabelClick }: { deal: Deal; bnh: 
 }
 
 // ---- ScenarioPanel (exported) ----
+// The Scenario tabs and the Edit deal button live in DealHeader; this panel
+// renders the open tab's body.
 
 type ScenarioKey = 'brrrr' | 'buyHold' | 'flipCash' | 'flipHml'
 
@@ -705,43 +707,14 @@ interface Props {
   mao: MAOResult
   score: DealScore           // B&H's score on the B&H tab, BRRRR's elsewhere
   scenario: ScenarioKey
-  setScenario: (s: ScenarioKey) => void
-  onEdit?: () => void
   onLabelClick?: (id: string) => void
   onUpdate?: (patch: Partial<Deal>) => void  // the B&H value toggle writes bnhValueBasis
   termSheetSections?: React.ReactNode  // per-role Term Sheet panels, owned by DealCalculator
 }
 
-export function ScenarioPanel({ deal, brrrr, buyHold, flipCash, flipHml, mao, score, scenario, setScenario, onEdit, onLabelClick, onUpdate, termSheetSections }: Props) {
-  const tabs: { key: ScenarioKey; label: string; sub: string }[] = [
-    { key: 'brrrr',    label: 'BRRRR',       sub: fmtCurrency(brrrr.cashflow) + '/mo' },
-    { key: 'buyHold',  label: 'Buy & Hold',  sub: fmtCurrency(buyHold.cashflow) + '/mo' },
-    { key: 'flipCash', label: 'Flip · Cash',  sub: fmtCurrency(flipCash.profit) + ' profit' },
-    { key: 'flipHml',  label: 'Flip · HML',   sub: fmtCurrency(flipHml.profit) + ' profit' },
-  ]
-
+export function ScenarioPanel({ deal, brrrr, buyHold, flipCash, flipHml, mao, score, scenario, onLabelClick, onUpdate, termSheetSections }: Props) {
   return (
     <div className="scenario-panel">
-      <div className="scenario-tabs">
-        {onEdit && (
-          <button className="edit-deal-btn scenario-edit-btn" onClick={onEdit} title="Edit deal (E)">
-            <span className="edb-icon" aria-hidden="true"><span /><span /><span /></span>
-            <span>Edit deal</span>
-            <kbd>E</kbd>
-          </button>
-        )}
-        {tabs.map((t) => (
-          <button
-            key={t.key}
-            className={`scenario-tab${scenario === t.key ? ' active' : ''}`}
-            onClick={() => setScenario(t.key)}
-          >
-            <span className="tab-label">{t.label}</span>
-            <span className="tab-sub">{t.sub}</span>
-          </button>
-        ))}
-      </div>
-
       <div className="scenario-body">
         {scenario === 'brrrr'    && <BRRRRView    deal={deal} brrrr={brrrr} onLabelClick={onLabelClick} />}
         {scenario === 'buyHold'  && <BuyHoldView  deal={deal} bnh={buyHold} onLabelClick={onLabelClick} onUpdate={onUpdate} />}

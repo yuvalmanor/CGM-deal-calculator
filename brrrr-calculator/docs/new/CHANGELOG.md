@@ -408,6 +408,41 @@ other lender fees. Row relabeled "Loan costs (points + fees + title/escrow)".
 
 ---
 
+## Deal page redesign phase 1 — Baseline, palette and new top of page ✅ Complete
+Date: 2026-11-13 (branch `deal-page-redesign`, not on `main`)
+
+**Changed:**
+- `plans/deal-page-redesign-baseline.md` — number baseline captured by script from the
+  pre-redesign page before any UI change: label → value pairs with status color and formula
+  behavior for Anna (BRRRR) and Melissa (Buy & Hold) on all 4 tabs, every collapsible open,
+  every view toggle flipped, both B&H property value settings (unsaved), term-sheet tables and
+  payoff matrix included, plus the extraction snippet. Neither deal was saved.
+- `app/globals.css` — shared tokens switched to palette A (page `#f4f6fa`, white cards, blue
+  accent `#1e88e5`, text `#2b3442`, muted `#6b7280`, green/amber/red chips). Serif headings and
+  the monospace number font are gone: sans-serif everywhere with tabular figures. Group titles
+  are uppercase blue. The drawer follows through the tokens (same fields, same layout).
+- `app/layout.tsx` — only Inter is loaded from Google Fonts.
+- `components/cgm/DealHeader.tsx` (new, replaces `DashboardBar.tsx`) — header (back link, logo
+  + brand, breadcrumb Deals / address / Analysis, address title, facts line, Edit deal with `E`),
+  the Scenario tabs above the tiles, the 6 headline tiles + Deal Score tile (B&H lens on the B&H
+  tab, as before), and a slim bar that pins to the top once the tiles scroll away (address,
+  cashflow, CoC, Money in Deal / Cash In, score, Edit).
+- `components/cgm/ScenarioPanel.tsx` — tabs and the Edit button moved out to `DealHeader`.
+- `components/DealCalculator.tsx` — the unreachable Tweaks panel (accent/density picker) and
+  its state, effect and CSS removed. The page now scrolls as a whole instead of an inner panel.
+- The formula modal is unchanged (it uses its own Tailwind grays). The sections below the tiles
+  keep their current layout, in the new colors.
+
+**Verified:** Gates green — `npm test`, `npx tsc --noEmit`, `npm run lint` (0 errors; 1
+pre-existing font warning), `npm run build`. Browser: re-captured both deals from the new page and
+diffed against the baseline — all 1,163 pairs match (values, status colors, and each tile opens
+the same formula modal; Melissa still opens on Buy & Hold). Home page and deal desk: visible
+text colors identical before/after, body background covered by their own wrappers. `E` and the
+Edit buttons open the drawer, `E`/`Esc` close it; slim bar hidden at the top, shown after
+scrolling past the tiles; blank `/deal/new` shows no NaN.
+
+---
+
 ## How to Update This File
 
 After completing each phase or significant change, add an entry here:
