@@ -199,6 +199,16 @@ Also restyle the formula modal to palette A and sans-serif (its formula and live
 text is still monospace after phase 1) — colors and fonts only; content and layout untouched.
 Added 2026-11-13 by the user: no phase owned the header's "Formula modal" decision.
 
+Spacing and size (user, 2026-11-13, after reviewing the phase 1 preview; no numbers or labels
+change):
+- A row table (label left, value right) is never wider than about 600px, so a label stays close
+  to its value. Tables without a donut sit two per row or keep that cap; phase 4's donuts then
+  take the space beside their tables.
+- The 4 summary cells under the Annual cashflow / Net profit headline become compact tiles,
+  four in one row, sized like the top tiles — not two full-width rows.
+- The 6 top tiles get a little tighter: smaller padding and 20px values (from 22px). The Deal
+  Score tile stays larger.
+
 ### Acceptance criteria
 
 - [ ] BRRRR tab shows the seven sections in the agreed order
@@ -207,6 +217,7 @@ Added 2026-11-13 by the user: no phase owned the header's "Formula modal" decisi
 - [ ] Expense breakdown and interest-only collapsibles, CoC/Equity cells, Annual CF and Book/Liquidation toggles still work
 - [ ] Term sheet add / select / delete and payoff matrix work inside Financing
 - [ ] Formula modal uses palette A colors and sans-serif (no monospace); content and layout unchanged
+- [ ] No row table is wider than ~600px; the 4 summary cells sit as compact tiles in one row; top tiles tightened (20px values), score tile still larger
 - [ ] All gates green; committed and branch pushed
 
 ---
