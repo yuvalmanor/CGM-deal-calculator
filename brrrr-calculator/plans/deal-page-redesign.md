@@ -195,6 +195,9 @@ A shared section-card component and the ⓘ formula hint. Rebuild the BRRRR tab 
 order and mapping (Purchase & Rehab → Cash Flow → Financing with two loan cards and the
 term-sheet sections → Valuation & Equity → Investment Returns → Financial Ratios → Purchase
 Criteria). No donuts, Mo/Yr switch or ✓/✗ yet. Other tabs keep their current layout.
+Also restyle the formula modal to palette A and sans-serif (its formula and live-calculation
+text is still monospace after phase 1) — colors and fonts only; content and layout untouched.
+Added 2026-11-13 by the user: no phase owned the header's "Formula modal" decision.
 
 ### Acceptance criteria
 
@@ -203,6 +206,7 @@ Criteria). No donuts, Mo/Yr switch or ✓/✗ yet. Other tabs keep their current
 - [ ] Every line with a formula has an ⓘ icon; icon and label both open the modal
 - [ ] Expense breakdown and interest-only collapsibles, CoC/Equity cells, Annual CF and Book/Liquidation toggles still work
 - [ ] Term sheet add / select / delete and payoff matrix work inside Financing
+- [ ] Formula modal uses palette A colors and sans-serif (no monospace); content and layout unchanged
 - [ ] All gates green; committed and branch pushed
 
 ---
