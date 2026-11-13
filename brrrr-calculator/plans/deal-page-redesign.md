@@ -17,13 +17,22 @@ Durable decisions that apply across all phases:
   in the new design. New words (section titles, breadcrumb) may be added. Changing a label's
   wording is out of scope.
 - **Branch, never main.** All work happens on branch `deal-page-redesign`. Every session checks
-  it out first (`git switch deal-page-redesign`). Commits push the **branch only**
+  it out first (`git switch deal-page-redesign`) — this plan file exists only on that branch, so
+  `/build-phase deal-page-redesign` can't find it from `main`. Commits push the **branch only**
   (`git push -u origin deal-page-redesign`) — this overrides CLAUDE.md's "push to main" step.
   Vercel builds a preview link for the branch; the live app stays on `main` until the user merges.
   Note: the preview only loads saved deals if the Google Sheets env vars are enabled for the
   Vercel **Preview** environment.
 - **Gates every phase**: `npm test`, `npx tsc --noEmit`, `npm run lint`, `npm run build` — all
   green, then commit (plan checkboxes included) and push the branch.
+- **Docs every phase**: add a `docs/new/CHANGELOG.md` entry for the phase (repo convention).
+  Update `docs/architecture.md` when the component tree changes (phases 1–3: top bar, section
+  cards, removed Tweaks panel).
+- **Live data — never save the test deals.** Local dev reads and writes the real Google Sheet,
+  and Save also sets a deal's strategy from the open tab. Never press Save/Update on Anna or
+  Melissa. Toggles that write to the deal (the B&H property value toggle) are tested without
+  saving. Save / Update / Reset are tested on a throwaway `/deal/new` deal; ask the user before
+  deleting that throwaway row.
 - **Scope**: the deal page (`/deal/new`, `/deal/[id]`). The Edit Deal drawer picks up the new
   colors and fonts only — same fields, same layout. The home list of deals is untouched (it uses
   its own Tailwind colors, not the shared tokens).
@@ -59,9 +68,12 @@ Durable decisions that apply across all phases:
 - **DSCR appears twice on purpose**: the summary cell in Cash Flow (as today) and again in
   Financial Ratios — same value, same formula modal (`dscr` / `bnh_dscr`). It is a duplicate for
   the screenshot's layout, not a moved line; don't remove either copy.
-- **Known display quirk, carried over verbatim (not fixed)**: on the BRRRR tab the row
-  "NOI / w/o Capex" shows the same cashflow values as "Monthly cashflow / w/o Capex" (it renders
-  the cashflow numbers, not NOI). Reported to the user 2026-11-13; the redesign keeps it as-is.
+- **Known display bug, carried over verbatim (not fixed)**: on the BRRRR tab the row
+  "NOI / w/o Capex" shows the same cashflow values as "Monthly cashflow / w/o Capex" — it renders
+  the cashflow numbers, while its own formula modal ("Monthly NOI") explains and computes
+  Gross Rent − Total Operating Expenses. The row dates from the original V2 build (608a505).
+  Reported to the user 2026-11-13; the redesign keeps it as-is (a separate fix if wanted).
+- **Formula modal**: takes the new colors and fonts only; its content and layout are untouched.
 - **Content mapping — BRRRR tab**
 
   | Section | Today's content |
@@ -103,9 +115,13 @@ Durable decisions that apply across all phases:
     slices — Purchase price = Down payment + Loan, so they would double-count.
   - Expense donut (both tabs): Property Tax, Insurance, HOA, State income tax, Property
     management, Capex / vacancy, Additional Monthly Costs, Mortgage P&I.
-- **Monthly / Yearly switch** on Cash Flow: defaults to Monthly (today's numbers). Yearly shows
-  each monthly line × 12 on screen only — nothing saved, nothing recalculated in a module; labels
-  get a "(yearly)" marker. Resets to Monthly on reload.
+  - All slices zero (blank `/deal/new`): show an empty grey ring with no percentages, never a
+    divide-by-zero or NaN.
+- **Monthly / Yearly switch** on the Monthly operating table: defaults to Monthly (today's
+  numbers). Yearly shows each line of that table × 12 on screen only — nothing saved, nothing
+  recalculated in a module. Labels are **not** reworded; the switch itself (and a "Yearly"
+  caption above the values column) shows which mode is on. The Annual cashflow summary and its
+  4 cells above the table do not change with the switch. Resets to Monthly on reload.
 - **✓/✗ on max-offer rules**: a rule is ✓ when the purchase price ≤ that rule's max offer — the
   same test the page already uses for "below / ABOVE MAO", shown per rule.
 - **Phone**: desktop-first; below tablet width the score tile goes full width on top, the 6
@@ -120,10 +136,14 @@ Durable decisions that apply across all phases:
   | 1805 Cedar Wood, Anna TX | BRRRR | `f1a508c3-5509-471a-9890-40be1a611d95` | 2026-09-26T14:25:23Z |
   | 211 Fisherman Trl, Melissa TX | Buy & Hold | `e2646a7e-7a0c-4de0-ac27-e7e7a5bc5a76` | 2026-11-13T09:31:33Z |
 
-  The baseline is captured as **page-text dumps** of the running page (not hand-typed), with each
-  deal's `savedAt` recorded in the file. If a deal's `savedAt` has changed by the time of the
-  check, the deal was edited: re-capture its baseline from `main` (e.g. a `main` worktree)
-  before comparing.
+  The baseline is captured by script from the running page (not hand-typed) as **label → value
+  pairs**, grouped per deal, per tab, per toggle/collapsible state — including the term-sheet
+  tables and the payoff matrix — so it can be compared after the layout changes and from a
+  different session. The baseline file also keeps the extraction snippet and each deal's
+  `savedAt`. **Pass** = every baseline pair is present with the same value on the new page;
+  extra pairs (the second DSCR, yearly values, donut percentages, ✓/✗) are allowed. If a deal's
+  `savedAt` has changed by the time of a check, the deal was edited: re-capture its baseline from
+  `main` (e.g. a `main` worktree) before comparing.
 - **Other pages**: the home list, deal desk and site header use their own Tailwind colors, not
   the shared tokens. The only shared token they can see is the page `body` background — check the
   home page and deal desk still look right after phase 1.
@@ -132,7 +152,9 @@ Durable decisions that apply across all phases:
   Save / Update, Reset, section nav; back to deals; all 4 tabs; CoC ↔ w/o CapEx and Equity %↔$
   cells; Annual CF capex toggle; Book / Liquidation equity; B&H property value toggle; expense
   breakdown and interest-only collapsibles; term sheet add / select / delete and payoff matrix;
-  saved deal opens on its strategy's tab.
+  the term-sheet "unreadable settings" state; saved deal opens on its strategy's tab; blank
+  `/deal/new` renders cleanly (all blanks, no NaN); an unsaved draft on `/deal/new` is restored
+  after a reload.
 
 ---
 
@@ -140,19 +162,20 @@ Durable decisions that apply across all phases:
 
 ### What to build
 
-Create branch `deal-page-redesign` from `main`. **Before any UI change**, run the current page
-and capture a baseline for Anna and Melissa: on each of the 4 tabs, with every collapsible
-opened and each toggle in both states, dump the page text (every label and value) into
-`plans/deal-page-redesign-baseline.md`, with each deal's id and `savedAt` at the top.
-Commit this plan file with it (the plan is not committed on `main`). Then switch the shared color/font tokens to palette A
+Branch `deal-page-redesign` already exists (created and pushed 2026-11-13 with this plan as its
+first commit); switch to it. **Before any UI change**, run the current page and capture the
+baseline for Anna and Melissa by script: on each of the 4 tabs, with every collapsible opened
+and each toggle in both states, record label → value pairs (term-sheet tables and payoff matrix
+included) into `plans/deal-page-redesign-baseline.md`, with each deal's id and `savedAt` and the
+extraction snippet at the top. Do not Save either deal. Then switch the shared color/font tokens to palette A
 (drawer follows automatically), remove the Tweaks panel, and replace the top bar with the new
 header, strategy tabs above the tiles, the 6 tiles + score tile, and the slim pinned bar. The
 sections below keep their current layout for now, in the new colors.
 
 ### Acceptance criteria
 
-- [ ] Branch `deal-page-redesign` exists and is pushed; `main` untouched
-- [ ] Baseline file holds every label and value for Anna and Melissa on all 4 tabs, all states
+- [x] Branch `deal-page-redesign` exists and is pushed; `main` untouched (2026-11-13, commit ca79dd6)
+- [ ] Baseline file holds label → value pairs for Anna and Melissa on all 4 tabs, all states, plus the extraction snippet
 - [ ] Palette A and sans-serif applied on the deal page; drawer uses the new colors, layout unchanged
 - [ ] Tweaks panel and accent/density code removed
 - [ ] Home page and deal desk look unchanged
@@ -210,8 +233,8 @@ the Monthly/Yearly switch on Cash Flow; ✓/✗ marks on each max-offer rule.
 
 ### Acceptance criteria
 
-- [ ] Both donuts render from on-page numbers only, skip zero slices, show name/$/% on hover or tap
-- [ ] Mo/Yr defaults to Monthly with baseline values; Yearly shows each line × 12 with a "(yearly)" marker
+- [ ] Both donuts render from on-page numbers only, skip zero slices, show name/$/% on hover or tap; blank deal shows an empty ring
+- [ ] Mo/Yr defaults to Monthly with baseline values; Yearly shows each operating line × 12, labels unchanged, mode shown on the switch; Annual cashflow summary unaffected
 - [ ] Each max-offer rule shows ✓ when purchase price ≤ its max offer, ✗ otherwise
 - [ ] All gates green; committed and branch pushed
 
@@ -228,7 +251,8 @@ against the baseline and walk the features-that-must-stay-reachable list.
 
 - [ ] At phone width: score tile full width, tiles 2 per row, tabs swipe, sections one column, donuts under tables, term-sheet tables scroll inside their card, no page-wide sideways scroll
 - [ ] Edit drawer usable at phone width
-- [ ] Every number on all 4 tabs matches the baseline for Anna and Melissa (all toggle states)
+- [ ] Every baseline label → value pair on all 4 tabs is present for Anna and Melissa (all toggle states)
 - [ ] Every word in the baseline still appears on the page
+- [ ] Save / Update / Reset verified on a throwaway `/deal/new` deal only; user asked before deleting it
 - [ ] Every item in "Features that must stay reachable" verified in the running app
 - [ ] All gates green; committed and branch pushed; user told the preview link is ready to review
