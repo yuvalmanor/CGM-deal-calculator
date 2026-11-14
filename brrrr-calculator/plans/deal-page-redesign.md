@@ -25,6 +25,11 @@ Durable decisions that apply across all phases:
   Vercel **Preview** environment.
 - **Gates every phase**: `npm test`, `npx tsc --noEmit`, `npm run lint`, `npm run build` — all
   green, then commit (plan checkboxes included) and push the branch.
+- **Advisor audit every phase** (added 2026-11-14 by the user): after the phase is committed and
+  pushed, the advisor audits the work (code against the plan, the criteria evidence, the gates).
+  Findings are fixed in a follow-up commit or reported to the user; then the phase's audit box is
+  checked and pushed. If the session has no advisor tool, the box stays unchecked and the report
+  says so.
 - **Docs every phase**: add a `docs/new/CHANGELOG.md` entry for the phase (repo convention).
   Update `docs/architecture.md` when the component tree changes (phases 1–3: top bar, section
   cards, removed Tweaks panel).
@@ -184,6 +189,7 @@ sections below keep their current layout for now, in the new colors.
 - [x] 6 tiles + score tile show the same numbers, sub-lines, status colors and formula clicks as today, B&H lens on the B&H tab
 - [x] Slim bar appears on scroll with address, cashflow, CoC, cash in, score, Edit
 - [x] All gates green; committed and branch pushed
+- Advisor audit: not run after phase 1 (the rule was added after it shipped); phase 2's audit covered the shared top of page only through its baseline re-check
 
 ---
 
@@ -219,6 +225,7 @@ change):
 - [x] Formula modal uses palette A colors and sans-serif (no monospace); content and layout unchanged
 - [x] No row table is wider than ~600px; the 4 summary cells sit as compact tiles in one row; top tiles tightened (20px values), score tile still larger
 - [x] All gates green; committed and branch pushed
+- [x] Advisor audit done after commit + push; findings fixed or reported (2026-11-14: no defects; comparator and ⓘ check saved to the baseline file)
 
 ---
 
@@ -236,6 +243,7 @@ Retire the old output-group layout and its unused CSS.
 - [ ] Flip · Cash and Flip · HML follow their mapping; values match the baseline for both deals
 - [ ] No old-layout CSS left unused
 - [ ] All gates green; committed and branch pushed
+- [ ] Advisor audit done after commit + push; findings fixed or reported
 
 ---
 
@@ -252,6 +260,7 @@ the Monthly/Yearly switch on Cash Flow; ✓/✗ marks on each max-offer rule.
 - [ ] Mo/Yr defaults to Monthly with baseline values; Yearly shows each operating line × 12, labels unchanged, mode shown on the switch; Annual cashflow summary unaffected
 - [ ] Each max-offer rule shows ✓ when purchase price ≤ its max offer, ✗ otherwise
 - [ ] All gates green; committed and branch pushed
+- [ ] Advisor audit done after commit + push; findings fixed or reported
 
 ---
 
@@ -271,3 +280,4 @@ against the baseline and walk the features-that-must-stay-reachable list.
 - [ ] Save / Update / Reset verified on a throwaway `/deal/new` deal only; user asked before deleting it
 - [ ] Every item in "Features that must stay reachable" verified in the running app
 - [ ] All gates green; committed and branch pushed; user told the preview link is ready to review
+- [ ] Advisor audit done after commit + push; findings fixed or reported

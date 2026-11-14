@@ -278,6 +278,85 @@ async function captureDeal() {
 }
 ```
 
+## Compare and ⓘ check (phase 2 onward)
+
+Saved 2026-11-14 so later phases can re-run the check from a fresh session. Build one script:
+the extraction snippet above with the phase-1 top-of-page swaps (`.addr-line1` → `.dh-address`,
+`.addr-line2` → `.dh-facts`, `.dashboard-bar .metric` → `.kpi-tile`, `.metric-label/-value/-sub`
+→ `.kpi-label/-value/-sub`, `.deal-score-hero` → `.score-tile`, `.hero-label/-value/-weak` →
+`.score-tile-label/-value/-weak`), followed by the compare code below. Serve it and this file
+temporarily from `public/` (`public/__p2check.js`, `public/__baseline.md` — delete both before
+committing), open `/deal/<id>`, load the script with a `<script>` tag, then run
+`await compareDeal('1805 Cedar Wood, Anna TX (BRRRR)')` (or the Melissa heading). It returns
+`{ checked, missing, extras }`; **pass = `missing` is empty**. Never Save during the check.
+
+```js
+// Baseline pairs must be present on the new page (same tab/state heading; label
+// case-insensitive; value, status and formula exact; Section ignored).
+function parseTables(md) {
+  const out = {}; let deal = null, head = null
+  for (const line of md.split('\n')) {
+    let m
+    if ((m = line.match(/^## (.+)$/))) { deal = m[1]; continue }
+    if ((m = line.match(/^#{3,4} (.+)$/))) { head = m[1].replace(/ — unsaved toggle/, ''); continue }
+    if (deal && head && line.startsWith('| ') && !line.startsWith('| Section')) {
+      const c = line.slice(2, -2).split(' | ')
+      ;(out[deal + ' :: ' + head] ||= []).push(c)
+    }
+  }
+  return out
+}
+const key = (c) => [c[1].toLowerCase(), c[2], c[3], c[4]].join('\u0001')
+async function compareDeal(dealName) {
+  const md = await fetch('/__baseline.md').then((r) => r.text())
+  const base = parseTables(md)
+  const now = parseTables(`## ${dealName}\n` + (await captureDeal()))
+  const missing = []; let checked = 0
+  for (const [k, rows] of Object.entries(base)) {
+    if (!k.startsWith(dealName + ' :: ')) continue
+    const got = now[k]
+    if (!got) { missing.push(['NO SECTION', k]); continue }
+    const set = new Set(got.map(key))
+    for (const r of rows) { checked++; if (!set.has(key(r))) missing.push([k.split(' :: ')[1].slice(0, 40), ...r]) }
+  }
+  const extras = []
+  for (const [k, rows] of Object.entries(now)) {
+    const b = new Set((base[k] || []).map(key))
+    for (const r of rows) if (!b.has(key(r))) extras.push([k.split(' :: ')[1].slice(0, 30), ...r])
+  }
+  return { checked, missing, extras }
+}
+```
+
+ⓘ check — run on a tab that is in section cards (phase 2: BRRRR). Every label that opens a
+formula must carry `.info-icon`, no icon may sit on a label without a formula, and icon and label
+must open the same modal. Phase 2 result on Anna's BRRRR tab: 40 / 40, no mismatches.
+
+```js
+async function checkInfoIcons() {
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
+  const T = (e) => (e ? e.innerText.replace(/\s+/g, ' ').trim() : '')
+  const modalTitle = () => { const h = document.querySelector('.fixed.inset-0 h3'); return h ? h.innerText.trim() : null }
+  const esc = async () => { document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await sleep(60) }
+  for (const r of document.querySelectorAll('.out-row.out-label-clickable')) if (T(r).startsWith('▸')) { r.click(); await sleep(60) }
+  const scope = [...document.querySelectorAll('.kpi-tiles, .section-stack')]
+  const res = { withFormula: 0, icons: 0, mismatch: [], noIcon: [], iconNoFormula: [] }
+  for (const el of scope.flatMap((s) => [...s.querySelectorAll('[class*="-clickable"]')])) {
+    if (el.classList.contains('out-row')) { if (el.querySelector(':scope > .out-label > .info-icon')) res.iconNoFormula.push(T(el)); continue } // collapsible headers
+    if (el.classList.contains('am-value') || el.classList.contains('am-equity-dollar')) continue // toggle / second click target
+    el.click(); await sleep(80); const t1 = modalTitle(); await esc()
+    if (!t1) { if (el.querySelector('.info-icon')) res.iconNoFormula.push(T(el)); continue }
+    res.withFormula++
+    const icon = el.querySelector('.info-icon')
+    if (!icon) { res.noIcon.push(T(el)); continue }
+    res.icons++
+    icon.dispatchEvent(new MouseEvent('click', { bubbles: true })); await sleep(80); const t2 = modalTitle(); await esc()
+    if (t1 !== t2) res.mismatch.push([T(el), t1, t2])
+  }
+  return res
+}
+```
+
 ---
 
 ## 1805 Cedar Wood, Anna TX (BRRRR)
