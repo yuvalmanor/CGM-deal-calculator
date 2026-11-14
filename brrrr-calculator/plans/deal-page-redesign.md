@@ -281,7 +281,7 @@ the Monthly/Yearly switch on Cash Flow; ✓/✗ marks on each max-offer rule.
 - [x] Mo/Yr defaults to Monthly with baseline values; Yearly shows each operating line × 12, labels unchanged, mode shown on the switch; Annual cashflow summary unaffected
 - [x] Each max-offer rule shows ✓ when purchase price ≤ its max offer, ✗ otherwise
 - [x] All gates green; committed and branch pushed
-- [x] Advisor audit done after commit + push; findings fixed or reported (2026-11-14: no code defects; real-pointer hover/tap, 1400px screenshots and the B&H slice sum added as evidence; slice colors outside palette A reported to the user)
+- [x] Advisor audit done after commit + push; findings fixed or reported (2026-11-14: no code defects; real-pointer hover/tap, 1400px screenshots and the B&H slice sum added as evidence; slice colors outside palette A reported to the user, who kept them as they are after reviewing the preview)
 
 ---
 

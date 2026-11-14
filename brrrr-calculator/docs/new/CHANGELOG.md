@@ -584,7 +584,8 @@ after the global row-gap change — all done and fine (results above). Reported 
 slice colors are the dataviz reference 8-hue set, not palette A, and were not run through its
 colorblind validator for these slice orders (skipped slices and the ring's wrap-around make
 neighbour pairs the reference order wasn't validated for); the legend and the table carry each
-slice's identity, so this is a judgment call.
+slice's identity, so this is a judgment call. **Decision (user, 2026-11-14, after reviewing the
+preview): keep the donut colors as they are.**
 
 ---
 
