@@ -449,21 +449,11 @@ input, textarea { font-family: inherit; color: inherit; }
   flex-direction: column;
 }
 
-.scenario-body {
-  padding: var(--s-5) var(--s-5) var(--s-3);
-  max-width: 1180px;
-  margin: 0 auto;
-  width: 100%;
-}
-
-/* ---- Scenario summary ---- */
+/* ---- Headline above a card's table (Annual cashflow / Net profit) ---- */
 .scenario-summary {
   display: flex;
   flex-direction: column;
   gap: var(--s-4);
-  padding-bottom: var(--s-5);
-  margin-bottom: var(--s-5);
-  border-bottom: 1px solid var(--line);
 }
 .summary-pri { display: flex; flex-direction: column; gap: 4px; }
 .summary-eyebrow { font-size: 11px; letter-spacing: 0.10em; text-transform: uppercase; color: var(--text-faint); }
@@ -500,13 +490,14 @@ input, textarea { font-family: inherit; color: inherit; }
 /* ---- Output groups ----
    A row table (label left, value right) is capped at ~600px so a label stays
    close to its value. */
-.out-group { margin-bottom: var(--s-5); max-width: 600px; width: 100%; }
+.out-group { max-width: 600px; width: 100%; }
+.out-group + .out-group { margin-top: var(--s-4); }
 .out-group-title {
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.10em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--text-mute);
   margin-bottom: var(--s-2);
   padding: 0 2px;
 }
@@ -534,12 +525,8 @@ input, textarea { font-family: inherit; color: inherit; }
 .out-row.out-warn .out-value { color: var(--warn); }
 .out-row.out-bad  .out-value { color: var(--bad); }
 
-/* Term Sheets (lender comparison) */
-.ts-section {
-  margin: 0 auto var(--s-5);
-  max-width: 1180px;
-  width: calc(100% - var(--s-5) * 2);
-}
+/* Term Sheets (lender comparison), expandable sections inside Financing */
+.ts-section { padding-top: var(--s-3); border-top: 1px solid var(--line-faint); }
 .ts-header {
   display: flex;
   justify-content: space-between;
@@ -678,27 +665,16 @@ input, textarea { font-family: inherit; color: inherit; }
   cursor: help;
 }
 
-/* MAO detail */
-.mao-detail {
-  margin: 0 var(--s-5) var(--s-5);
-  padding: var(--s-5);
-  background: var(--bg-card);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  max-width: 1180px;
-  margin-left: auto;
-  margin-right: auto;
-  width: calc(100% - var(--s-5) * 2);
-}
+/* MAO detail (Purchase Criteria card) */
 .mao-detail-header {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  margin-bottom: var(--s-4);
-  padding-bottom: var(--s-3);
+  margin-bottom: var(--s-3);
+  padding-bottom: var(--s-2);
   border-bottom: 1px solid var(--line);
 }
-.mao-detail-title { font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+.mao-detail-title { font-size: 11px; font-weight: 700; letter-spacing: 0.10em; text-transform: uppercase; color: var(--text-mute); }
 .mao-detail-value { font-family: var(--font-sans); font-size: 22px; letter-spacing: -0.02em; }
 .mao-detail-value.good { color: var(--good-strong); }
 .mao-detail-value.bad  { color: var(--bad); }
@@ -723,27 +699,16 @@ input, textarea { font-family: inherit; color: inherit; }
 .mao-detail-row.mao-current.bad { background: var(--bad-bg); }
 .mao-detail-row.mao-current.bad .mao-rule-value { color: var(--bad); }
 
-/* Score breakdown */
-.score-breakdown {
-  margin: 0 var(--s-5) var(--s-6);
-  padding: var(--s-5);
-  background: var(--bg-card);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  max-width: 1180px;
-  margin-left: auto;
-  margin-right: auto;
-  width: calc(100% - var(--s-5) * 2);
-}
+/* Score breakdown (Purchase Criteria card) */
 .breakdown-header {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  margin-bottom: var(--s-4);
-  padding-bottom: var(--s-3);
+  margin-bottom: var(--s-3);
+  padding-bottom: var(--s-2);
   border-bottom: 1px solid var(--line);
 }
-.breakdown-title { font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+.breakdown-title { font-size: 11px; font-weight: 700; letter-spacing: 0.10em; text-transform: uppercase; color: var(--text-mute); }
 .breakdown-total { font-family: var(--font-sans); font-size: 22px; letter-spacing: -0.02em; }
 .breakdown-total span { color: var(--text-faint); font-size: 14px; }
 .breakdown-list {
@@ -770,8 +735,8 @@ input, textarea { font-family: inherit; color: inherit; }
 
 /* ---- Section cards (deal page redesign) ----
    Stacked white cards with an uppercase blue title. Two "half" cards sit side
-   by side on desktop. Inner blocks keep their own classes; the overrides below
-   only strip the chrome they had as standalone panels. */
+   by side on desktop. Inner blocks (row tables, metric tiles, Term Sheets,
+   max-offer rules, score breakdown) are styled for life inside a card. */
 .section-stack {
   max-width: var(--page-max);
   margin: 0 auto;
@@ -819,44 +784,6 @@ input, textarea { font-family: inherit; color: inherit; }
   color: var(--text-faint);
 }
 
-/* Sub-headings inside a card (today's group titles) */
-.section-card .out-group-title,
-.section-card .mao-detail-title,
-.section-card .breakdown-title {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.10em;
-  color: var(--text-mute);
-}
-.section-card .out-group { margin: 0; }
-.section-card .out-group + .out-group { margin-top: var(--s-4); }
-.section-card .scenario-summary { margin: 0; padding: 0; border-bottom: 0; }
-.section-card .ts-section { width: auto; max-width: none; margin: 0; }
-.section-card .mao-detail,
-.section-card .score-breakdown,
-.section-card .am-panel {
-  width: auto;
-  max-width: none;
-  margin: 0;
-  padding: 0;
-  background: none;
-  border: 0;
-  border-radius: 0;
-}
-.section-card .am-panel { gap: var(--s-4); }
-/* Metric tiles: one fixed height everywhere (room for a two-line label), value on
-   the bottom line, so tiles in neighbouring cards line up on the same edges. */
-.section-card .am-grid { grid-auto-rows: 1fr; gap: var(--s-3); }
-.section-card .am-cell {
-  min-height: 78px;
-  justify-content: space-between;
-  padding: 10px 14px;
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-card);
-}
-.section-card .mao-detail-header,
-.section-card .breakdown-header { margin-bottom: var(--s-3); padding-bottom: var(--s-2); }
-
 /* Financing: two loan cards side by side */
 .loan-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-4); }
 .loan-card {
@@ -886,7 +813,6 @@ input, textarea { font-family: inherit; color: inherit; }
 .ts-toggle:hover .out-group-title { color: var(--accent); }
 .ts-caret { width: 10px; height: 10px; transition: transform 150ms ease; }
 .ts-closed .ts-caret { transform: rotate(-90deg); }
-.section-card .ts-section.ts-collapsible { padding-top: var(--s-3); border-top: 1px solid var(--line-faint); }
 
 /* ⓘ formula hint before a label that opens a formula */
 .info-icon {
@@ -997,43 +923,6 @@ input, textarea { font-family: inherit; color: inherit; }
 .drawer-inputs {
   overflow-y: auto;
   padding: var(--s-6) var(--s-7);
-}
-
-/* ---- Edit FAB ---- */
-.edit-fab {
-  position: fixed;
-  left: var(--s-5);
-  bottom: var(--s-5);
-  display: inline-flex;
-  align-items: center;
-  gap: var(--s-2);
-  padding: 10px 14px;
-  background: var(--text);
-  color: var(--bg-rise);
-  border: 0;
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: 500;
-  box-shadow: 0 8px 24px -10px rgba(20, 25, 35, 0.45), 0 2px 6px -2px rgba(20, 25, 35, 0.2);
-  z-index: 30;
-  cursor: pointer;
-  transition: transform 140ms ease, box-shadow 140ms ease;
-}
-.edit-fab:hover { transform: translateY(-1px); }
-.fab-icon { display: inline-flex; flex-direction: column; gap: 2px; }
-.fab-icon span {
-  display: block; width: 14px; height: 2px;
-  background: currentColor; border-radius: 1px;
-}
-.fab-icon span:nth-child(2) { width: 10px; }
-.fab-icon span:nth-child(3) { width: 12px; }
-.fab-kbd {
-  font-family: var(--font-sans);
-  font-size: 10px;
-  padding: 2px 5px;
-  background: rgba(255,255,255,0.18);
-  border-radius: 3px;
-  margin-left: 2px;
 }
 
 /* ---- Section nav (inside drawer) ---- */
@@ -1280,24 +1169,18 @@ input, textarea { font-family: inherit; color: inherit; }
 .drawer-save.saved { background: var(--good); border-color: var(--good); }
 .drawer-save.error { background: var(--bad); border-color: var(--bad); }
 
-/* ---- Advanced metrics ---- */
-.am-panel {
-  margin-top: var(--s-4);
-  padding: var(--s-4);
-  background: var(--bg-card-2);
-  border-radius: var(--radius);
-  border: 1px solid var(--line);
-  display: flex; flex-direction: column; gap: var(--s-4);
-}
-.am-header { display: flex; align-items: center; justify-content: space-between; }
-.am-title { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); }
+/* ---- Advanced metrics (tiles inside the section cards) ---- */
+.am-panel { display: flex; flex-direction: column; gap: var(--s-4); }
 
+/* Metric tiles: one fixed height everywhere (room for a two-line label), value on
+   the bottom line, so tiles in neighbouring cards line up on the same edges. */
 .am-grid {
-  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-2);
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: 1fr; gap: var(--s-3);
 }
 .am-cell {
-  background: var(--bg-card); border: 1px solid var(--line); border-radius: var(--radius-sm);
-  padding: var(--s-2) var(--s-3); display: flex; flex-direction: column; gap: 2px;
+  background: var(--bg-card); border: 1px solid var(--line); border-radius: var(--radius);
+  box-shadow: var(--shadow-card); min-height: 78px; justify-content: space-between;
+  padding: 10px 14px; display: flex; flex-direction: column; gap: 2px;
 }
 .am-label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-mute); line-height: 1.2; }
 .am-value { font-size: 15px; font-weight: 700; font-family: var(--font-sans); color: var(--text); }
@@ -1327,7 +1210,7 @@ input, textarea { font-family: inherit; color: inherit; }
 .am-equity-note { font-size: 11px; color: var(--text-mute); font-style: italic; }
 
 /* B&H property-value toggle (ARV / purchase price) */
-.bnh-basis { display: flex; align-items: center; gap: var(--s-3); flex-wrap: wrap; margin-bottom: var(--s-3); }
+.bnh-basis { display: flex; align-items: center; gap: var(--s-3); flex-wrap: wrap; }
 .bnh-basis-value { font-size: 13px; color: var(--text-dim); }
 
 /* ---- Scrollbars ---- */

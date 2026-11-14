@@ -35,6 +35,81 @@ function OutputGroup({ title, children }: { title: string; children: React.React
   )
 }
 
+/** A collapsible header row inside a row table (expense breakdown, interest-only scenario). */
+function CollapsibleRow({ label, open, onToggle, showTitle, hideTitle }: {
+  label: string; open: boolean; onToggle: () => void; showTitle: string; hideTitle: string
+}) {
+  return (
+    <div
+      className="out-row out-label-clickable"
+      onClick={onToggle}
+      style={{ cursor: 'pointer', userSelect: 'none' }}
+      title={open ? hideTitle : showTitle}
+    >
+      <div className="out-label">{open ? '▾' : '▸'} {label}</div>
+      <div className="out-value mono"></div>
+    </div>
+  )
+}
+
+/** An Advanced Metrics tile; its label opens the formula. */
+function AmCell({ label, value, status, metricId, onLabelClick }: {
+  label: string; value: string; status: Status; metricId: string; onLabelClick?: (id: string) => void
+}) {
+  return (
+    <div className={`am-cell am-${status}`}>
+      <div className="am-label am-label-clickable" onClick={() => onLabelClick?.(metricId)} title={`Formula: ${label}`}>
+        <InfoIcon />{label}
+      </div>
+      <div className="am-value">{value}</div>
+    </div>
+  )
+}
+
+/** The 4 summary cells, as a row of tiles above Purchase & Rehab (user, 2026-11-14). */
+function SummaryStrip({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="summary-strip">
+      <div className="summary-grid">{children}</div>
+    </div>
+  )
+}
+
+/** The headline above a card's table (Annual cashflow / Net profit). */
+function Headline({ eyebrow, value, status, sub, metricId, onLabelClick }: {
+  eyebrow: string; value: string; status: Status; sub: string
+  metricId?: string; onLabelClick?: (id: string) => void
+}) {
+  const canClick = metricId && onLabelClick
+  return (
+    <div className="scenario-summary">
+      <div className="summary-pri">
+        <div
+          className={`summary-eyebrow${canClick ? ' am-label-clickable' : ''}`}
+          onClick={canClick ? () => onLabelClick(metricId) : undefined}
+          title={canClick ? `Formula: ${eyebrow}` : undefined}
+        >{canClick && <InfoIcon />}{eyebrow}</div>
+        <div className={`summary-value ${status}`}>{value}</div>
+        <div className="summary-sub">{sub}</div>
+      </div>
+    </div>
+  )
+}
+
+/** Purchase Criteria: max-offer rules beside the score breakdown. */
+function CriteriaCard({ deal, mao, score, buyHold, onLabelClick }: {
+  deal: Deal; mao: MAOResult; score: DealScore; buyHold?: boolean; onLabelClick?: (id: string) => void
+}) {
+  return (
+    <SectionCard title="Purchase Criteria">
+      <div className="criteria-grid">
+        <MAODetail deal={deal} mao={mao} onLabelClick={onLabelClick} />
+        <ScoreBreakdown score={score} buyHold={buyHold} onLabelClick={onLabelClick} />
+      </div>
+    </SectionCard>
+  )
+}
+
 // ---- BRRRR tab: section cards ----
 // Purchase & Rehab → Cash Flow → Financing → Valuation & Equity →
 // Investment Returns → Financial Ratios → Purchase Criteria. Today's group
@@ -57,50 +132,36 @@ function BRRRRSections({ deal, brrrr, mao, score, onLabelClick, termSheetSection
   const equityPct    = equityMode === 'book' ? brrrr.equityPct    : brrrr.equityLiquidationPct
   const equityMetricId = equityMode === 'book' ? 'equity_book' : 'equity_liquidation'
 
-  // An Advanced Metrics tile; its label opens the formula
-  const amCell = (label: string, value: string, status: Status, metricId: string) => (
-    <div className={`am-cell am-${status}`}>
-      <div className="am-label am-label-clickable" onClick={() => click?.(metricId)} title={`Formula: ${label}`}>
-        <InfoIcon />{label}
-      </div>
-      <div className="am-value">{value}</div>
-    </div>
-  )
-
   return (
     <div className="section-stack">
-      {/* The 4 summary cells sit above Purchase & Rehab (user, 2026-11-14); the
-          Annual cashflow headline stays in the Cash Flow card. */}
-      <div className="summary-strip">
-        <div className="summary-grid">
-          <div
-            className={`summary-cell ${statusFor('coc', cocNoCapexView ? brrrr.cocNoCapex : brrrr.coc, deal)}`}
-            onClick={() => setCocNoCapexView((v) => !v)}
-            style={{ cursor: 'pointer', userSelect: 'none' }}
-          >
-            <div className="cell-label">Cash-on-Cash{cocNoCapexView ? ' (w/o CapEx)' : ''}</div>
-            <div className="cell-value">{fmtPct(cocNoCapexView ? brrrr.cocNoCapex : brrrr.coc)}</div>
-          </div>
-          <div className={`summary-cell ${statusFor('dscr', brrrr.dscr, deal)}`}>
-            <div className="cell-label">DSCR</div>
-            <div className="cell-value">{fmtNum(brrrr.dscr)}</div>
-          </div>
-          <div
-            className={`summary-cell ${statusFor('equity', brrrr.equityPct, deal)}`}
-            onClick={() => setEquityShowDollar((v) => !v)}
-            style={{ cursor: 'pointer', userSelect: 'none' }}
-          >
-            <div className="cell-label">Equity {equityShowDollar ? '$' : '%'}</div>
-            <div className="cell-value">
-              {equityShowDollar ? fmtCurrency(brrrr.equityDollar) : fmtPct(brrrr.equityPct)}
-            </div>
-          </div>
-          <div className={`summary-cell ${statusFor('moneyInDeal', brrrr.moneyInDeal, deal)}`}>
-            <div className="cell-label">Money in deal</div>
-            <div className="cell-value">{fmtCurrency(brrrr.moneyInDeal)}</div>
+      <SummaryStrip>
+        <div
+          className={`summary-cell ${statusFor('coc', cocNoCapexView ? brrrr.cocNoCapex : brrrr.coc, deal)}`}
+          onClick={() => setCocNoCapexView((v) => !v)}
+          style={{ cursor: 'pointer', userSelect: 'none' }}
+        >
+          <div className="cell-label">Cash-on-Cash{cocNoCapexView ? ' (w/o CapEx)' : ''}</div>
+          <div className="cell-value">{fmtPct(cocNoCapexView ? brrrr.cocNoCapex : brrrr.coc)}</div>
+        </div>
+        <div className={`summary-cell ${statusFor('dscr', brrrr.dscr, deal)}`}>
+          <div className="cell-label">DSCR</div>
+          <div className="cell-value">{fmtNum(brrrr.dscr)}</div>
+        </div>
+        <div
+          className={`summary-cell ${statusFor('equity', brrrr.equityPct, deal)}`}
+          onClick={() => setEquityShowDollar((v) => !v)}
+          style={{ cursor: 'pointer', userSelect: 'none' }}
+        >
+          <div className="cell-label">Equity {equityShowDollar ? '$' : '%'}</div>
+          <div className="cell-value">
+            {equityShowDollar ? fmtCurrency(brrrr.equityDollar) : fmtPct(brrrr.equityPct)}
           </div>
         </div>
-      </div>
+        <div className={`summary-cell ${statusFor('moneyInDeal', brrrr.moneyInDeal, deal)}`}>
+          <div className="cell-label">Money in deal</div>
+          <div className="cell-value">{fmtCurrency(brrrr.moneyInDeal)}</div>
+        </div>
+      </SummaryStrip>
 
       <SectionCard title="Purchase & Rehab">
         <OutputGroup title="Acquisition">
@@ -117,27 +178,17 @@ function BRRRRSections({ deal, brrrr, mao, score, onLabelClick, termSheetSection
       </SectionCard>
 
       <SectionCard title="Cash Flow">
-        <div className="scenario-summary">
-          <div className="summary-pri">
-            <div className="summary-eyebrow">Annual cashflow</div>
-            <div className={`summary-value ${statusFor('cashflow', brrrr.cashflow, deal)}`}>
-              {fmtCurrency(brrrr.annualCashflow)}
-            </div>
-            <div className="summary-sub">{fmtCurrency(brrrr.cashflow)} / month after debt service</div>
-          </div>
-        </div>
+        <Headline
+          eyebrow="Annual cashflow"
+          value={fmtCurrency(brrrr.annualCashflow)}
+          status={statusFor('cashflow', brrrr.cashflow, deal)}
+          sub={`${fmtCurrency(brrrr.cashflow)} / month after debt service`}
+        />
 
         <OutputGroup title="Monthly operating">
           <OutputRow label="Gross rent"                                     value={fmtCurrency(brrrr.monthlyRent)} metricId="gross_rent" onLabelClick={click} />
-          <div
-            className="out-row out-label-clickable"
-            onClick={() => setOpexExpanded((v) => !v)}
-            style={{ cursor: 'pointer', userSelect: 'none' }}
-            title={opexExpanded ? 'Hide breakdown' : 'Show breakdown'}
-          >
-            <div className="out-label">{opexExpanded ? '▾' : '▸'} Expense breakdown</div>
-            <div className="out-value mono"></div>
-          </div>
+          <CollapsibleRow label="Expense breakdown" open={opexExpanded} onToggle={() => setOpexExpanded((v) => !v)}
+            showTitle="Show breakdown" hideTitle="Hide breakdown" />
           {opexExpanded && (<>
             <OutputRow label="Property Tax"         value={'−' + fmtCurrency(op.taxes)} />
             <OutputRow label="Insurance"            value={'−' + fmtCurrency(op.ins)} />
@@ -165,15 +216,8 @@ function BRRRRSections({ deal, brrrr, mao, score, onLabelClick, termSheetSection
             const cashflowIO        = brrrr.cashflow        + brrrr.refiPI - ioMonthly
             const cashflowNoCapexIO = brrrr.cashflowNoCapex + brrrr.refiPI - ioMonthly
             return (<>
-              <div
-                className="out-row out-label-clickable"
-                onClick={() => setIoExpanded((v) => !v)}
-                style={{ cursor: 'pointer', userSelect: 'none' }}
-                title={ioExpanded ? 'Hide interest-only breakdown' : 'Show interest-only breakdown'}
-              >
-                <div className="out-label">{ioExpanded ? '▾' : '▸'} Interest-only scenario</div>
-                <div className="out-value mono"></div>
-              </div>
+              <CollapsibleRow label="Interest-only scenario" open={ioExpanded} onToggle={() => setIoExpanded((v) => !v)}
+                showTitle="Show interest-only breakdown" hideTitle="Hide interest-only breakdown" />
               {ioExpanded && (<>
                 <OutputRow label="Interest only mortgage monthly" value={'−' + fmtCurrency(ioMonthly)} />
                 <OutputRow label="Total Operating expenses (Include ITI) / w/o Capex"
@@ -230,8 +274,8 @@ function BRRRRSections({ deal, brrrr, mao, score, onLabelClick, termSheetSection
       <SectionCard title="Valuation & Equity" caption="Advanced Metrics" half>
         <div className="am-panel">
           <div className="am-grid">
-            {amCell('Margin/ARV', fmtPct(brrrr.equityMarginOnArv), statusFor('marginOnArv', brrrr.equityMarginOnArv, deal), 'equity_margin_arv')}
-            {amCell('Forced Equity ROI', fmtPct(brrrr.equityMarginArv), statusFor('forcedEquityROI', brrrr.equityMarginArv, deal), 'forced_equity_roi')}
+            <AmCell label="Margin/ARV" value={fmtPct(brrrr.equityMarginOnArv)} status={statusFor('marginOnArv', brrrr.equityMarginOnArv, deal)} metricId="equity_margin_arv" onLabelClick={click} />
+            <AmCell label="Forced Equity ROI" value={fmtPct(brrrr.equityMarginArv)} status={statusFor('forcedEquityROI', brrrr.equityMarginArv, deal)} metricId="forced_equity_roi" onLabelClick={click} />
           </div>
           <div className="am-equity">
             <div className="am-equity-header">
@@ -264,8 +308,8 @@ function BRRRRSections({ deal, brrrr, mao, score, onLabelClick, termSheetSection
       <SectionCard title="Investment Returns" caption="Advanced Metrics" half>
         <div className="am-panel">
           <div className="am-grid">
-            {amCell('Cap Rate', fmtPct(brrrr.capRate), statusFor('capRate', brrrr.capRate, deal), 'cap_rate')}
-            {amCell('ROE', fmtPct(brrrr.roe), statusFor('roe', brrrr.roe, deal), 'roe')}
+            <AmCell label="Cap Rate" value={fmtPct(brrrr.capRate)} status={statusFor('capRate', brrrr.capRate, deal)} metricId="cap_rate" onLabelClick={click} />
+            <AmCell label="ROE" value={fmtPct(brrrr.roe)} status={statusFor('roe', brrrr.roe, deal)} metricId="roe" onLabelClick={click} />
             <div className="am-cell am-neutral">
               <div className="am-label am-label-clickable" onClick={() => click?.('annual_cashflow')}>
                 <InfoIcon />Annual CF {annualCFNoCapex ? '(no capex)' : '(w/ capex)'}
@@ -302,236 +346,336 @@ function BRRRRSections({ deal, brrrr, mao, score, onLabelClick, termSheetSection
       <SectionCard title="Financial Ratios" caption="Advanced Metrics" half>
         <div className="am-panel">
           <div className="am-grid">
-            {amCell('GRM', `${brrrr.grm.toFixed(1)}×`, statusFor('grm', brrrr.grm, deal), 'grm')}
-            {/* Deliberate duplicate of the Cash Flow DSCR cell (plan header) */}
-            {amCell('DSCR', fmtNum(brrrr.dscr), statusFor('dscr', brrrr.dscr, deal), 'dscr')}
+            <AmCell label="GRM" value={`${brrrr.grm.toFixed(1)}×`} status={statusFor('grm', brrrr.grm, deal)} metricId="grm" onLabelClick={click} />
+            {/* Deliberate duplicate of the summary DSCR cell (plan header) */}
+            <AmCell label="DSCR" value={fmtNum(brrrr.dscr)} status={statusFor('dscr', brrrr.dscr, deal)} metricId="dscr" onLabelClick={click} />
           </div>
         </div>
       </SectionCard>
 
-      <SectionCard title="Purchase Criteria">
-        <div className="criteria-grid">
-          <MAODetail deal={deal} mao={mao} onLabelClick={click} />
-          <ScoreBreakdown score={score} onLabelClick={click} />
-        </div>
-      </SectionCard>
+      <CriteriaCard deal={deal} mao={mao} score={score} onLabelClick={click} />
     </div>
   )
 }
 
-// ---- Buy & Hold view ----
+// ---- Buy & Hold tab: section cards ----
+// Same order as BRRRR. Advanced Metrics · Buy & Hold is folded into the
+// Financing (Loan), Valuation & Equity, Investment Returns and Financial
+// Ratios cards; Financial Ratios adds the deliberate second DSCR.
 
-function BuyHoldView({ deal, bnh, onLabelClick, onUpdate }: {
-  deal: Deal; bnh: BuyHoldResult; onLabelClick?: (id: string) => void; onUpdate?: (patch: Partial<Deal>) => void
+function BuyHoldSections({ deal, bnh, mao, score, onLabelClick, onUpdate, termSheetSections }: {
+  deal: Deal; bnh: BuyHoldResult; mao: MAOResult; score: DealScore
+  onLabelClick?: (id: string) => void; onUpdate?: (patch: Partial<Deal>) => void
+  termSheetSections?: React.ReactNode
 }) {
   const click = onLabelClick
   const [cocNoCapexView, setCocNoCapexView] = useState(false)
   const [equityShowDollar, setEquityShowDollar] = useState(false)
   const [opexExpanded, setOpexExpanded] = useState(true)
+  const [annualCFNoCapex, setAnnualCFNoCapex] = useState(false)
   const op = monthlyOpExpenses(deal)
+  const basisLabel = deal.bnhValueBasis === 'purchase' ? 'purchase price' : 'ARV'
   // Tile labels open the formula modal; a tile that toggles a view keeps that on its value
   const tileLabel = (text: string, id: string) => (
-    <div className="cell-label am-label-clickable" onClick={(e) => { e.stopPropagation(); click?.(id) }} title={`Formula: ${text}`}>{text}</div>
+    <div className="cell-label am-label-clickable" onClick={(e) => { e.stopPropagation(); click?.(id) }} title={`Formula: ${text}`}><InfoIcon />{text}</div>
   )
-  return (
-    <div className="scenario-view">
-      <div className="bnh-basis">
-        <span className="am-label am-label-clickable" onClick={() => click?.('bnh_value')} title="Formula: B&H property value">
-          Property value
-        </span>
-        <div className="am-equity-toggle" role="group" aria-label="B&H property value">
-          {(['arv', 'purchase'] as const).map((b) => (
-            <button
-              key={b}
-              className={`am-eq-btn${deal.bnhValueBasis === b ? ' active' : ''}`}
-              aria-pressed={deal.bnhValueBasis === b}
-              onClick={() => onUpdate?.({ bnhValueBasis: b })}
-            >{b === 'arv' ? 'ARV' : 'Purchase price'}</button>
-          ))}
-        </div>
-        <span className="mono bnh-basis-value">{fmtCurrency(bnh.value)}</span>
-      </div>
 
-      <div className="scenario-summary">
-        <div className="summary-pri">
-          <div className="summary-eyebrow am-label-clickable" onClick={() => click?.('bnh_cashflow')} title="Formula: B&H cashflow">Annual cashflow</div>
-          <div className={`summary-value ${statusFor('cashflow', bnh.cashflow, deal)}`}>
-            {fmtCurrency(bnh.annualCashflow)}
-          </div>
-          <div className="summary-sub">{fmtCurrency(bnh.cashflow)} / month after the B&H mortgage</div>
+  return (
+    <div className="section-stack">
+      <SummaryStrip>
+        <div
+          className={`summary-cell ${statusFor('coc', cocNoCapexView ? bnh.cocNoCapex : bnh.coc, deal)}`}
+          onClick={() => setCocNoCapexView((v) => !v)}
+          style={{ cursor: 'pointer', userSelect: 'none' }}
+        >
+          {tileLabel(`Cash-on-Cash${cocNoCapexView ? ' (w/o CapEx)' : ''}`, 'bnh_coc')}
+          <div className="cell-value">{fmtPct(cocNoCapexView ? bnh.cocNoCapex : bnh.coc)}</div>
         </div>
-        <div className="summary-grid">
-          <div
-            className={`summary-cell ${statusFor('coc', cocNoCapexView ? bnh.cocNoCapex : bnh.coc, deal)}`}
-            onClick={() => setCocNoCapexView((v) => !v)}
-            style={{ cursor: 'pointer', userSelect: 'none' }}
-          >
-            {tileLabel(`Cash-on-Cash${cocNoCapexView ? ' (w/o CapEx)' : ''}`, 'bnh_coc')}
-            <div className="cell-value">{fmtPct(cocNoCapexView ? bnh.cocNoCapex : bnh.coc)}</div>
+        <div className={`summary-cell ${statusFor('dscr', bnh.dscr, deal)}`}>
+          {tileLabel('DSCR', 'bnh_dscr')}
+          <div className="cell-value">{fmtNum(bnh.dscr)}</div>
+        </div>
+        <div
+          className={`summary-cell ${statusFor('equity', bnh.equityPct, deal)}`}
+          onClick={() => setEquityShowDollar((v) => !v)}
+          style={{ cursor: 'pointer', userSelect: 'none' }}
+        >
+          {tileLabel(`Equity ${equityShowDollar ? '$' : '%'}`, 'bnh_equity')}
+          <div className="cell-value">
+            {equityShowDollar ? fmtCurrency(bnh.equityDollar) : fmtPct(bnh.equityPct)}
           </div>
-          <div className={`summary-cell ${statusFor('dscr', bnh.dscr, deal)}`}>
-            {tileLabel('DSCR', 'bnh_dscr')}
-            <div className="cell-value">{fmtNum(bnh.dscr)}</div>
-          </div>
-          <div
-            className={`summary-cell ${statusFor('equity', bnh.equityPct, deal)}`}
-            onClick={() => setEquityShowDollar((v) => !v)}
-            style={{ cursor: 'pointer', userSelect: 'none' }}
-          >
-            {tileLabel(`Equity ${equityShowDollar ? '$' : '%'}`, 'bnh_equity')}
-            <div className="cell-value">
-              {equityShowDollar ? fmtCurrency(bnh.equityDollar) : fmtPct(bnh.equityPct)}
+        </div>
+        <div className={`summary-cell ${statusFor('moneyInDeal', bnh.cashIn, deal)}`}>
+          {tileLabel('Cash In', 'bnh_cash_in')}
+          <div className="cell-value">{fmtCurrency(bnh.cashIn)}</div>
+        </div>
+      </SummaryStrip>
+
+      <SectionCard title="Purchase & Rehab">
+        <OutputGroup title="Purchase & cash in">
+          <OutputRow label="Purchase price"                       value={fmtCurrency(deal.purchasePrice)} metricId="pp" onLabelClick={click} />
+          <OutputRow label="Down payment"                         value={fmtCurrency(bnh.downPayment)} metricId="bnh_down_payment" onLabelClick={click} />
+          <OutputRow label={`Loan (${deal.bnhLoanPct}% of price)`} value={fmtCurrency(bnh.loan)} metricId="bnh_loan" onLabelClick={click} />
+          <OutputRow label="Loan costs (points + fees + title/escrow)" value={fmtCurrency(bnh.loanCosts)} metricId="bnh_loan_costs" onLabelClick={click} />
+          <OutputRow label="Closing costs"                        value={fmtCurrency(deal.closingCostsBuy)} metricId="closing_buy" onLabelClick={click} />
+          <OutputRow label="Rehab (all cash)"                     value={fmtCurrency(bnh.cashRehab)} metricId="bnh_cash_rehab" onLabelClick={click} />
+          <OutputRow label="One-time costs"                       value={fmtCurrency(bnh.oneTimeCosts)} metricId="bnh_one_time" onLabelClick={click} />
+          <OutputRow label={`Holding costs (${deal.rehabMonths} mo, incl. mortgage)`} value={fmtCurrency(bnh.holdingCosts)} metricId="bnh_holding" onLabelClick={click} />
+          <OutputRow label="Credits at close"                     value={'−' + fmtCurrency(deal.projectCostAdjustments)} metricId="bnh_credits" onLabelClick={click} />
+          <OutputRow label="Cash In"                              value={fmtCurrency(bnh.cashIn)}
+            status={statusFor('moneyInDeal', bnh.cashIn, deal)} metricId="bnh_cash_in" onLabelClick={click} accent />
+        </OutputGroup>
+      </SectionCard>
+
+      <SectionCard title="Cash Flow">
+        <Headline
+          eyebrow="Annual cashflow"
+          value={fmtCurrency(bnh.annualCashflow)}
+          status={statusFor('cashflow', bnh.cashflow, deal)}
+          sub={`${fmtCurrency(bnh.cashflow)} / month after the B&H mortgage`}
+          metricId="bnh_cashflow" onLabelClick={click}
+        />
+
+        <OutputGroup title="Monthly operating">
+          <OutputRow label="Gross rent" value={fmtCurrency(bnh.monthlyRent)} metricId="gross_rent" onLabelClick={click} />
+          <CollapsibleRow label="Expense breakdown" open={opexExpanded} onToggle={() => setOpexExpanded((v) => !v)}
+            showTitle="Show breakdown" hideTitle="Hide breakdown" />
+          {opexExpanded && (<>
+            <OutputRow label="Property Tax"             value={'−' + fmtCurrency(op.taxes)}  metricId="bnh_total_opex" onLabelClick={click} />
+            <OutputRow label="Insurance"                value={'−' + fmtCurrency(op.ins)}    metricId="bnh_total_opex" onLabelClick={click} />
+            <OutputRow label="HOA"                      value={'−' + fmtCurrency(op.hoa)}    metricId="bnh_total_opex" onLabelClick={click} />
+            <OutputRow label="State income tax"         value={'−' + fmtCurrency(op.sit)}    metricId="bnh_total_opex" onLabelClick={click} />
+            <OutputRow label="Property management"      value={'−' + fmtCurrency(op.mgmt)}   metricId="bnh_total_opex" onLabelClick={click} />
+            <OutputRow label="Capex / vacancy"          value={'−' + fmtCurrency(op.capV)}   metricId="bnh_total_opex" onLabelClick={click} />
+            <OutputRow label="Additional Monthly Costs" value={'−' + fmtCurrency(op.extras)} metricId="bnh_total_opex" onLabelClick={click} />
+            <OutputRow label="Mortgage P&I"             value={'−' + fmtCurrency(bnh.mortgagePI)} metricId="bnh_mortgage" onLabelClick={click} />
+          </>)}
+          <OutputRow label="Total Operating expenses (incl. P&I) / w/o Capex"
+            value={'−' + fmtCurrency(bnh.totalOpexWithPI) + ' / −' + fmtCurrency(bnh.totalOpexNoCapexWithPI)}
+            metricId="bnh_total_opex" onLabelClick={click} />
+          <OutputRow label="NOI" value={fmtCurrency(bnh.noi)} metricId="bnh_noi" onLabelClick={click} />
+          <OutputRow label="Monthly cashflow / w/o Capex"
+            value={fmtCurrency(bnh.cashflow) + ' / ' + fmtCurrency(bnh.cashflowNoCapex)}
+            status={statusFor('cashflow', bnh.cashflow, deal)} metricId="bnh_cashflow" onLabelClick={click} accent />
+        </OutputGroup>
+      </SectionCard>
+
+      <SectionCard title="Financing">
+        <div className="loan-cards">
+          <div className="loan-card">
+            <div className="loan-card-title">Loan · Buy & Hold</div>
+            <div className="am-panel">
+              <div className="am-grid">
+                <AmCell label={`Loan (${deal.bnhLoanPct}%)`} value={fmtCurrency(bnh.loan)} status="neutral" metricId="bnh_loan" onLabelClick={click} />
+              </div>
             </div>
           </div>
-          <div className={`summary-cell ${statusFor('moneyInDeal', bnh.cashIn, deal)}`}>
-            {tileLabel('Cash In', 'bnh_cash_in')}
-            <div className="cell-value">{fmtCurrency(bnh.cashIn)}</div>
+        </div>
+        {termSheetSections}
+      </SectionCard>
+
+      <SectionCard title="Valuation & Equity" caption="Advanced Metrics · Buy & Hold" half>
+        <div className="am-panel">
+          {/* Tiles first, so this card's tile row lines up with Investment Returns */}
+          <div className="am-grid">
+            <AmCell label={`Value (${basisLabel})`} value={fmtCurrency(bnh.value)} status="neutral" metricId="bnh_value" onLabelClick={click} />
+          </div>
+          <div className="bnh-basis">
+            <span className="am-label am-label-clickable" onClick={() => click?.('bnh_value')} title="Formula: B&H property value">
+              <InfoIcon />Property value
+            </span>
+            <div className="am-equity-toggle" role="group" aria-label="B&H property value">
+              {(['arv', 'purchase'] as const).map((b) => (
+                <button
+                  key={b}
+                  className={`am-eq-btn${deal.bnhValueBasis === b ? ' active' : ''}`}
+                  aria-pressed={deal.bnhValueBasis === b}
+                  onClick={() => onUpdate?.({ bnhValueBasis: b })}
+                >{b === 'arv' ? 'ARV' : 'Purchase price'}</button>
+              ))}
+            </div>
+            <span className="mono bnh-basis-value">{fmtCurrency(bnh.value)}</span>
+          </div>
+          <div className="am-equity">
+            <div className="am-equity-header">
+              <div className="am-label am-label-clickable" onClick={() => click?.('bnh_equity')} title="Formula: Equity at purchase">
+                <InfoIcon />Equity at purchase
+              </div>
+            </div>
+            <div className="am-equity-values">
+              <span className="am-equity-dollar am-label-clickable" onClick={() => click?.('bnh_equity')}>
+                {fmtCurrency(bnh.equityDollar)}
+              </span>
+              <span className="am-equity-pct">{fmtPct(bnh.equityPct)}</span>
+            </div>
+            <div className="am-equity-note">On {basisLabel}: value − B&H loan</div>
           </div>
         </div>
-      </div>
+      </SectionCard>
 
-      <OutputGroup title="Purchase & cash in">
-        <OutputRow label="Purchase price"                       value={fmtCurrency(deal.purchasePrice)} metricId="pp" onLabelClick={click} />
-        <OutputRow label="Down payment"                         value={fmtCurrency(bnh.downPayment)} metricId="bnh_down_payment" onLabelClick={click} />
-        <OutputRow label={`Loan (${deal.bnhLoanPct}% of price)`} value={fmtCurrency(bnh.loan)} metricId="bnh_loan" onLabelClick={click} />
-        <OutputRow label="Loan costs (points + fees + title/escrow)" value={fmtCurrency(bnh.loanCosts)} metricId="bnh_loan_costs" onLabelClick={click} />
-        <OutputRow label="Closing costs"                        value={fmtCurrency(deal.closingCostsBuy)} metricId="closing_buy" onLabelClick={click} />
-        <OutputRow label="Rehab (all cash)"                     value={fmtCurrency(bnh.cashRehab)} metricId="bnh_cash_rehab" onLabelClick={click} />
-        <OutputRow label="One-time costs"                       value={fmtCurrency(bnh.oneTimeCosts)} metricId="bnh_one_time" onLabelClick={click} />
-        <OutputRow label={`Holding costs (${deal.rehabMonths} mo, incl. mortgage)`} value={fmtCurrency(bnh.holdingCosts)} metricId="bnh_holding" onLabelClick={click} />
-        <OutputRow label="Credits at close"                     value={'−' + fmtCurrency(deal.projectCostAdjustments)} metricId="bnh_credits" onLabelClick={click} />
-        <OutputRow label="Cash In"                              value={fmtCurrency(bnh.cashIn)}
-          status={statusFor('moneyInDeal', bnh.cashIn, deal)} metricId="bnh_cash_in" onLabelClick={click} accent />
-      </OutputGroup>
-
-      <OutputGroup title="Monthly operating">
-        <OutputRow label="Gross rent" value={fmtCurrency(bnh.monthlyRent)} metricId="gross_rent" onLabelClick={click} />
-        <div
-          className="out-row out-label-clickable"
-          onClick={() => setOpexExpanded((v) => !v)}
-          style={{ cursor: 'pointer', userSelect: 'none' }}
-          title={opexExpanded ? 'Hide breakdown' : 'Show breakdown'}
-        >
-          <div className="out-label">{opexExpanded ? '▾' : '▸'} Expense breakdown</div>
-          <div className="out-value mono"></div>
+      <SectionCard title="Investment Returns" caption="Advanced Metrics · Buy & Hold" half>
+        <div className="am-panel">
+          <div className="am-grid">
+            <AmCell label="Cap Rate" value={fmtPct(bnh.capRate)} status={statusFor('capRate', bnh.capRate, deal)} metricId="bnh_cap_rate" onLabelClick={click} />
+            <AmCell label="ROE" value={fmtPct(bnh.roe)} status={statusFor('roe', bnh.roe, deal)} metricId="bnh_roe" onLabelClick={click} />
+            <div className="am-cell am-neutral">
+              <div className="am-label am-label-clickable" onClick={() => click?.('bnh_cashflow')}>
+                <InfoIcon />Annual CF {annualCFNoCapex ? '(no capex)' : '(w/ capex)'}
+              </div>
+              <div
+                className="am-value am-label-clickable"
+                title="Click to toggle CapEx"
+                onClick={() => setAnnualCFNoCapex((v) => !v)}
+              >
+                {fmtCurrency(annualCFNoCapex ? bnh.cashflowNoCapex * 12 : bnh.annualCashflow)}
+              </div>
+            </div>
+          </div>
+          <div className="am-irr">
+            <div className="am-irr-title am-label-clickable" onClick={() => click?.('bnh_irr')}>
+              <InfoIcon />5-Year IRR
+            </div>
+            {bnh.cashIn <= 0 ? (
+              <div className="am-irr-note">No cash in the deal — infinite return</div>
+            ) : (
+              <div className="am-irr-rows">
+                {([['2%', bnh.irr2pct], ['3%', bnh.irr3pct], ['4%', bnh.irr4pct]] as const).map(([label, v]) => (
+                  <div className="am-irr-row" key={label}>
+                    <span className="am-irr-label">{label} appreciation</span>
+                    <span className={`am-irr-value am-${statusFor('irr', v, deal)}`}>{fmtPct(v)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
-        {opexExpanded && (<>
-          <OutputRow label="Property Tax"             value={'−' + fmtCurrency(op.taxes)}  metricId="bnh_total_opex" onLabelClick={click} />
-          <OutputRow label="Insurance"                value={'−' + fmtCurrency(op.ins)}    metricId="bnh_total_opex" onLabelClick={click} />
-          <OutputRow label="HOA"                      value={'−' + fmtCurrency(op.hoa)}    metricId="bnh_total_opex" onLabelClick={click} />
-          <OutputRow label="State income tax"         value={'−' + fmtCurrency(op.sit)}    metricId="bnh_total_opex" onLabelClick={click} />
-          <OutputRow label="Property management"      value={'−' + fmtCurrency(op.mgmt)}   metricId="bnh_total_opex" onLabelClick={click} />
-          <OutputRow label="Capex / vacancy"          value={'−' + fmtCurrency(op.capV)}   metricId="bnh_total_opex" onLabelClick={click} />
-          <OutputRow label="Additional Monthly Costs" value={'−' + fmtCurrency(op.extras)} metricId="bnh_total_opex" onLabelClick={click} />
-          <OutputRow label="Mortgage P&I"             value={'−' + fmtCurrency(bnh.mortgagePI)} metricId="bnh_mortgage" onLabelClick={click} />
-        </>)}
-        <OutputRow label="Total Operating expenses (incl. P&I) / w/o Capex"
-          value={'−' + fmtCurrency(bnh.totalOpexWithPI) + ' / −' + fmtCurrency(bnh.totalOpexNoCapexWithPI)}
-          metricId="bnh_total_opex" onLabelClick={click} />
-        <OutputRow label="NOI" value={fmtCurrency(bnh.noi)} metricId="bnh_noi" onLabelClick={click} />
-        <OutputRow label="Monthly cashflow / w/o Capex"
-          value={fmtCurrency(bnh.cashflow) + ' / ' + fmtCurrency(bnh.cashflowNoCapex)}
-          status={statusFor('cashflow', bnh.cashflow, deal)} metricId="bnh_cashflow" onLabelClick={click} accent />
-      </OutputGroup>
+      </SectionCard>
+
+      <SectionCard title="Financial Ratios" caption="Advanced Metrics · Buy & Hold" half>
+        <div className="am-panel">
+          <div className="am-grid">
+            <AmCell label="GRM" value={`${bnh.grm.toFixed(1)}×`} status={statusFor('grm', bnh.grm, deal)} metricId="bnh_grm" onLabelClick={click} />
+            {/* Deliberate duplicate of the summary DSCR cell (plan header) */}
+            <AmCell label="DSCR" value={fmtNum(bnh.dscr)} status={statusFor('dscr', bnh.dscr, deal)} metricId="bnh_dscr" onLabelClick={click} />
+          </div>
+        </div>
+      </SectionCard>
+
+      <CriteriaCard deal={deal} mao={mao} score={score} buyHold onLabelClick={click} />
     </div>
   )
 }
 
-// ---- Flip Cash view ----
+// ---- Flip tabs: section cards ----
+// Purchase & Rehab (Net profit headline + Cash deployed) → Financing (Term
+// Sheets) → Valuation & Equity (Sale) → Purchase Criteria. No Cash Flow,
+// Investment Returns or Financial Ratios on a flip.
 
-function FlipCashView({ deal, flip, onLabelClick }: { deal: Deal; flip: FlipCashResult; onLabelClick?: (id: string) => void }) {
+function FlipCashSections({ deal, flip, mao, score, onLabelClick, termSheetSections }: {
+  deal: Deal; flip: FlipCashResult; mao: MAOResult; score: DealScore
+  onLabelClick?: (id: string) => void; termSheetSections?: React.ReactNode
+}) {
   const roiStatus = statusFor('roi', flip.roi, deal)
+  const profitStatus: Status = flip.profit > 0 ? 'good' : 'bad'
   return (
-    <div className="scenario-view">
-      <div className="scenario-summary">
-        <div className="summary-pri">
-          <div className="summary-eyebrow">Net profit</div>
-          <div className={`summary-value ${flip.profit > 0 ? 'good' : 'bad'}`}>{fmtCurrency(flip.profit)}</div>
-          <div className="summary-sub">After {flip.holdMonths} mo hold + selling costs</div>
+    <div className="section-stack">
+      <SummaryStrip>
+        <div className={`summary-cell ${roiStatus}`}>
+          <div className="cell-label">ROI</div>
+          <div className="cell-value">{fmtPct(flip.roi)}</div>
         </div>
-        <div className="summary-grid">
-          <div className={`summary-cell ${roiStatus}`}>
-            <div className="cell-label">ROI</div>
-            <div className="cell-value">{fmtPct(flip.roi)}</div>
-          </div>
-          <div className={`summary-cell ${statusFor('roi', flip.annualizedRoi, deal)}`}>
-            <div className="cell-label">Annualized</div>
-            <div className="cell-value">{fmtPct(flip.annualizedRoi)}</div>
-          </div>
-          <div className="summary-cell neutral">
-            <div className="cell-label">Cash in</div>
-            <div className="cell-value">{fmtCurrency(flip.totalCashIn)}</div>
-          </div>
-          <div className="summary-cell neutral">
-            <div className="cell-label">ARV</div>
-            <div className="cell-value">{fmtCurrency(flip.arv)}</div>
-          </div>
+        <div className={`summary-cell ${statusFor('roi', flip.annualizedRoi, deal)}`}>
+          <div className="cell-label">Annualized</div>
+          <div className="cell-value">{fmtPct(flip.annualizedRoi)}</div>
         </div>
-      </div>
+        <div className="summary-cell neutral">
+          <div className="cell-label">Cash in</div>
+          <div className="cell-value">{fmtCurrency(flip.totalCashIn)}</div>
+        </div>
+        <div className="summary-cell neutral">
+          <div className="cell-label">ARV</div>
+          <div className="cell-value">{fmtCurrency(flip.arv)}</div>
+        </div>
+      </SummaryStrip>
 
-      <OutputGroup title="Cash deployed">
-        <OutputRow label="Purchase + rehab + closing" value={fmtCurrency(deal.purchasePrice + flip.rehab + deal.closingCostsBuy)} />
-        <OutputRow label={`Holding carry (${flip.holdMonths} mo, full opex)`} value={fmtCurrency(flip.holdingCarry)} />
-        <OutputRow label="Total cash in" value={fmtCurrency(flip.totalCashIn)} accent />
-      </OutputGroup>
+      <SectionCard title="Purchase & Rehab">
+        <Headline eyebrow="Net profit" value={fmtCurrency(flip.profit)} status={profitStatus}
+          sub={`After ${flip.holdMonths} mo hold + selling costs`} />
+        <OutputGroup title="Cash deployed">
+          <OutputRow label="Purchase + rehab + closing" value={fmtCurrency(deal.purchasePrice + flip.rehab + deal.closingCostsBuy)} />
+          <OutputRow label={`Holding carry (${flip.holdMonths} mo, full opex)`} value={fmtCurrency(flip.holdingCarry)} />
+          <OutputRow label="Total cash in" value={fmtCurrency(flip.totalCashIn)} accent />
+        </OutputGroup>
+      </SectionCard>
 
-      <OutputGroup title="Sale">
-        <OutputRow label="ARV / sale price"                         value={fmtCurrency(deal.arv)} />
-        <OutputRow label={`Selling costs (${deal.sellingCostsPct}%)`} value={'−' + fmtCurrency(flip.sellingCosts)} />
-        <OutputRow label="Gross proceeds"                           value={fmtCurrency(flip.grossProceeds)} />
-        <OutputRow label="Net profit"                               value={fmtCurrency(flip.profit)}
-          status={flip.profit > 0 ? 'good' : 'bad'} accent />
-      </OutputGroup>
+      <SectionCard title="Financing">{termSheetSections}</SectionCard>
+
+      <SectionCard title="Valuation & Equity">
+        <OutputGroup title="Sale">
+          <OutputRow label="ARV / sale price"                         value={fmtCurrency(deal.arv)} />
+          <OutputRow label={`Selling costs (${deal.sellingCostsPct}%)`} value={'−' + fmtCurrency(flip.sellingCosts)} />
+          <OutputRow label="Gross proceeds"                           value={fmtCurrency(flip.grossProceeds)} />
+          <OutputRow label="Net profit"                               value={fmtCurrency(flip.profit)}
+            status={profitStatus} accent />
+        </OutputGroup>
+      </SectionCard>
+
+      <CriteriaCard deal={deal} mao={mao} score={score} onLabelClick={onLabelClick} />
     </div>
   )
 }
 
-// ---- Flip HML view ----
-
-function FlipHMLView({ deal, flip, onLabelClick }: { deal: Deal; flip: FlipHMLResult; onLabelClick?: (id: string) => void }) {
+function FlipHMLSections({ deal, flip, mao, score, onLabelClick, termSheetSections }: {
+  deal: Deal; flip: FlipHMLResult; mao: MAOResult; score: DealScore
+  onLabelClick?: (id: string) => void; termSheetSections?: React.ReactNode
+}) {
   const roiStatus = statusFor('roi', flip.roi, deal)
+  const profitStatus: Status = flip.profit > 0 ? 'good' : 'bad'
   return (
-    <div className="scenario-view">
-      <div className="scenario-summary">
-        <div className="summary-pri">
-          <div className="summary-eyebrow">Net profit</div>
-          <div className={`summary-value ${flip.profit > 0 ? 'good' : 'bad'}`}>{fmtCurrency(flip.profit)}</div>
-          <div className="summary-sub">Leveraged with hard money</div>
+    <div className="section-stack">
+      <SummaryStrip>
+        <div className={`summary-cell ${roiStatus}`}>
+          <div className="cell-label">ROI on cash</div>
+          <div className="cell-value">{fmtPct(flip.roi)}</div>
         </div>
-        <div className="summary-grid">
-          <div className={`summary-cell ${roiStatus}`}>
-            <div className="cell-label">ROI on cash</div>
-            <div className="cell-value">{fmtPct(flip.roi)}</div>
-          </div>
-          <div className={`summary-cell ${statusFor('roi', flip.annualizedRoi, deal)}`}>
-            <div className="cell-label">Annualized</div>
-            <div className="cell-value">{fmtPct(flip.annualizedRoi)}</div>
-          </div>
-          <div className="summary-cell neutral">
-            <div className="cell-label">Cash in</div>
-            <div className="cell-value">{fmtCurrency(flip.cashIn)}</div>
-          </div>
-          <div className="summary-cell neutral">
-            <div className="cell-label">HML payoff</div>
-            <div className="cell-value">{fmtCurrency(flip.hmlPrincipal)}</div>
-          </div>
+        <div className={`summary-cell ${statusFor('roi', flip.annualizedRoi, deal)}`}>
+          <div className="cell-label">Annualized</div>
+          <div className="cell-value">{fmtPct(flip.annualizedRoi)}</div>
         </div>
-      </div>
+        <div className="summary-cell neutral">
+          <div className="cell-label">Cash in</div>
+          <div className="cell-value">{fmtCurrency(flip.cashIn)}</div>
+        </div>
+        <div className="summary-cell neutral">
+          <div className="cell-label">HML payoff</div>
+          <div className="cell-value">{fmtCurrency(flip.hmlPrincipal)}</div>
+        </div>
+      </SummaryStrip>
 
-      <OutputGroup title="Cash deployed">
-        <OutputRow label="Acquisition gap + closing + points"               value={fmtCurrency(flip.cashInAcq)} />
-        <OutputRow label={`Holding (HML interest + full opex, ${flip.holdMonths} mo)`} value={fmtCurrency(flip.cashHolding)} />
-        <OutputRow label="Total cash in"                                    value={fmtCurrency(flip.cashIn)} accent />
-      </OutputGroup>
+      <SectionCard title="Purchase & Rehab">
+        <Headline eyebrow="Net profit" value={fmtCurrency(flip.profit)} status={profitStatus}
+          sub="Leveraged with hard money" />
+        <OutputGroup title="Cash deployed">
+          <OutputRow label="Acquisition gap + closing + points"               value={fmtCurrency(flip.cashInAcq)} />
+          <OutputRow label={`Holding (HML interest + full opex, ${flip.holdMonths} mo)`} value={fmtCurrency(flip.cashHolding)} />
+          <OutputRow label="Total cash in"                                    value={fmtCurrency(flip.cashIn)} accent />
+        </OutputGroup>
+      </SectionCard>
 
-      <OutputGroup title="Sale">
-        <OutputRow label="ARV / sale price"                               value={fmtCurrency(deal.arv)} />
-        <OutputRow label={`Selling costs (${deal.sellingCostsPct}%)`}    value={'−' + fmtCurrency(flip.sellingCosts)} />
-        <OutputRow label="HML payoff"                                     value={'−' + fmtCurrency(flip.hmlPrincipal)} />
-        <OutputRow label="Net to investor"                                value={fmtCurrency(flip.netToInvestor)} />
-        <OutputRow label="Net profit"                                     value={fmtCurrency(flip.profit)}
-          status={flip.profit > 0 ? 'good' : 'bad'} accent />
-      </OutputGroup>
+      <SectionCard title="Financing">{termSheetSections}</SectionCard>
+
+      <SectionCard title="Valuation & Equity">
+        <OutputGroup title="Sale">
+          <OutputRow label="ARV / sale price"                               value={fmtCurrency(deal.arv)} />
+          <OutputRow label={`Selling costs (${deal.sellingCostsPct}%)`}    value={'−' + fmtCurrency(flip.sellingCosts)} />
+          <OutputRow label="HML payoff"                                     value={'−' + fmtCurrency(flip.hmlPrincipal)} />
+          <OutputRow label="Net to investor"                                value={fmtCurrency(flip.netToInvestor)} />
+          <OutputRow label="Net profit"                                     value={fmtCurrency(flip.profit)}
+            status={profitStatus} accent />
+        </OutputGroup>
+      </SectionCard>
+
+      <CriteriaCard deal={deal} mao={mao} score={score} onLabelClick={onLabelClick} />
     </div>
   )
 }
@@ -627,91 +771,10 @@ function ScoreBreakdown({ score, buyHold, onLabelClick }: { score: DealScore; bu
   )
 }
 
-// ---- Buy & Hold Advanced Metrics ----
-
-function BuyHoldAdvancedMetrics({ deal, bnh, onLabelClick }: { deal: Deal; bnh: BuyHoldResult; onLabelClick?: (id: string) => void }) {
-  const [annualCFNoCapex, setAnnualCFNoCapex] = useState(false)
-  const click = onLabelClick
-  const basisLabel = deal.bnhValueBasis === 'purchase' ? 'purchase price' : 'ARV'
-
-  return (
-    <div className="am-panel">
-      <div className="am-header">
-        <div className="am-title">Advanced Metrics · Buy & Hold</div>
-      </div>
-
-      <div className="am-grid">
-        <div className={`am-cell am-${statusFor('capRate', bnh.capRate, deal)}`}>
-          <div className="am-label am-label-clickable" onClick={() => click?.('bnh_cap_rate')}>Cap Rate</div>
-          <div className="am-value">{fmtPct(bnh.capRate)}</div>
-        </div>
-        <div className={`am-cell am-${statusFor('grm', bnh.grm, deal)}`}>
-          <div className="am-label am-label-clickable" onClick={() => click?.('bnh_grm')}>GRM</div>
-          <div className="am-value">{bnh.grm.toFixed(1)}×</div>
-        </div>
-        <div className={`am-cell am-${statusFor('roe', bnh.roe, deal)}`}>
-          <div className="am-label am-label-clickable" onClick={() => click?.('bnh_roe')}>ROE</div>
-          <div className="am-value">{fmtPct(bnh.roe)}</div>
-        </div>
-        <div className="am-cell am-neutral">
-          <div className="am-label am-label-clickable" onClick={() => click?.('bnh_cashflow')}>
-            Annual CF {annualCFNoCapex ? '(no capex)' : '(w/ capex)'}
-          </div>
-          <div
-            className="am-value am-label-clickable"
-            title="Click to toggle CapEx"
-            onClick={() => setAnnualCFNoCapex((v) => !v)}
-          >
-            {fmtCurrency(annualCFNoCapex ? bnh.cashflowNoCapex * 12 : bnh.annualCashflow)}
-          </div>
-        </div>
-        <div className="am-cell am-neutral">
-          <div className="am-label am-label-clickable" onClick={() => click?.('bnh_value')}>Value ({basisLabel})</div>
-          <div className="am-value">{fmtCurrency(bnh.value)}</div>
-        </div>
-        <div className="am-cell am-neutral">
-          <div className="am-label am-label-clickable" onClick={() => click?.('bnh_loan')}>Loan ({deal.bnhLoanPct}%)</div>
-          <div className="am-value">{fmtCurrency(bnh.loan)}</div>
-        </div>
-      </div>
-
-      <div className="am-irr">
-        <div className="am-irr-title am-label-clickable" onClick={() => click?.('bnh_irr')}>
-          5-Year IRR
-        </div>
-        {bnh.cashIn <= 0 ? (
-          <div className="am-irr-note">No cash in the deal — infinite return</div>
-        ) : (
-          <div className="am-irr-rows">
-            {([['2%', bnh.irr2pct], ['3%', bnh.irr3pct], ['4%', bnh.irr4pct]] as const).map(([label, v]) => (
-              <div className="am-irr-row" key={label}>
-                <span className="am-irr-label">{label} appreciation</span>
-                <span className={`am-irr-value am-${statusFor('irr', v, deal)}`}>{fmtPct(v)}</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div className="am-equity">
-        <div className="am-equity-header">
-          <div className="am-label">Equity at purchase</div>
-        </div>
-        <div className="am-equity-values">
-          <span className="am-equity-dollar am-label-clickable" onClick={() => click?.('bnh_equity')}>
-            {fmtCurrency(bnh.equityDollar)}
-          </span>
-          <span className="am-equity-pct">{fmtPct(bnh.equityPct)}</span>
-        </div>
-        <div className="am-equity-note">On {basisLabel}: value − B&H loan</div>
-      </div>
-    </div>
-  )
-}
-
 // ---- ScenarioPanel (exported) ----
 // The Scenario tabs and the Edit deal button live in DealHeader; this panel
-// renders the open tab's body.
+// renders the open tab's section cards. Each tab is its own component, so
+// switching tabs remounts it and resets its view toggles.
 
 type ScenarioKey = 'brrrr' | 'buyHold' | 'flipCash' | 'flipHml'
 
@@ -730,28 +793,13 @@ interface Props {
 }
 
 export function ScenarioPanel({ deal, brrrr, buyHold, flipCash, flipHml, mao, score, scenario, onLabelClick, onUpdate, termSheetSections }: Props) {
-  // BRRRR is in section cards (deal page redesign phase 2); the other tabs
-  // keep the earlier layout until phase 3.
-  if (scenario === 'brrrr') {
-    return (
-      <div className="scenario-panel">
-        <BRRRRSections deal={deal} brrrr={brrrr} mao={mao} score={score}
-          onLabelClick={onLabelClick} termSheetSections={termSheetSections} />
-      </div>
-    )
-  }
+  const shared = { deal, mao, score, onLabelClick, termSheetSections }
   return (
     <div className="scenario-panel">
-      <div className="scenario-body">
-        {scenario === 'buyHold'  && <BuyHoldView  deal={deal} bnh={buyHold} onLabelClick={onLabelClick} onUpdate={onUpdate} />}
-        {scenario === 'flipCash' && <FlipCashView deal={deal} flip={flipCash} onLabelClick={onLabelClick} />}
-        {scenario === 'flipHml'  && <FlipHMLView  deal={deal} flip={flipHml} onLabelClick={onLabelClick} />}
-      </div>
-
-      {termSheetSections}
-      <MAODetail deal={deal} mao={mao} onLabelClick={onLabelClick} />
-      <ScoreBreakdown score={score} buyHold={scenario === 'buyHold'} onLabelClick={onLabelClick} />
-      {scenario === 'buyHold' && <BuyHoldAdvancedMetrics deal={deal} bnh={buyHold} onLabelClick={onLabelClick} />}
+      {scenario === 'brrrr'    && <BRRRRSections    {...shared} brrrr={brrrr} />}
+      {scenario === 'buyHold'  && <BuyHoldSections  {...shared} bnh={buyHold} onUpdate={onUpdate} />}
+      {scenario === 'flipCash' && <FlipCashSections {...shared} flip={flipCash} />}
+      {scenario === 'flipHml'  && <FlipHMLSections  {...shared} flip={flipHml} />}
     </div>
   )
 }

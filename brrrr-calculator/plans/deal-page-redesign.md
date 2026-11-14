@@ -258,12 +258,12 @@ row of tiles above Purchase & Rehab, and metric tiles and side-by-side cards lin
 
 ### Acceptance criteria
 
-- [ ] B&H tab follows its mapping; every baseline line and value matches for Melissa
-- [ ] B&H property value toggle works and still saves with the deal
-- [ ] Flip · Cash and Flip · HML follow their mapping; values match the baseline for both deals
-- [ ] On B&H and both Flip tabs the 4 summary cells sit in a row above Purchase & Rehab; metric tiles share one height and paired cards share edges
-- [ ] No old-layout CSS left unused
-- [ ] All gates green; committed and branch pushed
+- [x] B&H tab follows its mapping; every baseline line and value matches for Melissa
+- [x] B&H property value toggle works and still saves with the deal (checked on `/deal/new` without saving: the toggle writes `bnhValueBasis` into the deal Save serializes, and it survives a reload)
+- [x] Flip · Cash and Flip · HML follow their mapping; values match the baseline for both deals
+- [x] On B&H and both Flip tabs the 4 summary cells sit in a row above Purchase & Rehab; metric tiles share one height and paired cards share edges
+- [x] No old-layout CSS left unused
+- [x] All gates green; committed and branch pushed
 - [ ] Advisor audit done after commit + push; findings fixed or reported
 
 ---

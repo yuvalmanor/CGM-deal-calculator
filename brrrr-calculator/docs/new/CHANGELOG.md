@@ -486,6 +486,52 @@ baseline file keeps the compare and ⓘ check scripts.
 
 ---
 
+## Deal page redesign phase 3 — Buy & Hold and Flip tabs in section cards ✅ Complete
+Date: 2026-11-14 (branch `deal-page-redesign`, not on `main`)
+
+**Changed:**
+- `components/cgm/ScenarioPanel.tsx` — every tab is now in section cards, one component per tab
+  (switching tabs remounts it and resets its view toggles). **Buy & Hold**: its 4 summary cells
+  (CoC, DSCR, Equity, Cash In) as tiles above Purchase & Rehab ("Purchase & cash in") → Cash Flow
+  (Annual cashflow headline + Monthly operating) → Financing ("Loan · Buy & Hold" card with the
+  Loan tile, then the Term Sheets) → Valuation & Equity (Value tile, Property value toggle,
+  Equity at purchase) → Investment Returns (Cap Rate, ROE, Annual CF, 5-Year IRR) → Financial
+  Ratios (GRM + the deliberate second DSCR, `bnh_dscr`) → Purchase Criteria (max-offer rules +
+  B&H Deal Score Breakdown). The three metric cards carry the "Advanced Metrics · Buy & Hold"
+  caption. **Flip · Cash / Flip · HML**: the 4 profit cells as tiles → Purchase & Rehab (Net
+  profit headline, Cash deployed) → Financing (Term Sheets) → Valuation & Equity (Sale) →
+  Purchase Criteria. The old output-group layout (`BuyHoldView`, `BuyHoldAdvancedMetrics`, the
+  Flip views) is gone; shared pieces (summary strip, headline, metric tile, Purchase Criteria
+  card, collapsible row) are small components reused by all tabs.
+- ⓘ added to every B&H label that opens a formula (summary tiles, Annual cashflow, Property
+  value, metric tiles, 5-Year IRR). "Equity at purchase" now opens its formula from the label
+  too (before, only its $ value did), like BRRRR's Equity post-Refi.
+- B&H Valuation & Equity shows its Value tile first, then the Property value toggle, so its tile
+  row lines up with Investment Returns (tiles-first rule, 2026-11-14).
+- `components/cgm/TermSheetSection.tsx` — the title collapses the table on every tab (the
+  `collapsible` prop is gone; the sections only render inside Financing now).
+- `app/globals.css` — the standalone-panel styles the cards used to strip (MAO, score breakdown,
+  Advanced Metrics panel, Term Sheet section, scenario summary, output group margins) are folded
+  into the base rules; `.scenario-body`, `.am-header`, `.am-title`, `.ts-collapsible` and the
+  retired Edit FAB (`.edit-fab`, `.fab-*`) removed. A scan finds no CSS class without a use
+  (status classes are built at runtime: `am-`, `bd-`, `kpi-`, `out-`, `score-tile-`, `status-`,
+  `verdict-`).
+
+**Verified:** Gates green — `npm test` (175), `npx tsc --noEmit`, `npm run lint` (0 errors; 1
+pre-existing font warning), `npm run build`. Browser: re-captured Anna and Melissa on all 4 tabs
+(all toggle states, both B&H property value settings, unsaved) and compared against the baseline
+— all 1,163 pairs match (Anna 721, Melissa 442); the only extra pair is the second DSCR on
+BRRRR (B&H's second DSCR equals its summary pair). Melissa still opens on Buy & Hold. ⓘ check:
+B&H 50/50, Flip · Cash 12/12, Flip · HML 12/12, no mismatches. Alignment measured: summary tiles
+in one row directly above Purchase & Rehab on all 4 tabs, every metric tile 78px, Valuation &
+Equity and Investment Returns share top, bottom and tile row (B&H with either property value).
+BRRRR layout boxes identical before and after the CSS cleanup (88 boxes at 1400px). On
+`/deal/new`: no NaN on any tab; the B&H property value toggle writes `bnhValueBasis` into the
+deal (the object Save serializes), survives a reload, then restored to ARV — not saved.
+Neither deal's `savedAt` changed.
+
+---
+
 ## How to Update This File
 
 After completing each phase or significant change, add an entry here:

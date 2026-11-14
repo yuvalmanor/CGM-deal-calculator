@@ -39,6 +39,10 @@ saved; the B&H property value toggle was flipped unsaved and restored.
   `.score-breakdown`). Only extra pair: the second DSCR (Financial Ratios). Compare labels
   case-insensitively and ignore Section (the BRRRR Advanced Metrics cells now record an empty
   Section — the caption sits on the card header).
+- **Phase 3 re-check (2026-11-14): all 1,163 pairs matched** (Anna 721, Melissa 442) with the
+  same swaps and no other selector change — the B&H and Flip cards keep the inner classes too.
+  Only extra pair: BRRRR's second DSCR. Note when building the check script on Windows: write
+  `public/__baseline.md` with LF line endings, or the parser finds no headings (`checked: 0`).
 
 ## Extraction snippet
 
