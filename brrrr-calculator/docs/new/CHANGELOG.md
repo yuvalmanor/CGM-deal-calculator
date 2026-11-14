@@ -587,6 +587,44 @@ neighbour pairs the reference order wasn't validated for); the legend and the ta
 slice's identity, so this is a judgment call. **Decision (user, 2026-11-14, after reviewing the
 preview): keep the donut colors as they are.**
 
+## Deal page redesign phase 5 — Phone pass and final number check ✅ Complete
+Date: 2026-11-14 (branch `deal-page-redesign`, not on `main`)
+
+**Changed:**
+- `app/globals.css` — one phone breakpoint (≤767px, below tablet width) replacing the old ≤720 /
+  ≤560 page rules: 16px side gutter; the brand row (back link, smaller logo, CGM VENTURES /
+  Deal Calculator · DFW on one line each) fits beside Edit deal; Scenario tabs swipe and snap;
+  the 6 tiles, the 4 summary tiles and the Advanced Metrics tiles go 2 per row (3 per row
+  clipped "Margin/ARV" and "Loan (80%)"); tile sub-lines may wrap instead of being cut off; the
+  slim pinned bar becomes two rows (address + Edit deal, then Cashflow / CoC / cash in / score)
+  instead of hiding the address and pushing Edit deal off-screen; each max-offer rule's formula
+  drops under its name. Sections were already one column below 1024px with donuts under their
+  tables, and term-sheet tables already scrolled inside their card. Edit drawer at phone width:
+  its header title now shrinks and truncates, so Save / Reset / × stay inside the drawer — before,
+  the 511px header stuck out of the 345px drawer and its buttons showed at the top-left of the
+  page while the drawer was closed; form sections use 16px padding; repeater rows narrower.
+  Nothing is hidden to make it fit. Desktop and tablet (≥768px) are unchanged.
+
+**Verified:** Gates green — `npm test` (175), `npx tsc --noEmit`, `npm run lint` (0 errors; 1
+pre-existing font warning), `npm run build`. Browser at 375px, Anna and Melissa, all 4 tabs, every
+collapsible and term-sheet section open, pinned bar shown: page width 375, nothing past the
+edge, no clipped tile/cell text (only the pinned bar's address ellipsizes, as on desktop); score
+tile full width, tiles 2 per row, donuts under their tables, term-sheet tables scroll inside the
+card. Final number check: both deals' `savedAt` unchanged; all 1,163 baseline pairs match (Anna
+721, Melissa 442) at 1400px and at 375px; every baseline word present per tab state; formula
+modal opens from every label that has one on all 4 tabs (ⓘ on each). Features list walked in the
+running app: `E` opens and closes the drawer, `Esc` closes drawer and modal; section nav jumps;
+back to deals; saved deals open on their Strategy's tab (Anna BRRRR, Melissa Buy & Hold); blank
+`/deal/new` has no NaN on any tab (Yearly too); a `/deal/new` draft survives a reload; Reset
+clears it; term sheet add / select / delete and the payoff matrix work; toggles and collapsibles
+are exercised by the number check. Save → POST 201 → "Saved!" → "Update"; Update → PUT 200 —
+both only on a throwaway deal ("ZZ TEST phase 5 throwaway - delete me",
+`ffd8e1e8-55b6-4224-8050-43799e11a035`). For the term-sheet "unreadable settings" state no real
+deal qualifies (98 rows empty, 4 with sheets, 1 `"v2"`), so the throwaway row's settings column
+was set to invalid JSON: both Term Sheet sections show the notice on all 4 tabs with no add
+button, and Update writes the value back byte-for-byte. The throwaway row is not deleted
+(waiting on the user).
+
 ---
 
 ## How to Update This File

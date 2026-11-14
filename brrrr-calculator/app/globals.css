@@ -1281,7 +1281,11 @@ input, textarea { font-family: inherit; color: inherit; }
   border: 2px solid transparent;
 }
 
-/* ---- Responsive (phone pass tuned in a later phase) ---- */
+/* ---- Responsive ----
+   Desktop-first. Below 1024px every section is one column (donuts drop under
+   their tables on their own). Below tablet width (≤767px) the phone pass:
+   score tile full width on top, tiles 2 per row, tabs swipe, term-sheet tables
+   scroll inside their card, and nothing is hidden to make it fit. */
 @media (max-width: 1024px) {
   .kpi-band { grid-template-columns: 1fr; }
   .section-card-half { grid-column: 1 / -1; }
@@ -1292,11 +1296,56 @@ input, textarea { font-family: inherit; color: inherit; }
   .drawer-body { grid-template-columns: 1fr; }
   .drawer-nav { display: none; }
   .drawer-inputs { padding: var(--s-4); }
-  .pinned-stats { gap: var(--s-3); }
-  .pinned-address { display: none; }
+}
+@media (max-width: 767px) {
+  /* 16px side gutter */
+  .deal-header,
+  .strategy-tabs,
+  .kpi-band { padding-left: var(--s-4); padding-right: var(--s-4); }
+  .section-stack { padding: var(--s-4) var(--s-4) var(--s-3); gap: var(--s-3); }
+  .section-card { padding: var(--s-4); }
+
+  /* Header: brand row fits beside Edit deal */
+  .dh-brand-row { gap: var(--s-2); margin-bottom: var(--s-4); }
+  .dh-brand { gap: var(--s-2); }
+  .brand-logo { width: 36px; height: 36px; padding: 3px; }
+  .brand-meta { min-width: 0; }
+  .brand-name { font-size: 12px; letter-spacing: 0.12em; white-space: nowrap; }
+  .brand-sub { font-size: 9.5px; letter-spacing: 0.06em; white-space: nowrap; }
+  .dh-address { font-size: 22px; }
+  .dh-breadcrumb { white-space: normal; flex-wrap: wrap; }
+
+  /* Tabs swipe sideways, snapping to a tab */
+  .strategy-tabs { scroll-snap-type: x proximity; scroll-padding-inline: var(--s-4); -webkit-overflow-scrolling: touch; }
+  .scenario-tab { scroll-snap-align: start; min-width: 124px; }
+
+  /* Tiles 2 per row; the score tile is already full width on top */
+  .kpi-tiles,
+  .summary-grid,
+  .am-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kpi-tile, .summary-cell, .am-cell { padding: 10px 12px; }
+  .kpi-value, .summary-cell .cell-value { font-size: 18px; }
+  .kpi-sub { white-space: normal; }
+
+  /* Slim pinned bar: two rows — address + Edit, then the four numbers */
+  .pinned-inner { flex-wrap: wrap; gap: 4px var(--s-3); padding: 6px var(--s-4); }
+  .pinned-address { flex: 1 1 0; font-size: 13px; }
+  .pinned-stats { order: 3; flex: 1 1 100%; justify-content: space-between; gap: var(--s-2); }
+  .pinned-value { font-size: 14px; }
+
+  /* Max-offer rules: formula drops under the rule name */
+  .mao-detail-row { grid-template-columns: 16px minmax(0, 1fr) auto; row-gap: 2px; }
+  .mao-rule-formula { grid-column: 2 / -1; grid-row: 2; }
+
+  /* Edit drawer: header fits, title truncates, buttons stay inside */
+  .drawer-header { padding: var(--s-4); gap: var(--s-3); }
+  .drawer-header > div:first-child { min-width: 0; }
+  .drawer-header-actions { flex: none; }
+  .drawer-title { max-width: none; }
+  .form-section { padding: var(--s-4); }
 }
 @media (max-width: 560px) {
   .field-grid { grid-template-columns: 1fr; }
-  .summary-grid { grid-template-columns: 1fr 1fr; }
-  .kpi-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .repeater-row { grid-template-columns: minmax(0, 1fr) 110px auto auto; }
+  .repeater-row-funded { grid-template-columns: minmax(0, 1fr) 96px 52px auto; }
 }

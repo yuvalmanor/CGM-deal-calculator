@@ -46,6 +46,13 @@ saved; the B&H property value toggle was flipped unsaved and restored.
 - **Phase 4 re-check (2026-11-14): all 1,163 pairs matched** (Anna 721, Melissa 442) with the
   Monthly / Yearly switch on Monthly (its default) and no selector change. The ✓/✗ marks sit in
   their own `.mao-check` cell, so the max-offer rule labels and values are unchanged.
+- **Phase 5 final check (2026-11-14): all 1,163 pairs matched** (Anna 721, Melissa 442) at
+  1400px and again at 375px (phone layout), `savedAt` of both deals unchanged, no selector change.
+  Also checked word by word: every word of each tab state's labels, values and real group titles
+  appears in that tab's page text (only the extractor's own tokens `(collapsible)` and `(book)`
+  are absent — they are not page text). ⓘ check on all 4 tabs (Anna): 40 / 50 / 12 / 12 labels
+  open a modal, each with an icon that opens the same modal; no clickable label opens nothing.
+
 ## Extraction snippet
 
 Run on `/deal/<id>` in the browser (e.g. serve it from `public/` and load it with a `<script>`

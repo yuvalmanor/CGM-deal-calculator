@@ -294,11 +294,11 @@ against the baseline and walk the features-that-must-stay-reachable list.
 
 ### Acceptance criteria
 
-- [ ] At phone width: score tile full width, tiles 2 per row, tabs swipe, sections one column, donuts under tables, term-sheet tables scroll inside their card, no page-wide sideways scroll
-- [ ] Edit drawer usable at phone width
-- [ ] Every baseline label → value pair on all 4 tabs is present for Anna and Melissa (all toggle states)
-- [ ] Every word in the baseline still appears on the page
-- [ ] Save / Update / Reset verified on a throwaway `/deal/new` deal only; user asked before deleting it
-- [ ] Every item in "Features that must stay reachable" verified in the running app
+- [x] At phone width: score tile full width, tiles 2 per row, tabs swipe, sections one column, donuts under tables, term-sheet tables scroll inside their card, no page-wide sideways scroll (375px, both deals, all 4 tabs, pinned bar shown: nothing past the edge, no clipped tile text)
+- [x] Edit drawer usable at phone width (closed drawer no longer leaks its buttons onto the page; open: Save / Reset / × inside, no sideways scroll, repeater rows fit)
+- [x] Every baseline label → value pair on all 4 tabs is present for Anna and Melissa (all toggle states) — 1,163 / 1,163 at 1400px and again at 375px
+- [x] Every word in the baseline still appears on the page (word-by-word per tab state; only the extractor's own tokens "(collapsible)" / "(book)" are absent)
+- [x] Save / Update / Reset verified on a throwaway `/deal/new` deal only; user asked before deleting it (row `ffd8e1e8-55b6-4224-8050-43799e11a035`, "ZZ TEST phase 5 throwaway - delete me"; not deleted)
+- [x] Every item in "Features that must stay reachable" verified in the running app
 - [ ] All gates green; committed and branch pushed; user told the preview link is ready to review
 - [ ] Advisor audit done after commit + push; findings fixed or reported
