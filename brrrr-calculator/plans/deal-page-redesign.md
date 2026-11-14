@@ -83,8 +83,10 @@ Durable decisions that apply across all phases:
   preview): the 4 cells that sat under the Annual cashflow headline (BRRRR: CoC ↔ w/o CapEx,
   DSCR, Equity %↔$, Money in deal) move out of Cash Flow to a row of tiles directly above the
   Purchase & Rehab card. The headline itself ("Annual cashflow", value, "/ month" line) stays in
-  Cash Flow. Phase 3 applies the same rule on the other tabs (B&H: its 4 cells; Flip: the 4 cells
-  under "Net profit", with the Net profit headline staying at the top of Purchase & Rehab).
+  Cash Flow. The user asked for this on the BRRRR tab. **Proposed, awaiting the user's yes**:
+  phase 3 applies the same move on the other tabs (B&H: its 4 cells; Flip: the 4 cells under
+  "Net profit", with the Net profit headline staying at the top of Purchase & Rehab). Ask before
+  building phase 3 if this line still says "proposed".
 - **Metric tiles line up** (user, 2026-11-14): every Advanced Metrics tile has one fixed height
   (room for a two-line label, value on the bottom line), cards side by side share top and bottom
   edges, and a card's tiles come first, before any other block in it (so Valuation & Equity
@@ -107,7 +109,7 @@ Durable decisions that apply across all phases:
   | Section | Today's content |
   |---|---|
   | Purchase & Rehab | "Purchase & cash in" group (Purchase price → Cash In) + cost donut |
-  | (above the cards) | The 4 summary cells (CoC, DSCR, Equity, Cash In) as a row of tiles — moved 2026-11-14 |
+  | (above the cards) | *Proposed, awaiting the user's yes:* the 4 summary cells (CoC, DSCR, Equity, Cash In) as a row of tiles |
   | Cash Flow | Annual cashflow headline, Monthly operating + expense donut + Mo/Yr switch |
   | Financing | "Loan · Buy & Hold" card: Loan (x%) from advanced metrics; below it HML and Refi Term Sheets + payoff matrix, as today |
   | Valuation & Equity | Property value toggle (ARV / Purchase price), Value (basis), Equity at purchase |
@@ -116,7 +118,8 @@ Durable decisions that apply across all phases:
   | Purchase Criteria | MAO rules with ✓/✗; B&H Deal Score Breakdown |
 
 - **Content mapping — Flip tabs** (Cash and HML): the 4 profit cells as a row of tiles above
-  Purchase & Rehab (2026-11-14), the Net profit headline at the top of Purchase & Rehab, "Cash deployed" group in Purchase & Rehab, "Sale" group in
+  Purchase & Rehab (*proposed 2026-11-14, awaiting the user's yes*), the Net profit headline at
+  the top of Purchase & Rehab, "Cash deployed" group in Purchase & Rehab, "Sale" group in
   Valuation & Equity (titled "Sale" inside the card), Financing holds the term-sheet sections as
   today, Purchase Criteria holds MAO + score breakdown. No Cash Flow / Returns / Ratios sections.
 - **Formula hint**: every line that opens a formula today gets a small ⓘ icon before its label;
@@ -241,7 +244,7 @@ row above Purchase & Rehab, and the Advanced Metrics tiles and paired cards line
 - [x] Formula modal uses palette A colors and sans-serif (no monospace); content and layout unchanged
 - [x] No row table is wider than ~600px; the 4 summary cells sit as compact tiles in one row; top tiles tightened (20px values), score tile still larger
 - [x] All gates green; committed and branch pushed
-- [x] Advisor audit done after commit + push; findings fixed or reported (2026-11-14: no defects; comparator and ⓘ check saved to the baseline file)
+- [x] Advisor audit done after commit + push; findings fixed or reported (2026-11-14: no defects; comparator and ⓘ check saved to the baseline file; follow-up 1700899 also audited, no defects)
 
 ---
 
