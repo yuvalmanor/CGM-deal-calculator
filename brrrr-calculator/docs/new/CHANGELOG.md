@@ -569,10 +569,22 @@ match (Anna 721, Melissa 442), only extra pair still the second DSCR. Yearly on 
 and B&H (12 lines) for Melissa: every value = 12 × monthly, labels identical, yearly "Monthly
 cashflow" equals the Annual cashflow headline, headline and summary tiles unchanged. Donut %
 recomputed from the table rows match the legend on both tabs (Anna BRRRR cost, Melissa B&H cost
-and expense); Anna's cost slices minus Project cost adjustments = Total project cost. Clicking a
-slice and hovering a legend line both show name, $ and %. ✓/✗ agree with purchase price ≤ max
+and expense); Anna's cost slices minus Project cost adjustments = Total project cost, Melissa's
+B&H cost slices minus Credits at close = Cash In. With the real pointer at 1400px, hovering the
+small Rehab slice and clicking the Purchase price slice each show that slice's name, $ and % (the
+dash pattern, not the last-drawn circle, takes the hit), as does hovering a legend line; the
+longest label ("Additional Monthly Costs") fits inside the hole. ✓/✗ agree with purchase price ≤ max
 offer on every rule and tab (Anna: ✗ ✓ ✗; Melissa: ✗ ✗ ✗, both "ABOVE MAO"). Blank `/deal/new`:
 empty grey rings, no legend, no NaN on any tab (Yearly too); Flip tabs have no donuts.
+
+**Advisor audit 2026-11-14:** no code defect. It asked for real-pointer hover/tap evidence (the
+first check dispatched events in script), screenshots at 1400px (earlier ones were at the 1024px
+breakpoint), the B&H slice sum, and a look at the loan cards, Purchase Criteria and a Flip tab
+after the global row-gap change — all done and fine (results above). Reported to the user: the
+slice colors are the dataviz reference 8-hue set, not palette A, and were not run through its
+colorblind validator for these slice orders (skipped slices and the ring's wrap-around make
+neighbour pairs the reference order wasn't validated for); the legend and the table carry each
+slice's identity, so this is a judgment call.
 
 ---
 
