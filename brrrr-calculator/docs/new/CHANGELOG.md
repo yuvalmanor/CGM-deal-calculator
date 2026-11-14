@@ -603,7 +603,9 @@ Date: 2026-11-14 (branch `deal-page-redesign`, not on `main`)
   its header title now shrinks and truncates, so Save / Reset / × stay inside the drawer — before,
   the 511px header stuck out of the 345px drawer and its buttons showed at the top-left of the
   page while the drawer was closed; form sections use 16px padding; repeater rows narrower.
-  Nothing is hidden to make it fit. Desktop and tablet (≥768px) are unchanged.
+  Nothing new is hidden to make it fit (the drawer's section nav has been hidden below 720px
+  since the original V2 build, 608a505 — carried over, not changed). Desktop and tablet (≥768px)
+  are unchanged.
 
 **Verified:** Gates green — `npm test` (175), `npx tsc --noEmit`, `npm run lint` (0 errors; 1
 pre-existing font warning), `npm run build`. Browser at 375px, Anna and Melissa, all 4 tabs, every
@@ -624,6 +626,18 @@ deal qualifies (98 rows empty, 4 with sheets, 1 `"v2"`), so the throwaway row's 
 was set to invalid JSON: both Term Sheet sections show the notice on all 4 tabs with no add
 button, and Update writes the value back byte-for-byte. The throwaway row is not deleted
 (waiting on the user).
+
+**Advisor audit 2026-11-14:** no code defect in 00fa156; it asked for wider evidence. Re-run at
+360px and 320px (both deals, all 4 tabs, plain and with Yearly on + every toggle flipped) and at
+600px, with a stricter scan that also catches overflow on `overflow: visible` boxes (metric
+tiles included). That found the brand text spilling under Edit deal at 360px ("Deal Calculator ·
+DFW") and 320px ("CGM VENTURES") — fixed by letting both lines wrap instead of `nowrap`. After the
+fix: nothing past the edge and no overflowing text at 320 / 360 / 600, except the pinned bar's
+ellipsized address. First tab sits at the 16px gutter and the last tab scrolls fully into view;
+the formula modal fits at 375px and closes by tapping ×. Both deals' `savedAt` re-read at the end
+of the session: unchanged. Reported to the user, not changed: the drawer's section nav is hidden
+below 720px (on `main` since 608a505, so phones jump by scrolling); the pinned bar is two rows
+(77px) on phones; its address ellipsizes as on desktop. The Vercel preview is behind Vercel login.
 
 ---
 

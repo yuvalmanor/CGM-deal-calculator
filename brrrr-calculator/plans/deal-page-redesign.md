@@ -300,5 +300,5 @@ against the baseline and walk the features-that-must-stay-reachable list.
 - [x] Every word in the baseline still appears on the page (word-by-word per tab state; only the extractor's own tokens "(collapsible)" / "(book)" are absent)
 - [x] Save / Update / Reset verified on a throwaway `/deal/new` deal only; user asked before deleting it (row `ffd8e1e8-55b6-4224-8050-43799e11a035`, "ZZ TEST phase 5 throwaway - delete me"; not deleted)
 - [x] Every item in "Features that must stay reachable" verified in the running app
-- [ ] All gates green; committed and branch pushed; user told the preview link is ready to review
-- [ ] Advisor audit done after commit + push; findings fixed or reported
+- [x] All gates green; committed and branch pushed; user told the preview link is ready to review (Vercel preview built for 00fa156; it sits behind Vercel login)
+- [x] Advisor audit done after commit + push; findings fixed or reported (2026-11-14: no code defect; wider evidence at 320/360/600px found the brand text overflowing under Edit deal, fixed in a follow-up commit; section nav hidden on phones since 608a505, two-row pinned bar and ellipsized pinned address reported to the user)

@@ -1310,8 +1310,8 @@ input, textarea { font-family: inherit; color: inherit; }
   .dh-brand { gap: var(--s-2); }
   .brand-logo { width: 36px; height: 36px; padding: 3px; }
   .brand-meta { min-width: 0; }
-  .brand-name { font-size: 12px; letter-spacing: 0.12em; white-space: nowrap; }
-  .brand-sub { font-size: 9.5px; letter-spacing: 0.06em; white-space: nowrap; }
+  .brand-name { font-size: 12px; letter-spacing: 0.12em; }
+  .brand-sub { font-size: 9.5px; letter-spacing: 0.06em; line-height: 1.3; }   /* wraps below ~370px */
   .dh-address { font-size: 22px; }
   .dh-breadcrumb { white-space: normal; flex-wrap: wrap; }
 
