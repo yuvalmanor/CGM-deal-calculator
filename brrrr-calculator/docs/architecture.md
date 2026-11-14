@@ -33,9 +33,13 @@ brrrr-calculator/
 │   ├── DealCard.tsx                  Dashboard deal summary card (with delete)
 │   ├── DealFilters.tsx               Dashboard text search + address dropdown
 │   ├── cgm/                          Calculator UI (CGM brand namespace)
-│   │   ├── DashboardBar.tsx          KPI strip + scorecard
-│   │   ├── InputForm.tsx             Left-panel input form
-│   │   ├── ScenarioPanel.tsx         Rental BRRRR / Flip-Cash / Flip-HML tabs
+│   │   ├── DealHeader.tsx            Header, Scenario tabs, headline tiles + Deal Score tile, pinned slim bar
+│   │   ├── InputForm.tsx             Edit Deal drawer input form
+│   │   ├── ScenarioPanel.tsx         Body of the open Scenario tab (BRRRR / B&H / Flip-Cash / Flip-HML)
+│   │   ├── SectionCard.tsx           Section card (uppercase blue title) + ⓘ formula hint icon
+│   │   ├── Donut.tsx                 Hand-drawn SVG donut (cost / expense) + table-beside-donut layout
+│   │   ├── TermSheetSection.tsx      Term Sheet comparison table (add / select / delete; title collapses it)
+│   │   ├── PayoffHorizonMatrix.tsx   Payoff Horizon matrix inside the Refi Term Sheets section
 │   │   └── FormControls.tsx          Numeric inputs (blur-to-commit), toggles
 │   └── ui/FormulaModal.tsx           `?` formula explanation modal
 │
@@ -68,8 +72,18 @@ DealCalculator.tsx  ←── holds useState<Deal>; drafts persist to
 calcBRRRR(deal) / calcFlipCash(deal) / calcFlipHML(deal) /
 calcMAO(deal) / calcDealScore(deal, brrrr, mao)      ← pure functions
         │
-        ├── DashboardBar (KPI strip + scorecard)
-        ├── ScenarioPanel (Rental BRRRR / Flip-Cash / Flip-HML)
+        ├── DealHeader (header, Scenario tabs, headline tiles + score, pinned slim bar)
+        ├── ScenarioPanel (body of the open tab, one component per tab, all in SectionCards
+        │                  under a row of 4 summary tiles:
+        │                  BRRRR / B&H: Purchase & Rehab → Cash Flow → Financing →
+        │                  Valuation & Equity → Investment Returns → Financial Ratios →
+        │                  Purchase Criteria;
+        │                  Flip-Cash / Flip-HML: Purchase & Rehab → Financing →
+        │                  Valuation & Equity (Sale) → Purchase Criteria.
+        │                  Term Sheet sections render inside Financing, collapsible.
+        │                  BRRRR / B&H: cost donut beside Purchase & Rehab, expense
+        │                  donut + Monthly/Yearly switch on Cash Flow; ✓/✗ per
+        │                  max-offer rule on every tab.)
         └── FormulaModal (live numbers via lib/formulaRegistry.ts)
 
 Save:  POST /api/deals            → sheets.saveDeal()  → revalidateTag('deals')

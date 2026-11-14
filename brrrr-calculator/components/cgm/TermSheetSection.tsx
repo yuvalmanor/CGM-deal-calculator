@@ -5,6 +5,7 @@
 // selected), select (swap into the flat fields), and delete. Rows come from
 // compareTermSheets — this component only renders.
 
+import { useState } from 'react'
 import { fmtCurrency, fmtPct, fmtNum } from '@/lib/deal-model'
 import type { ComparisonRow, ComparisonKpis } from '@/lib/compare-term-sheets'
 
@@ -51,6 +52,8 @@ function kpiCells(kpis: ComparisonKpis): string[] {
 
 export function TermSheetSection({ title, rows, onAdd, onSelect, onDelete, unreadable, children }: Props) {
   const scenario = rows[0]?.kpis.scenario ?? 'brrrr'
+  // Inside the Financing card the title toggles the table open/closed (starts open)
+  const [open, setOpen] = useState(true)
   if (unreadable) {
     // The deal itself works (its selected terms live in the inputs column);
     // only the alternates are unreadable. Saving writes the stored value back
@@ -69,13 +72,26 @@ export function TermSheetSection({ title, rows, onAdd, onSelect, onDelete, unrea
     )
   }
   return (
-    <section className="ts-section">
+    <section className={`ts-section${open ? '' : ' ts-closed'}`}>
       <div className="ts-header">
-        <div className="out-group-title">{title}</div>
-        <button className="ts-add" onClick={onAdd} title="Add a Term Sheet (copy of the selected one)">
-          + Add Term Sheet
+        <button
+          className="ts-toggle"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          title={open ? `Hide ${title}` : `Show ${title}`}
+        >
+          <svg className="ts-caret" viewBox="0 0 10 10" aria-hidden="true" focusable="false">
+            <path d="M2 3.5 5 6.5 8 3.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <span className="out-group-title">{title}</span>
         </button>
+        {open && (
+          <button className="ts-add" onClick={onAdd} title="Add a Term Sheet (copy of the selected one)">
+            + Add Term Sheet
+          </button>
+        )}
       </div>
+      {open && (<>
       <div className="ts-table-wrap">
         <table className="ts-table">
           <thead>
@@ -117,6 +133,7 @@ export function TermSheetSection({ title, rows, onAdd, onSelect, onDelete, unrea
         </table>
       </div>
       {children}
+      </>)}
     </section>
   )
 }

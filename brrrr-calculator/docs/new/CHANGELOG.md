@@ -408,6 +408,239 @@ other lender fees. Row relabeled "Loan costs (points + fees + title/escrow)".
 
 ---
 
+## Deal page redesign phase 1 — Baseline, palette and new top of page ✅ Complete
+Date: 2026-11-13 (branch `deal-page-redesign`, not on `main`)
+
+**Changed:**
+- `plans/deal-page-redesign-baseline.md` — number baseline captured by script from the
+  pre-redesign page before any UI change: label → value pairs with status color and formula
+  behavior for Anna (BRRRR) and Melissa (Buy & Hold) on all 4 tabs, every collapsible open,
+  every view toggle flipped, both B&H property value settings (unsaved), term-sheet tables and
+  payoff matrix included, plus the extraction snippet. Neither deal was saved.
+- `app/globals.css` — shared tokens switched to palette A (page `#f4f6fa`, white cards, blue
+  accent `#1e88e5`, text `#2b3442`, muted `#6b7280`, green/amber/red chips). Serif headings and
+  the monospace number font are gone: sans-serif everywhere with tabular figures. Group titles
+  are uppercase blue. The drawer follows through the tokens (same fields, same layout).
+- `app/layout.tsx` — only Inter is loaded from Google Fonts.
+- `components/cgm/DealHeader.tsx` (new, replaces `DashboardBar.tsx`) — header (back link, logo
+  + brand, breadcrumb Deals / address / Analysis, address title, facts line, Edit deal with `E`),
+  the Scenario tabs above the tiles, the 6 headline tiles + Deal Score tile (B&H lens on the B&H
+  tab, as before), and a slim bar that pins to the top once the tiles scroll away (address,
+  cashflow, CoC, Money in Deal / Cash In, score, Edit).
+- `components/cgm/ScenarioPanel.tsx` — tabs and the Edit button moved out to `DealHeader`.
+- `components/DealCalculator.tsx` — the unreachable Tweaks panel (accent/density picker) and
+  its state, effect and CSS removed. The page now scrolls as a whole instead of an inner panel.
+- The formula modal is unchanged (it uses its own Tailwind grays). The sections below the tiles
+  keep their current layout, in the new colors.
+
+**Verified:** Gates green — `npm test`, `npx tsc --noEmit`, `npm run lint` (0 errors; 1
+pre-existing font warning), `npm run build`. Browser: re-captured both deals from the new page and
+diffed against the baseline — all 1,163 pairs match (values, status colors, and each tile opens
+the same formula modal; Melissa still opens on Buy & Hold). Home page and deal desk: visible
+text colors identical before/after, body background covered by their own wrappers. `E` and the
+Edit buttons open the drawer, `E`/`Esc` close it; slim bar hidden at the top, shown after
+scrolling past the tiles; blank `/deal/new` shows no NaN.
+
+---
+
+## Deal page redesign phase 2 — BRRRR tab in section cards ✅ Complete
+Date: 2026-11-13 (branch `deal-page-redesign`, not on `main`)
+
+**Changed:**
+- `components/cgm/SectionCard.tsx` (new) — the shared section card (white card, uppercase blue
+  title, optional caption, half-width option) and the ⓘ formula hint (`InfoIcon`, SVG so label
+  text is unchanged).
+- `components/cgm/ScenarioPanel.tsx` — the BRRRR tab is rebuilt as seven cards: Purchase & Rehab
+  (Acquisition) → Cash Flow (Annual cashflow summary + 4 cells, Monthly operating) → Financing
+  ("Loan 1 · Hard money" and "Loan 2 · Refinance" side by side, then the HML and Refi Term Sheet
+  sections) → Valuation & Equity → Investment Returns → Financial Ratios (the three carry the
+  "Advanced Metrics" caption; Financial Ratios adds the deliberate second DSCR) → Purchase
+  Criteria (max-offer rules beside the Deal Score Breakdown). `AdvancedMetrics` is folded into
+  those cards. Every label that opens a formula gets the ⓘ icon (rows, metric tiles, max-offer
+  rules, score breakdown, top tiles); icon and label open the same modal. The other tabs keep the
+  earlier layout until phase 3. The "NOI / w/o Capex" display bug is carried over verbatim.
+- `components/cgm/TermSheetSection.tsx` — optional `collapsible` (title toggles the table and
+  payoff matrix; starts open), used on the BRRRR tab inside Financing.
+- `components/cgm/DealHeader.tsx` — ⓘ on the headline tiles' labels.
+- `components/ui/FormulaModal.tsx` — palette A colors and the page's sans-serif (no monospace);
+  content and layout unchanged.
+- `app/globals.css` — section card styles; row tables capped at 600px; the 4 summary cells are
+  compact tiles four in a row (two per row below 560px); headline tiles tightened (10px 14px
+  padding, 20px values; the Deal Score tile stays larger).
+
+**Verified:** Gates green — `npm test`, `npx tsc --noEmit`, `npm run lint` (0 errors; 1
+pre-existing font warning), `npm run build`. Browser: re-captured Anna and Melissa on all 4 tabs
+(all toggle states) and diffed against the baseline — all 1,163 pairs match; the only extra pair
+is the second DSCR. On BRRRR, 40 labels open a formula and all 40 carry ⓘ; icon and label open
+the same modal. Row tables measure ≤ 600px, summary tiles sit in one row, tile values 20px,
+modal text in Inter. Term sheet add / select / delete and the Refi section collapse tried on Anna
+without saving (reloaded after); neither deal's `savedAt` changed.
+
+**Follow-up 2026-11-14 (user review of the preview):** the 4 summary cells moved out of Cash Flow
+to a row of tiles above Purchase & Rehab (the Annual cashflow headline stays in Cash Flow).
+Advanced Metrics tiles have one fixed height with the value on the bottom line, cards side by
+side stretch to the same height, and Valuation & Equity shows its tiles before Equity post-Refi so
+its tile row lines up with Investment Returns. Re-checked: all 1,163 baseline pairs match, 40/40
+ⓘ on BRRRR, both deals unsaved. The plan now has an advisor audit after every phase, and the
+baseline file keeps the compare and ⓘ check scripts.
+
+---
+
+## Deal page redesign phase 3 — Buy & Hold and Flip tabs in section cards ✅ Complete
+Date: 2026-11-14 (branch `deal-page-redesign`, not on `main`)
+
+**Changed:**
+- `components/cgm/ScenarioPanel.tsx` — every tab is now in section cards, one component per tab
+  (switching tabs remounts it and resets its view toggles). **Buy & Hold**: its 4 summary cells
+  (CoC, DSCR, Equity, Cash In) as tiles above Purchase & Rehab ("Purchase & cash in") → Cash Flow
+  (Annual cashflow headline + Monthly operating) → Financing ("Loan · Buy & Hold" card with the
+  Loan tile, then the Term Sheets) → Valuation & Equity (Value tile, Property value toggle,
+  Equity at purchase) → Investment Returns (Cap Rate, ROE, Annual CF, 5-Year IRR) → Financial
+  Ratios (GRM + the deliberate second DSCR, `bnh_dscr`) → Purchase Criteria (max-offer rules +
+  B&H Deal Score Breakdown). The three metric cards carry the "Advanced Metrics · Buy & Hold"
+  caption. **Flip · Cash / Flip · HML**: the 4 profit cells as tiles → Purchase & Rehab (Net
+  profit headline, Cash deployed) → Financing (Term Sheets) → Valuation & Equity (Sale) →
+  Purchase Criteria. The old output-group layout (`BuyHoldView`, `BuyHoldAdvancedMetrics`, the
+  Flip views) is gone; shared pieces (summary strip, headline, metric tile, Purchase Criteria
+  card, collapsible row) are small components reused by all tabs.
+- ⓘ added to every B&H label that opens a formula (summary tiles, Annual cashflow, Property
+  value, metric tiles, 5-Year IRR). "Equity at purchase" now opens its formula from the label
+  too (before, only its $ value did), like BRRRR's Equity post-Refi.
+- B&H Valuation & Equity shows its Value tile first, then the Property value toggle, so its tile
+  row lines up with Investment Returns (tiles-first rule, 2026-11-14).
+- `components/cgm/TermSheetSection.tsx` — the title collapses the table on every tab (the
+  `collapsible` prop is gone; the sections only render inside Financing now).
+- `app/globals.css` — the standalone-panel styles the cards used to strip (MAO, score breakdown,
+  Advanced Metrics panel, Term Sheet section, scenario summary, output group margins) are folded
+  into the base rules; `.scenario-body`, `.am-header`, `.am-title`, `.ts-collapsible` and the
+  retired Edit FAB (`.edit-fab`, `.fab-*`) removed. A scan finds no CSS class without a use
+  (status classes are built at runtime: `am-`, `bd-`, `kpi-`, `out-`, `score-tile-`, `status-`,
+  `verdict-`).
+
+**Verified:** Gates green — `npm test` (175), `npx tsc --noEmit`, `npm run lint` (0 errors; 1
+pre-existing font warning), `npm run build`. Browser: re-captured Anna and Melissa on all 4 tabs
+(all toggle states, both B&H property value settings, unsaved) and compared against the baseline
+— all 1,163 pairs match (Anna 721, Melissa 442); the only extra pair is the second DSCR on
+BRRRR (B&H's second DSCR equals its summary pair). Melissa still opens on Buy & Hold. ⓘ check:
+B&H 50/50, Flip · Cash 12/12, Flip · HML 12/12, no mismatches. Alignment measured: summary tiles
+in one row directly above Purchase & Rehab on all 4 tabs, every metric tile 78px, Valuation &
+Equity and Investment Returns share top, bottom and tile row (B&H with either property value).
+BRRRR layout boxes identical before and after the CSS cleanup (88 boxes at 1400px). On
+`/deal/new`: no NaN on any tab; the B&H property value toggle writes `bnhValueBasis` into the
+deal (the object Save serializes), survives a reload, then restored to ARV — not saved.
+Neither deal's `savedAt` changed.
+
+**Audit follow-up 2026-11-14:** on the Flip tabs the first Term Sheet section sits straight under
+the Financing title, which drew a second divider under the title's rule; a section directly under
+a card title now has none (BRRRR and B&H, where it follows the loan cards, are unchanged).
+Re-checked: the Term Sheet titles collapse and reopen on Flip · Cash and B&H.
+
+---
+
+## Deal page redesign phase 4 — Donuts, Monthly/Yearly switch, ✓/✗ criteria ✅ Complete
+Date: 2026-11-14 (branch `deal-page-redesign`, not on `main`)
+
+**Changed:**
+- `components/cgm/Donut.tsx` (new) — hand-drawn SVG donut (no chart library): one ring
+  segment per non-zero slice, fixed-order categorical colors (a skipped zero slice never
+  repaints the others), 2px gap between slices, legend with name and %. Hover or tap a slice
+  or legend line to show its name, $ and % in the center. All slices zero → an empty grey ring
+  with no legend or percentages. `TableWithDonut` puts the donut beside its table (it drops
+  under the table when the card is narrow).
+- `components/cgm/ScenarioPanel.tsx` — BRRRR and Buy & Hold get a cost donut beside Purchase &
+  Rehab (BRRRR: Purchase price, Rehab Estimate (Funded), Change Orders, Additional rehab costs,
+  Closing costs, One-time costs, Holding costs; B&H: Down payment, Loan costs, Closing costs,
+  Rehab (all cash), One-time costs, Holding costs — Purchase price and Loan are not slices) and
+  an expense donut beside Monthly operating (the 7 expense lines + Mortgage P&I). A Monthly /
+  Yearly switch on the Monthly operating title line: Yearly shows every line of that table × 12
+  (the raw number × 12, then formatted) with a "Yearly" caption over the values column; labels
+  are unchanged, nothing is saved, and it starts on Monthly. The expense donut's $ follows the
+  switch; its % does not change. The Annual cashflow headline and the 4 summary tiles are not
+  affected. Every max-offer rule (70% Rule, Money in deal, Equity post-Refi) shows ✓ when the
+  purchase price ≤ that rule's max offer, ✗ otherwise, in its own column so the rule's label
+  and value are unchanged; on all 4 tabs.
+- `app/globals.css` — donut, switch and ✓/✗ styles; a 12px gap between a row's label and
+  value (value no longer wraps), since tables now share their row with a donut.
+
+**Verified:** Gates green — `npm test` (175), `npx tsc --noEmit`, `npm run lint` (0 errors; 1
+pre-existing font warning), `npm run build`. Browser: both deals' `savedAt` unchanged; re-captured
+Anna and Melissa on all 4 tabs (all toggle states, switch on Monthly) — all 1,163 baseline pairs
+match (Anna 721, Melissa 442), only extra pair still the second DSCR. Yearly on BRRRR (15 lines)
+and B&H (12 lines) for Melissa: every value = 12 × monthly, labels identical, yearly "Monthly
+cashflow" equals the Annual cashflow headline, headline and summary tiles unchanged. Donut %
+recomputed from the table rows match the legend on both tabs (Anna BRRRR cost, Melissa B&H cost
+and expense); Anna's cost slices minus Project cost adjustments = Total project cost, Melissa's
+B&H cost slices minus Credits at close = Cash In. With the real pointer at 1400px, hovering the
+small Rehab slice and clicking the Purchase price slice each show that slice's name, $ and % (the
+dash pattern, not the last-drawn circle, takes the hit), as does hovering a legend line; the
+longest label ("Additional Monthly Costs") fits inside the hole. ✓/✗ agree with purchase price ≤ max
+offer on every rule and tab (Anna: ✗ ✓ ✗; Melissa: ✗ ✗ ✗, both "ABOVE MAO"). Blank `/deal/new`:
+empty grey rings, no legend, no NaN on any tab (Yearly too); Flip tabs have no donuts.
+
+**Advisor audit 2026-11-14:** no code defect. It asked for real-pointer hover/tap evidence (the
+first check dispatched events in script), screenshots at 1400px (earlier ones were at the 1024px
+breakpoint), the B&H slice sum, and a look at the loan cards, Purchase Criteria and a Flip tab
+after the global row-gap change — all done and fine (results above). Reported to the user: the
+slice colors are the dataviz reference 8-hue set, not palette A, and were not run through its
+colorblind validator for these slice orders (skipped slices and the ring's wrap-around make
+neighbour pairs the reference order wasn't validated for); the legend and the table carry each
+slice's identity, so this is a judgment call. **Decision (user, 2026-11-14, after reviewing the
+preview): keep the donut colors as they are.**
+
+## Deal page redesign phase 5 — Phone pass and final number check ✅ Complete
+Date: 2026-11-14 (branch `deal-page-redesign`, not on `main`)
+
+**Changed:**
+- `app/globals.css` — one phone breakpoint (≤767px, below tablet width) replacing the old ≤720 /
+  ≤560 page rules: 16px side gutter; the brand row (back link, smaller logo, CGM VENTURES /
+  Deal Calculator · DFW on one line each) fits beside Edit deal; Scenario tabs swipe and snap;
+  the 6 tiles, the 4 summary tiles and the Advanced Metrics tiles go 2 per row (3 per row
+  clipped "Margin/ARV" and "Loan (80%)"); tile sub-lines may wrap instead of being cut off; the
+  slim pinned bar becomes two rows (address + Edit deal, then Cashflow / CoC / cash in / score)
+  instead of hiding the address and pushing Edit deal off-screen; each max-offer rule's formula
+  drops under its name. Sections were already one column below 1024px with donuts under their
+  tables, and term-sheet tables already scrolled inside their card. Edit drawer at phone width:
+  its header title now shrinks and truncates, so Save / Reset / × stay inside the drawer — before,
+  the 511px header stuck out of the 345px drawer and its buttons showed at the top-left of the
+  page while the drawer was closed; form sections use 16px padding; repeater rows narrower.
+  Nothing new is hidden to make it fit (the drawer's section nav has been hidden below 720px
+  since the original V2 build, 608a505 — carried over, not changed). Desktop and tablet (≥768px)
+  are unchanged.
+
+**Verified:** Gates green — `npm test` (175), `npx tsc --noEmit`, `npm run lint` (0 errors; 1
+pre-existing font warning), `npm run build`. Browser at 375px, Anna and Melissa, all 4 tabs, every
+collapsible and term-sheet section open, pinned bar shown: page width 375, nothing past the
+edge, no clipped tile/cell text (only the pinned bar's address ellipsizes, as on desktop); score
+tile full width, tiles 2 per row, donuts under their tables, term-sheet tables scroll inside the
+card. Final number check: both deals' `savedAt` unchanged; all 1,163 baseline pairs match (Anna
+721, Melissa 442) at 1400px and at 375px; every baseline word present per tab state; formula
+modal opens from every label that has one on all 4 tabs (ⓘ on each). Features list walked in the
+running app: `E` opens and closes the drawer, `Esc` closes drawer and modal; section nav jumps;
+back to deals; saved deals open on their Strategy's tab (Anna BRRRR, Melissa Buy & Hold); blank
+`/deal/new` has no NaN on any tab (Yearly too); a `/deal/new` draft survives a reload; Reset
+clears it; term sheet add / select / delete and the payoff matrix work; toggles and collapsibles
+are exercised by the number check. Save → POST 201 → "Saved!" → "Update"; Update → PUT 200 —
+both only on a throwaway deal ("ZZ TEST phase 5 throwaway - delete me",
+`ffd8e1e8-55b6-4224-8050-43799e11a035`). For the term-sheet "unreadable settings" state no real
+deal qualifies (98 rows empty, 4 with sheets, 1 `"v2"`), so the throwaway row's settings column
+was set to invalid JSON: both Term Sheet sections show the notice on all 4 tabs with no add
+button, and Update writes the value back byte-for-byte. The throwaway row is not deleted
+(waiting on the user).
+
+**Advisor audit 2026-11-14:** no code defect in 00fa156; it asked for wider evidence. Re-run at
+360px and 320px (both deals, all 4 tabs, plain and with Yearly on + every toggle flipped) and at
+600px, with a stricter scan that also catches overflow on `overflow: visible` boxes (metric
+tiles included). That found the brand text spilling under Edit deal at 360px ("Deal Calculator ·
+DFW") and 320px ("CGM VENTURES") — fixed by letting both lines wrap instead of `nowrap`. After the
+fix: nothing past the edge and no overflowing text at 320 / 360 / 600, except the pinned bar's
+ellipsized address. First tab sits at the 16px gutter and the last tab scrolls fully into view;
+the formula modal fits at 375px and closes by tapping ×. Both deals' `savedAt` re-read at the end
+of the session: unchanged. Reported to the user, not changed: the drawer's section nav is hidden
+below 720px (on `main` since 608a505, so phones jump by scrolling); the pinned bar is two rows
+(77px) on phones; its address ellipsizes as on desktop. The Vercel preview is behind Vercel login.
+
+---
+
 ## How to Update This File
 
 After completing each phase or significant change, add an entry here:
