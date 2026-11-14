@@ -43,7 +43,9 @@ saved; the B&H property value toggle was flipped unsaved and restored.
   same swaps and no other selector change — the B&H and Flip cards keep the inner classes too.
   Only extra pair: BRRRR's second DSCR. Note when building the check script on Windows: write
   `public/__baseline.md` with LF line endings, or the parser finds no headings (`checked: 0`).
-
+- **Phase 4 re-check (2026-11-14): all 1,163 pairs matched** (Anna 721, Melissa 442) with the
+  Monthly / Yearly switch on Monthly (its default) and no selector change. The ✓/✗ marks sit in
+  their own `.mao-check` cell, so the max-offer rule labels and values are unchanged.
 ## Extraction snippet
 
 Run on `/deal/<id>` in the browser (e.g. serve it from `public/` and load it with a `<script>`

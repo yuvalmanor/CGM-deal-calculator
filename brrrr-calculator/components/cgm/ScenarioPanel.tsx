@@ -4,6 +4,7 @@ import type { Deal, BRRRRResult, FlipCashResult, FlipHMLResult, MAOResult, DealS
 import { fmtCurrency, fmtPct, fmtNum, statusFor, monthlyOpExpenses } from '@/lib/deal-model'
 import type { BuyHoldResult } from '@/lib/buy-hold'
 import { SectionCard, InfoIcon } from './SectionCard'
+import { Donut, TableWithDonut, type DonutSlice } from './Donut'
 
 // ---- Primitives ----
 
@@ -26,13 +27,60 @@ function OutputRow({
   )
 }
 
-function OutputGroup({ title, children }: { title: string; children: React.ReactNode }) {
+function OutputGroup({ title, action, valueCaption, children }: {
+  title: string
+  /** A control on the title line (the Monthly / Yearly switch). */
+  action?: React.ReactNode
+  /** A caption above the values column (e.g. "Yearly"). */
+  valueCaption?: string
+  children: React.ReactNode
+}) {
   return (
     <div className="out-group">
-      <div className="out-group-title">{title}</div>
+      {action ? (
+        <div className="out-group-head">
+          <div className="out-group-title">{title}</div>
+          {action}
+        </div>
+      ) : (
+        <div className="out-group-title">{title}</div>
+      )}
+      {valueCaption && <div className="out-group-value-caption">{valueCaption}</div>}
       <div className="out-group-rows">{children}</div>
     </div>
   )
+}
+
+/** Monthly / Yearly switch on the Monthly operating table. Screen only: Yearly
+ *  shows each line × 12; nothing is saved or recalculated in a module. */
+function PeriodSwitch({ yearly, onChange }: { yearly: boolean; onChange: (yearly: boolean) => void }) {
+  return (
+    <div className="period-switch" role="group" aria-label="Monthly or yearly values">
+      {([false, true] as const).map((y) => (
+        <button
+          key={String(y)}
+          type="button"
+          className={`period-btn${yearly === y ? ' active' : ''}`}
+          aria-pressed={yearly === y}
+          onClick={() => onChange(y)}
+        >{y ? 'Yearly' : 'Monthly'}</button>
+      ))}
+    </div>
+  )
+}
+
+/** Expense donut slices (both rental tabs): the Monthly operating breakdown lines. */
+function expenseSlices(op: ReturnType<typeof monthlyOpExpenses>, mortgagePI: number, k: number): DonutSlice[] {
+  return [
+    { label: 'Property Tax',             value: op.taxes * k },
+    { label: 'Insurance',                value: op.ins * k },
+    { label: 'HOA',                      value: op.hoa * k },
+    { label: 'State income tax',         value: op.sit * k },
+    { label: 'Property management',      value: op.mgmt * k },
+    { label: 'Capex / vacancy',          value: op.capV * k },
+    { label: 'Additional Monthly Costs', value: op.extras * k },
+    { label: 'Mortgage P&I',             value: mortgagePI * k },
+  ]
 }
 
 /** A collapsible header row inside a row table (expense breakdown, interest-only scenario). */
@@ -126,7 +174,13 @@ function BRRRRSections({ deal, brrrr, mao, score, onLabelClick, termSheetSection
   const [ioExpanded, setIoExpanded] = useState(false)
   const [equityMode, setEquityMode] = useState<'book' | 'liquidation'>('book')
   const [annualCFNoCapex, setAnnualCFNoCapex] = useState(false)
+  const [yearly, setYearly] = useState(false)
   const op = monthlyOpExpenses(deal)
+  // Monthly operating values: × 12 on screen when the switch is on Yearly
+  const k = yearly ? 12 : 1
+  const $ = (n: number) => fmtCurrency(n * k)
+  const additionalRehab = (deal.rehabAdditionalCosts || []).reduce((s, c) => s + (c.amount || 0), 0)
+  const oneTime = (deal.oneTimeCosts || []).reduce((s, c) => s + (c.amount || 0), 0)
 
   const equityDollar = equityMode === 'book' ? brrrr.equityDollar : brrrr.equityLiquidationDollar
   const equityPct    = equityMode === 'book' ? brrrr.equityPct    : brrrr.equityLiquidationPct
@@ -164,17 +218,29 @@ function BRRRRSections({ deal, brrrr, mao, score, onLabelClick, termSheetSection
       </SummaryStrip>
 
       <SectionCard title="Purchase & Rehab">
-        <OutputGroup title="Acquisition">
-          <OutputRow label="Purchase price"          value={fmtCurrency(deal.purchasePrice)} metricId="pp" onLabelClick={click} />
-          <OutputRow label="Rehab Estimate (Funded)" value={fmtCurrency(brrrr.rehabEstimate)} metricId="rehab_total" onLabelClick={click} />
-          <OutputRow label="Change Orders (Not Funded)" value={fmtCurrency(brrrr.changeOrders)} />
-          <OutputRow label="Additional rehab costs" value={fmtCurrency((deal.rehabAdditionalCosts || []).reduce((s, c) => s + (c.amount || 0), 0))} />
-          <OutputRow label="Closing costs"           value={fmtCurrency(deal.closingCostsBuy)} metricId="closing_buy" onLabelClick={click} />
-          <OutputRow label="One-time costs"          value={fmtCurrency((deal.oneTimeCosts || []).reduce((s, c) => s + (c.amount || 0), 0))} />
-          <OutputRow label="Holding costs"           value={fmtCurrency(brrrr.cashInHolding)} metricId="holding_costs" onLabelClick={click} />
-          <OutputRow label="Project cost adjustments" value={'−' + fmtCurrency(deal.projectCostAdjustments)} />
-          <OutputRow label="Total project cost"      value={fmtCurrency(brrrr.totalProjectCost)} metricId="total_project_cost" onLabelClick={click} accent />
-        </OutputGroup>
+        <TableWithDonut donut={
+          <Donut ariaLabel="Project cost breakdown" slices={[
+            { label: 'Purchase price',          value: deal.purchasePrice },
+            { label: 'Rehab Estimate (Funded)', value: brrrr.rehabEstimate },
+            { label: 'Change Orders',           value: brrrr.changeOrders },
+            { label: 'Additional rehab costs',  value: additionalRehab },
+            { label: 'Closing costs',           value: deal.closingCostsBuy },
+            { label: 'One-time costs',          value: oneTime },
+            { label: 'Holding costs',           value: brrrr.cashInHolding },
+          ]} />
+        }>
+          <OutputGroup title="Acquisition">
+            <OutputRow label="Purchase price"          value={fmtCurrency(deal.purchasePrice)} metricId="pp" onLabelClick={click} />
+            <OutputRow label="Rehab Estimate (Funded)" value={fmtCurrency(brrrr.rehabEstimate)} metricId="rehab_total" onLabelClick={click} />
+            <OutputRow label="Change Orders (Not Funded)" value={fmtCurrency(brrrr.changeOrders)} />
+            <OutputRow label="Additional rehab costs" value={fmtCurrency(additionalRehab)} />
+            <OutputRow label="Closing costs"           value={fmtCurrency(deal.closingCostsBuy)} metricId="closing_buy" onLabelClick={click} />
+            <OutputRow label="One-time costs"          value={fmtCurrency(oneTime)} />
+            <OutputRow label="Holding costs"           value={fmtCurrency(brrrr.cashInHolding)} metricId="holding_costs" onLabelClick={click} />
+            <OutputRow label="Project cost adjustments" value={'−' + fmtCurrency(deal.projectCostAdjustments)} />
+            <OutputRow label="Total project cost"      value={fmtCurrency(brrrr.totalProjectCost)} metricId="total_project_cost" onLabelClick={click} accent />
+          </OutputGroup>
+        </TableWithDonut>
       </SectionCard>
 
       <SectionCard title="Cash Flow">
@@ -185,50 +251,56 @@ function BRRRRSections({ deal, brrrr, mao, score, onLabelClick, termSheetSection
           sub={`${fmtCurrency(brrrr.cashflow)} / month after debt service`}
         />
 
-        <OutputGroup title="Monthly operating">
-          <OutputRow label="Gross rent"                                     value={fmtCurrency(brrrr.monthlyRent)} metricId="gross_rent" onLabelClick={click} />
-          <CollapsibleRow label="Expense breakdown" open={opexExpanded} onToggle={() => setOpexExpanded((v) => !v)}
-            showTitle="Show breakdown" hideTitle="Hide breakdown" />
-          {opexExpanded && (<>
-            <OutputRow label="Property Tax"         value={'−' + fmtCurrency(op.taxes)} />
-            <OutputRow label="Insurance"            value={'−' + fmtCurrency(op.ins)} />
-            <OutputRow label="HOA"                  value={'−' + fmtCurrency(op.hoa)} />
-            <OutputRow label="State income tax"     value={'−' + fmtCurrency(op.sit)} />
-            <OutputRow label="Property management"  value={'−' + fmtCurrency(op.mgmt)} />
-            <OutputRow label="Capex / vacancy"      value={'−' + fmtCurrency(op.capV)} />
-            <OutputRow label="Additional Monthly Costs" value={'−' + fmtCurrency(op.extras)} />
-            <OutputRow label="Mortgage P&I"         value={'−' + fmtCurrency(brrrr.refiPI)} metricId="mortgage_pi" onLabelClick={click} />
-          </>)}
-          <OutputRow label="Total Operating expenses (Include PITI) / w/o Capex"
-            value={'−' + fmtCurrency(brrrr.totalOpexWithPI) + ' / −' + fmtCurrency(brrrr.totalOpexNoCapexWithPI)}
-            metricId="total_opex" onLabelClick={click} />
-          {/* Known display bug carried over verbatim (plan header): shows the cashflow values */}
-          <OutputRow label="NOI / w/o Capex"
-            value={fmtCurrency(brrrr.cashflow) + ' / ' + fmtCurrency(brrrr.cashflowNoCapex)}
-            metricId="noi" onLabelClick={click} />
-          <OutputRow label="Monthly cashflow / w/o Capex"
-            value={fmtCurrency(brrrr.cashflow) + ' / ' + fmtCurrency(brrrr.cashflowNoCapex)}
-            status={statusFor('cashflow', brrrr.cashflow, deal)} metricId="cashflow" onLabelClick={click} accent />
-          {(() => {
-            const ioMonthly = brrrr.refiLoan * (deal.refiRate / 100) / 12
-            const totalOpexWithIO        = brrrr.totalOpexWithPI        - brrrr.refiPI + ioMonthly
-            const totalOpexNoCapexWithIO = brrrr.totalOpexNoCapexWithPI - brrrr.refiPI + ioMonthly
-            const cashflowIO        = brrrr.cashflow        + brrrr.refiPI - ioMonthly
-            const cashflowNoCapexIO = brrrr.cashflowNoCapex + brrrr.refiPI - ioMonthly
-            return (<>
-              <CollapsibleRow label="Interest-only scenario" open={ioExpanded} onToggle={() => setIoExpanded((v) => !v)}
-                showTitle="Show interest-only breakdown" hideTitle="Hide interest-only breakdown" />
-              {ioExpanded && (<>
-                <OutputRow label="Interest only mortgage monthly" value={'−' + fmtCurrency(ioMonthly)} />
-                <OutputRow label="Total Operating expenses (Include ITI) / w/o Capex"
-                  value={'−' + fmtCurrency(totalOpexWithIO) + ' / −' + fmtCurrency(totalOpexNoCapexWithIO)} />
-                <OutputRow label="Monthly cashflow Interest-only / w/o Capex"
-                  value={fmtCurrency(cashflowIO) + ' / ' + fmtCurrency(cashflowNoCapexIO)}
-                  status={statusFor('cashflow', cashflowIO, deal)} accent />
-              </>)}
-            </>)
-          })()}
-        </OutputGroup>
+        <TableWithDonut donut={
+          <Donut ariaLabel="Operating expense breakdown" slices={expenseSlices(op, brrrr.refiPI, k)} />
+        }>
+          <OutputGroup title="Monthly operating"
+            action={<PeriodSwitch yearly={yearly} onChange={setYearly} />}
+            valueCaption={yearly ? 'Yearly' : undefined}>
+            <OutputRow label="Gross rent"                                     value={$(brrrr.monthlyRent)} metricId="gross_rent" onLabelClick={click} />
+            <CollapsibleRow label="Expense breakdown" open={opexExpanded} onToggle={() => setOpexExpanded((v) => !v)}
+              showTitle="Show breakdown" hideTitle="Hide breakdown" />
+            {opexExpanded && (<>
+              <OutputRow label="Property Tax"         value={'−' + $(op.taxes)} />
+              <OutputRow label="Insurance"            value={'−' + $(op.ins)} />
+              <OutputRow label="HOA"                  value={'−' + $(op.hoa)} />
+              <OutputRow label="State income tax"     value={'−' + $(op.sit)} />
+              <OutputRow label="Property management"  value={'−' + $(op.mgmt)} />
+              <OutputRow label="Capex / vacancy"      value={'−' + $(op.capV)} />
+              <OutputRow label="Additional Monthly Costs" value={'−' + $(op.extras)} />
+              <OutputRow label="Mortgage P&I"         value={'−' + $(brrrr.refiPI)} metricId="mortgage_pi" onLabelClick={click} />
+            </>)}
+            <OutputRow label="Total Operating expenses (Include PITI) / w/o Capex"
+              value={'−' + $(brrrr.totalOpexWithPI) + ' / −' + $(brrrr.totalOpexNoCapexWithPI)}
+              metricId="total_opex" onLabelClick={click} />
+            {/* Known display bug carried over verbatim (plan header): shows the cashflow values */}
+            <OutputRow label="NOI / w/o Capex"
+              value={$(brrrr.cashflow) + ' / ' + $(brrrr.cashflowNoCapex)}
+              metricId="noi" onLabelClick={click} />
+            <OutputRow label="Monthly cashflow / w/o Capex"
+              value={$(brrrr.cashflow) + ' / ' + $(brrrr.cashflowNoCapex)}
+              status={statusFor('cashflow', brrrr.cashflow, deal)} metricId="cashflow" onLabelClick={click} accent />
+            {(() => {
+              const ioMonthly = brrrr.refiLoan * (deal.refiRate / 100) / 12
+              const totalOpexWithIO        = brrrr.totalOpexWithPI        - brrrr.refiPI + ioMonthly
+              const totalOpexNoCapexWithIO = brrrr.totalOpexNoCapexWithPI - brrrr.refiPI + ioMonthly
+              const cashflowIO        = brrrr.cashflow        + brrrr.refiPI - ioMonthly
+              const cashflowNoCapexIO = brrrr.cashflowNoCapex + brrrr.refiPI - ioMonthly
+              return (<>
+                <CollapsibleRow label="Interest-only scenario" open={ioExpanded} onToggle={() => setIoExpanded((v) => !v)}
+                  showTitle="Show interest-only breakdown" hideTitle="Hide interest-only breakdown" />
+                {ioExpanded && (<>
+                  <OutputRow label="Interest only mortgage monthly" value={'−' + $(ioMonthly)} />
+                  <OutputRow label="Total Operating expenses (Include ITI) / w/o Capex"
+                    value={'−' + $(totalOpexWithIO) + ' / −' + $(totalOpexNoCapexWithIO)} />
+                  <OutputRow label="Monthly cashflow Interest-only / w/o Capex"
+                    value={$(cashflowIO) + ' / ' + $(cashflowNoCapexIO)}
+                    status={statusFor('cashflow', cashflowIO, deal)} accent />
+                </>)}
+              </>)
+            })()}
+          </OutputGroup>
+        </TableWithDonut>
       </SectionCard>
 
       <SectionCard title="Financing">
@@ -373,7 +445,11 @@ function BuyHoldSections({ deal, bnh, mao, score, onLabelClick, onUpdate, termSh
   const [equityShowDollar, setEquityShowDollar] = useState(false)
   const [opexExpanded, setOpexExpanded] = useState(true)
   const [annualCFNoCapex, setAnnualCFNoCapex] = useState(false)
+  const [yearly, setYearly] = useState(false)
   const op = monthlyOpExpenses(deal)
+  // Monthly operating values: × 12 on screen when the switch is on Yearly
+  const k = yearly ? 12 : 1
+  const $ = (n: number) => fmtCurrency(n * k)
   const basisLabel = deal.bnhValueBasis === 'purchase' ? 'purchase price' : 'ARV'
   // Tile labels open the formula modal; a tile that toggles a view keeps that on its value
   const tileLabel = (text: string, id: string) => (
@@ -412,19 +488,31 @@ function BuyHoldSections({ deal, bnh, mao, score, onLabelClick, onUpdate, termSh
       </SummaryStrip>
 
       <SectionCard title="Purchase & Rehab">
-        <OutputGroup title="Purchase & cash in">
-          <OutputRow label="Purchase price"                       value={fmtCurrency(deal.purchasePrice)} metricId="pp" onLabelClick={click} />
-          <OutputRow label="Down payment"                         value={fmtCurrency(bnh.downPayment)} metricId="bnh_down_payment" onLabelClick={click} />
-          <OutputRow label={`Loan (${deal.bnhLoanPct}% of price)`} value={fmtCurrency(bnh.loan)} metricId="bnh_loan" onLabelClick={click} />
-          <OutputRow label="Loan costs (points + fees + title/escrow)" value={fmtCurrency(bnh.loanCosts)} metricId="bnh_loan_costs" onLabelClick={click} />
-          <OutputRow label="Closing costs"                        value={fmtCurrency(deal.closingCostsBuy)} metricId="closing_buy" onLabelClick={click} />
-          <OutputRow label="Rehab (all cash)"                     value={fmtCurrency(bnh.cashRehab)} metricId="bnh_cash_rehab" onLabelClick={click} />
-          <OutputRow label="One-time costs"                       value={fmtCurrency(bnh.oneTimeCosts)} metricId="bnh_one_time" onLabelClick={click} />
-          <OutputRow label={`Holding costs (${deal.rehabMonths} mo, incl. mortgage)`} value={fmtCurrency(bnh.holdingCosts)} metricId="bnh_holding" onLabelClick={click} />
-          <OutputRow label="Credits at close"                     value={'−' + fmtCurrency(deal.projectCostAdjustments)} metricId="bnh_credits" onLabelClick={click} />
-          <OutputRow label="Cash In"                              value={fmtCurrency(bnh.cashIn)}
-            status={statusFor('moneyInDeal', bnh.cashIn, deal)} metricId="bnh_cash_in" onLabelClick={click} accent />
-        </OutputGroup>
+        <TableWithDonut donut={
+          // Purchase price and Loan are not slices: price = down payment + loan
+          <Donut ariaLabel="Cash in breakdown" slices={[
+            { label: 'Down payment',     value: bnh.downPayment },
+            { label: 'Loan costs',       value: bnh.loanCosts },
+            { label: 'Closing costs',    value: deal.closingCostsBuy },
+            { label: 'Rehab (all cash)', value: bnh.cashRehab },
+            { label: 'One-time costs',   value: bnh.oneTimeCosts },
+            { label: 'Holding costs',    value: bnh.holdingCosts },
+          ]} />
+        }>
+          <OutputGroup title="Purchase & cash in">
+            <OutputRow label="Purchase price"                       value={fmtCurrency(deal.purchasePrice)} metricId="pp" onLabelClick={click} />
+            <OutputRow label="Down payment"                         value={fmtCurrency(bnh.downPayment)} metricId="bnh_down_payment" onLabelClick={click} />
+            <OutputRow label={`Loan (${deal.bnhLoanPct}% of price)`} value={fmtCurrency(bnh.loan)} metricId="bnh_loan" onLabelClick={click} />
+            <OutputRow label="Loan costs (points + fees + title/escrow)" value={fmtCurrency(bnh.loanCosts)} metricId="bnh_loan_costs" onLabelClick={click} />
+            <OutputRow label="Closing costs"                        value={fmtCurrency(deal.closingCostsBuy)} metricId="closing_buy" onLabelClick={click} />
+            <OutputRow label="Rehab (all cash)"                     value={fmtCurrency(bnh.cashRehab)} metricId="bnh_cash_rehab" onLabelClick={click} />
+            <OutputRow label="One-time costs"                       value={fmtCurrency(bnh.oneTimeCosts)} metricId="bnh_one_time" onLabelClick={click} />
+            <OutputRow label={`Holding costs (${deal.rehabMonths} mo, incl. mortgage)`} value={fmtCurrency(bnh.holdingCosts)} metricId="bnh_holding" onLabelClick={click} />
+            <OutputRow label="Credits at close"                     value={'−' + fmtCurrency(deal.projectCostAdjustments)} metricId="bnh_credits" onLabelClick={click} />
+            <OutputRow label="Cash In"                              value={fmtCurrency(bnh.cashIn)}
+              status={statusFor('moneyInDeal', bnh.cashIn, deal)} metricId="bnh_cash_in" onLabelClick={click} accent />
+          </OutputGroup>
+        </TableWithDonut>
       </SectionCard>
 
       <SectionCard title="Cash Flow">
@@ -436,28 +524,34 @@ function BuyHoldSections({ deal, bnh, mao, score, onLabelClick, onUpdate, termSh
           metricId="bnh_cashflow" onLabelClick={click}
         />
 
-        <OutputGroup title="Monthly operating">
-          <OutputRow label="Gross rent" value={fmtCurrency(bnh.monthlyRent)} metricId="gross_rent" onLabelClick={click} />
-          <CollapsibleRow label="Expense breakdown" open={opexExpanded} onToggle={() => setOpexExpanded((v) => !v)}
-            showTitle="Show breakdown" hideTitle="Hide breakdown" />
-          {opexExpanded && (<>
-            <OutputRow label="Property Tax"             value={'−' + fmtCurrency(op.taxes)}  metricId="bnh_total_opex" onLabelClick={click} />
-            <OutputRow label="Insurance"                value={'−' + fmtCurrency(op.ins)}    metricId="bnh_total_opex" onLabelClick={click} />
-            <OutputRow label="HOA"                      value={'−' + fmtCurrency(op.hoa)}    metricId="bnh_total_opex" onLabelClick={click} />
-            <OutputRow label="State income tax"         value={'−' + fmtCurrency(op.sit)}    metricId="bnh_total_opex" onLabelClick={click} />
-            <OutputRow label="Property management"      value={'−' + fmtCurrency(op.mgmt)}   metricId="bnh_total_opex" onLabelClick={click} />
-            <OutputRow label="Capex / vacancy"          value={'−' + fmtCurrency(op.capV)}   metricId="bnh_total_opex" onLabelClick={click} />
-            <OutputRow label="Additional Monthly Costs" value={'−' + fmtCurrency(op.extras)} metricId="bnh_total_opex" onLabelClick={click} />
-            <OutputRow label="Mortgage P&I"             value={'−' + fmtCurrency(bnh.mortgagePI)} metricId="bnh_mortgage" onLabelClick={click} />
-          </>)}
-          <OutputRow label="Total Operating expenses (incl. P&I) / w/o Capex"
-            value={'−' + fmtCurrency(bnh.totalOpexWithPI) + ' / −' + fmtCurrency(bnh.totalOpexNoCapexWithPI)}
-            metricId="bnh_total_opex" onLabelClick={click} />
-          <OutputRow label="NOI" value={fmtCurrency(bnh.noi)} metricId="bnh_noi" onLabelClick={click} />
-          <OutputRow label="Monthly cashflow / w/o Capex"
-            value={fmtCurrency(bnh.cashflow) + ' / ' + fmtCurrency(bnh.cashflowNoCapex)}
-            status={statusFor('cashflow', bnh.cashflow, deal)} metricId="bnh_cashflow" onLabelClick={click} accent />
-        </OutputGroup>
+        <TableWithDonut donut={
+          <Donut ariaLabel="Operating expense breakdown" slices={expenseSlices(op, bnh.mortgagePI, k)} />
+        }>
+          <OutputGroup title="Monthly operating"
+            action={<PeriodSwitch yearly={yearly} onChange={setYearly} />}
+            valueCaption={yearly ? 'Yearly' : undefined}>
+            <OutputRow label="Gross rent" value={$(bnh.monthlyRent)} metricId="gross_rent" onLabelClick={click} />
+            <CollapsibleRow label="Expense breakdown" open={opexExpanded} onToggle={() => setOpexExpanded((v) => !v)}
+              showTitle="Show breakdown" hideTitle="Hide breakdown" />
+            {opexExpanded && (<>
+              <OutputRow label="Property Tax"             value={'−' + $(op.taxes)}  metricId="bnh_total_opex" onLabelClick={click} />
+              <OutputRow label="Insurance"                value={'−' + $(op.ins)}    metricId="bnh_total_opex" onLabelClick={click} />
+              <OutputRow label="HOA"                      value={'−' + $(op.hoa)}    metricId="bnh_total_opex" onLabelClick={click} />
+              <OutputRow label="State income tax"         value={'−' + $(op.sit)}    metricId="bnh_total_opex" onLabelClick={click} />
+              <OutputRow label="Property management"      value={'−' + $(op.mgmt)}   metricId="bnh_total_opex" onLabelClick={click} />
+              <OutputRow label="Capex / vacancy"          value={'−' + $(op.capV)}   metricId="bnh_total_opex" onLabelClick={click} />
+              <OutputRow label="Additional Monthly Costs" value={'−' + $(op.extras)} metricId="bnh_total_opex" onLabelClick={click} />
+              <OutputRow label="Mortgage P&I"             value={'−' + $(bnh.mortgagePI)} metricId="bnh_mortgage" onLabelClick={click} />
+            </>)}
+            <OutputRow label="Total Operating expenses (incl. P&I) / w/o Capex"
+              value={'−' + $(bnh.totalOpexWithPI) + ' / −' + $(bnh.totalOpexNoCapexWithPI)}
+              metricId="bnh_total_opex" onLabelClick={click} />
+            <OutputRow label="NOI" value={$(bnh.noi)} metricId="bnh_noi" onLabelClick={click} />
+            <OutputRow label="Monthly cashflow / w/o Capex"
+              value={$(bnh.cashflow) + ' / ' + $(bnh.cashflowNoCapex)}
+              status={statusFor('cashflow', bnh.cashflow, deal)} metricId="bnh_cashflow" onLabelClick={click} accent />
+          </OutputGroup>
+        </TableWithDonut>
       </SectionCard>
 
       <SectionCard title="Financing">
@@ -682,6 +776,21 @@ function FlipHMLSections({ deal, flip, mao, score, onLabelClick, termSheetSectio
 
 // ---- MAO Detail ----
 
+/** ✓ when the purchase price ≤ this rule's max offer — the same test as
+ *  "below / ABOVE MAO", shown per rule. The mark is its own grid cell so the
+ *  rule's label and value are unchanged. */
+function RuleCheck({ deal, maxOffer }: { deal: Deal; maxOffer: number }) {
+  const pass = maxOffer - deal.purchasePrice >= 0
+  return (
+    <span
+      className={`mao-check ${pass ? 'mao-check-pass' : 'mao-check-fail'}`}
+      role="img"
+      aria-label={pass ? 'Purchase price within this max offer' : 'Purchase price above this max offer'}
+      title={pass ? 'Purchase price ≤ this max offer' : 'Purchase price > this max offer'}
+    >{pass ? '✓' : '✗'}</span>
+  )
+}
+
 function MAODetail({ deal, mao, onLabelClick }: { deal: Deal; mao: MAOResult; onLabelClick?: (id: string) => void }) {
   const offerStatus: Status = mao.deltaToOffer >= 0 ? 'good' : 'bad'
   return (
@@ -692,26 +801,31 @@ function MAODetail({ deal, mao, onLabelClick }: { deal: Deal; mao: MAOResult; on
       </div>
       <div className="mao-detail-rows">
         <div className="mao-detail-row">
+          <RuleCheck deal={deal} maxOffer={mao.mao70} />
           <div className="mao-rule mao-rule-clickable" onClick={() => onLabelClick?.('mao_70')}><InfoIcon />70% Rule</div>
           <div className="mao-rule-formula">ARV × 70% − rehab</div>
           <div className="mao-rule-value">{fmtCurrency(mao.mao70)}</div>
         </div>
         <div className="mao-detail-row">
+          <RuleCheck deal={deal} maxOffer={mao.maoMoneyInDeal} />
           <div className="mao-rule mao-rule-clickable" onClick={() => onLabelClick?.('mao_brrrr')}><InfoIcon />Money in deal ≤ ${(deal.maxMoneyInDeal / 1000).toFixed(0)}k</div>
           <div className="mao-rule-formula">money in deal = target</div>
           <div className="mao-rule-value">{fmtCurrency(mao.maoMoneyInDeal)}</div>
         </div>
         <div className="mao-detail-row">
+          <RuleCheck deal={deal} maxOffer={mao.maoEquity} />
           <div className="mao-rule mao-rule-clickable" onClick={() => onLabelClick?.('mao_equity')}><InfoIcon />Equity post-Refi ≥ {deal.minEquityPct}%</div>
           <div className="mao-rule-formula">money in deal ≤ post-Refi equity ÷ (1 + {deal.minEquityPct}%)</div>
           <div className="mao-rule-value">{fmtCurrency(mao.maoEquity)}</div>
         </div>
         <div className="mao-detail-row mao-binding">
+          <span className="mao-check" aria-hidden="true" />
           <div className="mao-rule">Binding constraint</div>
           <div className="mao-rule-formula">{mao.constraint}</div>
           <div className="mao-rule-value">{fmtCurrency(mao.mao)}</div>
         </div>
         <div className={`mao-detail-row mao-current ${offerStatus}`}>
+          <span className="mao-check" aria-hidden="true" />
           <div className="mao-rule">Your offer</div>
           <div className="mao-rule-formula">
             {mao.deltaToOffer >= 0

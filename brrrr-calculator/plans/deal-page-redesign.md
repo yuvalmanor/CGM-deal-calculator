@@ -277,10 +277,10 @@ the Monthly/Yearly switch on Cash Flow; ✓/✗ marks on each max-offer rule.
 
 ### Acceptance criteria
 
-- [ ] Both donuts render from on-page numbers only, skip zero slices, show name/$/% on hover or tap; blank deal shows an empty ring
-- [ ] Mo/Yr defaults to Monthly with baseline values; Yearly shows each operating line × 12, labels unchanged, mode shown on the switch; Annual cashflow summary unaffected
-- [ ] Each max-offer rule shows ✓ when purchase price ≤ its max offer, ✗ otherwise
-- [ ] All gates green; committed and branch pushed
+- [x] Both donuts render from on-page numbers only, skip zero slices, show name/$/% on hover or tap; blank deal shows an empty ring
+- [x] Mo/Yr defaults to Monthly with baseline values; Yearly shows each operating line × 12, labels unchanged, mode shown on the switch; Annual cashflow summary unaffected
+- [x] Each max-offer rule shows ✓ when purchase price ≤ its max offer, ✗ otherwise
+- [x] All gates green; committed and branch pushed
 - [ ] Advisor audit done after commit + push; findings fixed or reported
 
 ---

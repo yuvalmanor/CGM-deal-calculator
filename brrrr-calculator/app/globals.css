@@ -40,6 +40,7 @@
 
   --accent: #1e88e5;
   --accent-soft: rgba(30, 136, 229, 0.10);
+  --donut-empty: #e6eaf0;
 
   --font-sans: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
 
@@ -516,8 +517,9 @@ input, textarea { font-family: inherit; color: inherit; }
   font-size: 13px;
 }
 .out-row:last-child { border-bottom: 0; }
-.out-row .out-label { color: var(--text-mute); }
-.out-row .out-value { color: var(--text); font-size: 13px; }
+.out-row { gap: var(--s-3); }
+.out-row .out-label { color: var(--text-mute); min-width: 0; }
+.out-row .out-value { color: var(--text); font-size: 13px; flex: none; white-space: nowrap; text-align: right; }
 .out-row.out-accent { background: var(--bg-card-2); }
 .out-row.out-accent .out-label { color: var(--text); font-weight: 500; }
 .out-row.out-accent .out-value { font-weight: 500; font-size: 14px; }
@@ -683,7 +685,7 @@ input, textarea { font-family: inherit; color: inherit; }
 .mao-detail-rows { display: flex; flex-direction: column; gap: 2px; }
 .mao-detail-row {
   display: grid;
-  grid-template-columns: 1fr 1.5fr auto;
+  grid-template-columns: 16px 1fr 1.5fr auto;   /* ✓/✗ mark, rule, formula, value */
   gap: var(--s-3);
   align-items: center;
   padding: 8px var(--s-3);
@@ -796,6 +798,53 @@ input, textarea { font-family: inherit; color: inherit; }
   border-radius: var(--radius-sm);
 }
 .loan-card-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: var(--s-3); }
+
+/* ✓/✗ on each max-offer rule: purchase price ≤ that rule's max offer */
+.mao-check { font-size: 13px; font-weight: 700; line-height: 1; text-align: center; }
+.mao-check-pass { color: var(--good-strong); }
+.mao-check-fail { color: var(--bad); }
+
+/* Monthly operating: Monthly / Yearly switch on the title line, "Yearly" caption over the values */
+.out-group-head { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); margin-bottom: var(--s-2); }
+.out-group-head .out-group-title { margin-bottom: 0; }
+.period-switch { display: flex; gap: 2px; background: var(--bg-input); padding: 3px; border-radius: var(--radius-sm); border: 1px solid var(--line); }
+.period-btn { padding: 4px 10px; background: transparent; border: 0; border-radius: 5px; color: var(--text-mute); font: inherit; font-size: 11px; cursor: pointer; }
+.period-btn.active { background: var(--accent); color: #fff; font-weight: 600; }
+.out-group-value-caption {
+  text-align: right;
+  padding: 0 var(--s-4) var(--s-1);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+/* A row table with its donut beside it; the donut drops under the table when narrow */
+.table-donut { display: flex; flex-wrap: wrap; align-items: flex-start; gap: var(--s-6); }
+.table-donut-table { flex: 1 1 360px; max-width: 600px; min-width: 0; }
+.table-donut-chart { flex: 0 1 380px; min-width: 0; }
+.donut { display: flex; align-items: center; gap: var(--s-4); flex-wrap: wrap; }
+.donut-chart { position: relative; width: 168px; height: 168px; flex: none; }
+.donut-chart svg { width: 100%; height: 100%; display: block; }
+.donut-slice { cursor: pointer; transition: opacity 120ms; }
+.donut-slice.dim { opacity: 0.35; }
+.donut-center {
+  position: absolute; inset: 34px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; pointer-events: none;
+}
+.donut-center-label { font-size: 10.5px; color: var(--text-mute); line-height: 1.2; }
+.donut-center-value { font-size: 15px; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+.donut-center-pct { font-size: 11px; color: var(--text-mute); font-variant-numeric: tabular-nums; }
+.donut-legend { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; min-width: 170px; flex: 1 1 170px; }
+.donut-legend-item {
+  display: grid; grid-template-columns: 10px 1fr auto; align-items: center; gap: var(--s-2);
+  padding: 3px 6px; border-radius: 5px; font-size: 12px; color: var(--text-mute); cursor: pointer;
+}
+.donut-legend-item.active { background: var(--bg-card-2); color: var(--text); }
+.donut-swatch { width: 10px; height: 10px; border-radius: 3px; }
+.donut-legend-pct { color: var(--text); font-variant-numeric: tabular-nums; }
 
 /* Purchase Criteria: max-offer rules beside the score breakdown */
 .criteria-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-6); align-items: start; }

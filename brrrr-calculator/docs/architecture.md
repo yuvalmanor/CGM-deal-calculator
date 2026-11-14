@@ -37,6 +37,7 @@ brrrr-calculator/
 │   │   ├── InputForm.tsx             Edit Deal drawer input form
 │   │   ├── ScenarioPanel.tsx         Body of the open Scenario tab (BRRRR / B&H / Flip-Cash / Flip-HML)
 │   │   ├── SectionCard.tsx           Section card (uppercase blue title) + ⓘ formula hint icon
+│   │   ├── Donut.tsx                 Hand-drawn SVG donut (cost / expense) + table-beside-donut layout
 │   │   ├── TermSheetSection.tsx      Term Sheet comparison table (add / select / delete; title collapses it)
 │   │   ├── PayoffHorizonMatrix.tsx   Payoff Horizon matrix inside the Refi Term Sheets section
 │   │   └── FormControls.tsx          Numeric inputs (blur-to-commit), toggles
@@ -79,7 +80,10 @@ calcMAO(deal) / calcDealScore(deal, brrrr, mao)      ← pure functions
         │                  Purchase Criteria;
         │                  Flip-Cash / Flip-HML: Purchase & Rehab → Financing →
         │                  Valuation & Equity (Sale) → Purchase Criteria.
-        │                  Term Sheet sections render inside Financing, collapsible.)
+        │                  Term Sheet sections render inside Financing, collapsible.
+        │                  BRRRR / B&H: cost donut beside Purchase & Rehab, expense
+        │                  donut + Monthly/Yearly switch on Cash Flow; ✓/✗ per
+        │                  max-offer rule on every tab.)
         └── FormulaModal (live numbers via lib/formulaRegistry.ts)
 
 Save:  POST /api/deals            → sheets.saveDeal()  → revalidateTag('deals')

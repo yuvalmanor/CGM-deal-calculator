@@ -537,6 +537,45 @@ Re-checked: the Term Sheet titles collapse and reopen on Flip · Cash and B&H.
 
 ---
 
+## Deal page redesign phase 4 — Donuts, Monthly/Yearly switch, ✓/✗ criteria ✅ Complete
+Date: 2026-11-14 (branch `deal-page-redesign`, not on `main`)
+
+**Changed:**
+- `components/cgm/Donut.tsx` (new) — hand-drawn SVG donut (no chart library): one ring
+  segment per non-zero slice, fixed-order categorical colors (a skipped zero slice never
+  repaints the others), 2px gap between slices, legend with name and %. Hover or tap a slice
+  or legend line to show its name, $ and % in the center. All slices zero → an empty grey ring
+  with no legend or percentages. `TableWithDonut` puts the donut beside its table (it drops
+  under the table when the card is narrow).
+- `components/cgm/ScenarioPanel.tsx` — BRRRR and Buy & Hold get a cost donut beside Purchase &
+  Rehab (BRRRR: Purchase price, Rehab Estimate (Funded), Change Orders, Additional rehab costs,
+  Closing costs, One-time costs, Holding costs; B&H: Down payment, Loan costs, Closing costs,
+  Rehab (all cash), One-time costs, Holding costs — Purchase price and Loan are not slices) and
+  an expense donut beside Monthly operating (the 7 expense lines + Mortgage P&I). A Monthly /
+  Yearly switch on the Monthly operating title line: Yearly shows every line of that table × 12
+  (the raw number × 12, then formatted) with a "Yearly" caption over the values column; labels
+  are unchanged, nothing is saved, and it starts on Monthly. The expense donut's $ follows the
+  switch; its % does not change. The Annual cashflow headline and the 4 summary tiles are not
+  affected. Every max-offer rule (70% Rule, Money in deal, Equity post-Refi) shows ✓ when the
+  purchase price ≤ that rule's max offer, ✗ otherwise, in its own column so the rule's label
+  and value are unchanged; on all 4 tabs.
+- `app/globals.css` — donut, switch and ✓/✗ styles; a 12px gap between a row's label and
+  value (value no longer wraps), since tables now share their row with a donut.
+
+**Verified:** Gates green — `npm test` (175), `npx tsc --noEmit`, `npm run lint` (0 errors; 1
+pre-existing font warning), `npm run build`. Browser: both deals' `savedAt` unchanged; re-captured
+Anna and Melissa on all 4 tabs (all toggle states, switch on Monthly) — all 1,163 baseline pairs
+match (Anna 721, Melissa 442), only extra pair still the second DSCR. Yearly on BRRRR (15 lines)
+and B&H (12 lines) for Melissa: every value = 12 × monthly, labels identical, yearly "Monthly
+cashflow" equals the Annual cashflow headline, headline and summary tiles unchanged. Donut %
+recomputed from the table rows match the legend on both tabs (Anna BRRRR cost, Melissa B&H cost
+and expense); Anna's cost slices minus Project cost adjustments = Total project cost. Clicking a
+slice and hovering a legend line both show name, $ and %. ✓/✗ agree with purchase price ≤ max
+offer on every rule and tab (Anna: ✗ ✓ ✗; Melissa: ✗ ✗ ✗, both "ABOVE MAO"). Blank `/deal/new`:
+empty grey rings, no legend, no NaN on any tab (Yearly too); Flip tabs have no donuts.
+
+---
+
 ## How to Update This File
 
 After completing each phase or significant change, add an entry here:
