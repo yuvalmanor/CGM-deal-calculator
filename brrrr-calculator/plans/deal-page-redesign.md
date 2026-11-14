@@ -79,14 +79,25 @@ Durable decisions that apply across all phases:
   Gross Rent − Total Operating Expenses. The row dates from the original V2 build (608a505).
   Reported to the user 2026-11-13; the redesign keeps it as-is (a separate fix if wanted).
 - **Formula modal**: takes the new colors and fonts only; its content and layout are untouched.
+- **Summary cells above Purchase & Rehab** (user, 2026-11-14, after reviewing the phase 2
+  preview): the 4 cells that sat under the Annual cashflow headline (BRRRR: CoC ↔ w/o CapEx,
+  DSCR, Equity %↔$, Money in deal) move out of Cash Flow to a row of tiles directly above the
+  Purchase & Rehab card. The headline itself ("Annual cashflow", value, "/ month" line) stays in
+  Cash Flow. Phase 3 applies the same rule on the other tabs (B&H: its 4 cells; Flip: the 4 cells
+  under "Net profit", with the Net profit headline staying at the top of Purchase & Rehab).
+- **Metric tiles line up** (user, 2026-11-14): every Advanced Metrics tile has one fixed height
+  (room for a two-line label, value on the bottom line), cards side by side share top and bottom
+  edges, and a card's tiles come first, before any other block in it (so Valuation & Equity
+  shows Margin/ARV and Forced Equity ROI, then Equity post-Refi).
 - **Content mapping — BRRRR tab**
 
   | Section | Today's content |
   |---|---|
   | Purchase & Rehab | Acquisition group (Purchase price → Total project cost) + cost donut |
-  | Cash Flow | Annual cashflow summary + its 4 cells (CoC ↔ w/o CapEx, DSCR, Equity %↔$, Money in deal), then Monthly operating (expense breakdown, interest-only scenario) + expense donut + Mo/Yr switch |
+  | (above the cards) | The 4 summary cells (CoC ↔ w/o CapEx, DSCR, Equity %↔$, Money in deal) as a row of tiles — moved 2026-11-14 |
+  | Cash Flow | Annual cashflow headline, then Monthly operating (expense breakdown, interest-only scenario) + expense donut + Mo/Yr switch |
   | Financing | Two loan cards side by side: "Loan 1 · Hard money" (Hard money loan group) and "Loan 2 · Refinance" (Refinance group); below them HML Term Sheets and Refi Term Sheets (with the payoff matrix) as expandable sections |
-  | Valuation & Equity | Equity post-Refi (Book / Liquidation), Margin/ARV, Forced Equity ROI |
+  | Valuation & Equity | Margin/ARV, Forced Equity ROI, then Equity post-Refi (Book / Liquidation) |
   | Investment Returns | Cap Rate, ROE, Annual CF (w/ ↔ no capex), 5-Year IRR at 2/3/4% |
   | Financial Ratios | GRM, DSCR |
   | Purchase Criteria | Maximum Allowable Offer rules with ✓/✗, binding constraint, your offer; then Deal Score Breakdown bars |
@@ -96,15 +107,16 @@ Durable decisions that apply across all phases:
   | Section | Today's content |
   |---|---|
   | Purchase & Rehab | "Purchase & cash in" group (Purchase price → Cash In) + cost donut |
-  | Cash Flow | Annual cashflow summary + 4 cells, Monthly operating + expense donut + Mo/Yr switch |
+  | (above the cards) | The 4 summary cells (CoC, DSCR, Equity, Cash In) as a row of tiles — moved 2026-11-14 |
+  | Cash Flow | Annual cashflow headline, Monthly operating + expense donut + Mo/Yr switch |
   | Financing | "Loan · Buy & Hold" card: Loan (x%) from advanced metrics; below it HML and Refi Term Sheets + payoff matrix, as today |
   | Valuation & Equity | Property value toggle (ARV / Purchase price), Value (basis), Equity at purchase |
   | Investment Returns | Cap Rate, ROE, Annual CF toggle, 5-Year IRR |
   | Financial Ratios | GRM, DSCR |
   | Purchase Criteria | MAO rules with ✓/✗; B&H Deal Score Breakdown |
 
-- **Content mapping — Flip tabs** (Cash and HML): profit summary (Net profit + its 4 cells) at
-  the top of Purchase & Rehab, "Cash deployed" group in Purchase & Rehab, "Sale" group in
+- **Content mapping — Flip tabs** (Cash and HML): the 4 profit cells as a row of tiles above
+  Purchase & Rehab (2026-11-14), the Net profit headline at the top of Purchase & Rehab, "Cash deployed" group in Purchase & Rehab, "Sale" group in
   Valuation & Equity (titled "Sale" inside the card), Financing holds the term-sheet sections as
   today, Purchase Criteria holds MAO + score breakdown. No Cash Flow / Returns / Ratios sections.
 - **Formula hint**: every line that opens a formula today gets a small ⓘ icon before its label;
@@ -214,6 +226,10 @@ change):
   four in one row, sized like the top tiles — not two full-width rows.
 - The 6 top tiles get a little tighter: smaller padding and 20px values (from 22px). The Deal
   Score tile stays larger.
+
+Follow-up (user, 2026-11-14, after reviewing the phase 2 preview): the 4 summary cells move to a
+row above Purchase & Rehab, and the Advanced Metrics tiles and paired cards line up — see the two
+2026-11-14 entries in the header.
 
 ### Acceptance criteria
 

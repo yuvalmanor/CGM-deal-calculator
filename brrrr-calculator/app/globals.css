@@ -779,8 +779,9 @@ input, textarea { font-family: inherit; color: inherit; }
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--s-4);
-  align-items: start;
+  align-items: stretch;   /* cards side by side share top and bottom edges */
 }
+.summary-strip { grid-column: 1 / -1; min-width: 0; }
 .section-card {
   grid-column: 1 / -1;
   display: flex;
@@ -841,6 +842,17 @@ input, textarea { font-family: inherit; color: inherit; }
   background: none;
   border: 0;
   border-radius: 0;
+}
+.section-card .am-panel { gap: var(--s-4); }
+/* Metric tiles: one fixed height everywhere (room for a two-line label), value on
+   the bottom line, so tiles in neighbouring cards line up on the same edges. */
+.section-card .am-grid { grid-auto-rows: 1fr; gap: var(--s-3); }
+.section-card .am-cell {
+  min-height: 78px;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
 }
 .section-card .mao-detail-header,
 .section-card .breakdown-header { margin-bottom: var(--s-3); padding-bottom: var(--s-2); }

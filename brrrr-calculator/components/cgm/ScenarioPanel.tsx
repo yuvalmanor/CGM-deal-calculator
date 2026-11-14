@@ -69,6 +69,39 @@ function BRRRRSections({ deal, brrrr, mao, score, onLabelClick, termSheetSection
 
   return (
     <div className="section-stack">
+      {/* The 4 summary cells sit above Purchase & Rehab (user, 2026-11-14); the
+          Annual cashflow headline stays in the Cash Flow card. */}
+      <div className="summary-strip">
+        <div className="summary-grid">
+          <div
+            className={`summary-cell ${statusFor('coc', cocNoCapexView ? brrrr.cocNoCapex : brrrr.coc, deal)}`}
+            onClick={() => setCocNoCapexView((v) => !v)}
+            style={{ cursor: 'pointer', userSelect: 'none' }}
+          >
+            <div className="cell-label">Cash-on-Cash{cocNoCapexView ? ' (w/o CapEx)' : ''}</div>
+            <div className="cell-value">{fmtPct(cocNoCapexView ? brrrr.cocNoCapex : brrrr.coc)}</div>
+          </div>
+          <div className={`summary-cell ${statusFor('dscr', brrrr.dscr, deal)}`}>
+            <div className="cell-label">DSCR</div>
+            <div className="cell-value">{fmtNum(brrrr.dscr)}</div>
+          </div>
+          <div
+            className={`summary-cell ${statusFor('equity', brrrr.equityPct, deal)}`}
+            onClick={() => setEquityShowDollar((v) => !v)}
+            style={{ cursor: 'pointer', userSelect: 'none' }}
+          >
+            <div className="cell-label">Equity {equityShowDollar ? '$' : '%'}</div>
+            <div className="cell-value">
+              {equityShowDollar ? fmtCurrency(brrrr.equityDollar) : fmtPct(brrrr.equityPct)}
+            </div>
+          </div>
+          <div className={`summary-cell ${statusFor('moneyInDeal', brrrr.moneyInDeal, deal)}`}>
+            <div className="cell-label">Money in deal</div>
+            <div className="cell-value">{fmtCurrency(brrrr.moneyInDeal)}</div>
+          </div>
+        </div>
+      </div>
+
       <SectionCard title="Purchase & Rehab">
         <OutputGroup title="Acquisition">
           <OutputRow label="Purchase price"          value={fmtCurrency(deal.purchasePrice)} metricId="pp" onLabelClick={click} />
@@ -91,34 +124,6 @@ function BRRRRSections({ deal, brrrr, mao, score, onLabelClick, termSheetSection
               {fmtCurrency(brrrr.annualCashflow)}
             </div>
             <div className="summary-sub">{fmtCurrency(brrrr.cashflow)} / month after debt service</div>
-          </div>
-          <div className="summary-grid">
-            <div
-              className={`summary-cell ${statusFor('coc', cocNoCapexView ? brrrr.cocNoCapex : brrrr.coc, deal)}`}
-              onClick={() => setCocNoCapexView((v) => !v)}
-              style={{ cursor: 'pointer', userSelect: 'none' }}
-            >
-              <div className="cell-label">Cash-on-Cash{cocNoCapexView ? ' (w/o CapEx)' : ''}</div>
-              <div className="cell-value">{fmtPct(cocNoCapexView ? brrrr.cocNoCapex : brrrr.coc)}</div>
-            </div>
-            <div className={`summary-cell ${statusFor('dscr', brrrr.dscr, deal)}`}>
-              <div className="cell-label">DSCR</div>
-              <div className="cell-value">{fmtNum(brrrr.dscr)}</div>
-            </div>
-            <div
-              className={`summary-cell ${statusFor('equity', brrrr.equityPct, deal)}`}
-              onClick={() => setEquityShowDollar((v) => !v)}
-              style={{ cursor: 'pointer', userSelect: 'none' }}
-            >
-              <div className="cell-label">Equity {equityShowDollar ? '$' : '%'}</div>
-              <div className="cell-value">
-                {equityShowDollar ? fmtCurrency(brrrr.equityDollar) : fmtPct(brrrr.equityPct)}
-              </div>
-            </div>
-            <div className={`summary-cell ${statusFor('moneyInDeal', brrrr.moneyInDeal, deal)}`}>
-              <div className="cell-label">Money in deal</div>
-              <div className="cell-value">{fmtCurrency(brrrr.moneyInDeal)}</div>
-            </div>
           </div>
         </div>
 
@@ -224,6 +229,10 @@ function BRRRRSections({ deal, brrrr, mao, score, onLabelClick, termSheetSection
 
       <SectionCard title="Valuation & Equity" caption="Advanced Metrics" half>
         <div className="am-panel">
+          <div className="am-grid">
+            {amCell('Margin/ARV', fmtPct(brrrr.equityMarginOnArv), statusFor('marginOnArv', brrrr.equityMarginOnArv, deal), 'equity_margin_arv')}
+            {amCell('Forced Equity ROI', fmtPct(brrrr.equityMarginArv), statusFor('forcedEquityROI', brrrr.equityMarginArv, deal), 'forced_equity_roi')}
+          </div>
           <div className="am-equity">
             <div className="am-equity-header">
               <div className="am-label am-label-clickable" onClick={() => click?.(equityMetricId)} title="Formula: Equity post-Refi">
@@ -248,10 +257,6 @@ function BRRRRSections({ deal, brrrr, mao, score, onLabelClick, termSheetSection
             {equityMode === 'liquidation' && (
               <div className="am-equity-note">After {deal.sellingCostsPct}% selling costs</div>
             )}
-          </div>
-          <div className="am-grid">
-            {amCell('Margin/ARV', fmtPct(brrrr.equityMarginOnArv), statusFor('marginOnArv', brrrr.equityMarginOnArv, deal), 'equity_margin_arv')}
-            {amCell('Forced Equity ROI', fmtPct(brrrr.equityMarginArv), statusFor('forcedEquityROI', brrrr.equityMarginArv, deal), 'forced_equity_roi')}
           </div>
         </div>
       </SectionCard>

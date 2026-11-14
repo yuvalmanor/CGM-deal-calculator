@@ -476,6 +476,14 @@ the same modal. Row tables measure ≤ 600px, summary tiles sit in one row, tile
 modal text in Inter. Term sheet add / select / delete and the Refi section collapse tried on Anna
 without saving (reloaded after); neither deal's `savedAt` changed.
 
+**Follow-up 2026-11-14 (user review of the preview):** the 4 summary cells moved out of Cash Flow
+to a row of tiles above Purchase & Rehab (the Annual cashflow headline stays in Cash Flow).
+Advanced Metrics tiles have one fixed height with the value on the bottom line, cards side by
+side stretch to the same height, and Valuation & Equity shows its tiles before Equity post-Refi so
+its tile row lines up with Investment Returns. Re-checked: all 1,163 baseline pairs match, 40/40
+ⓘ on BRRRR, both deals unsaved. The plan now has an advisor audit after every phase, and the
+baseline file keeps the compare and ⓘ check scripts.
+
 ---
 
 ## How to Update This File
