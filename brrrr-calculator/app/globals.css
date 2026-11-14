@@ -527,6 +527,8 @@ input, textarea { font-family: inherit; color: inherit; }
 
 /* Term Sheets (lender comparison), expandable sections inside Financing */
 .ts-section { padding-top: var(--s-3); border-top: 1px solid var(--line-faint); }
+/* A Term Sheet section right under the card title (Flip tabs) needs no second divider */
+.section-card-head + .ts-section { padding-top: 0; border-top: 0; }
 .ts-header {
   display: flex;
   justify-content: space-between;

@@ -264,7 +264,7 @@ row of tiles above Purchase & Rehab, and metric tiles and side-by-side cards lin
 - [x] On B&H and both Flip tabs the 4 summary cells sit in a row above Purchase & Rehab; metric tiles share one height and paired cards share edges
 - [x] No old-layout CSS left unused
 - [x] All gates green; committed and branch pushed
-- [ ] Advisor audit done after commit + push; findings fixed or reported
+- [x] Advisor audit done after commit + push; findings fixed or reported (2026-11-14: one cosmetic defect — a double divider under the Flip tabs' Financing title — fixed in a follow-up commit; judgment calls reported to the user)
 
 ---
 

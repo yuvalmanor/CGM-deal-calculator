@@ -530,6 +530,11 @@ BRRRR layout boxes identical before and after the CSS cleanup (88 boxes at 1400p
 deal (the object Save serializes), survives a reload, then restored to ARV — not saved.
 Neither deal's `savedAt` changed.
 
+**Audit follow-up 2026-11-14:** on the Flip tabs the first Term Sheet section sits straight under
+the Financing title, which drew a second divider under the title's rule; a section directly under
+a card title now has none (BRRRR and B&H, where it follows the loan cards, are unchanged).
+Re-checked: the Term Sheet titles collapse and reopen on Flip · Cash and B&H.
+
 ---
 
 ## How to Update This File
